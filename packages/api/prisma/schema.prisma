@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum TaskState {
+  NOT_STARTED
+  IN_PROGRESS
+  BLOCKED
+  NEEDS_REVIEW
+  COMPLETED
+  UNCERTAIN
+}
+
+enum EvidenceType {
+  ISSUE
+  PR
+  COMMIT
+  LABEL
+  STATUS_CHECK
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+}
+
+enum Platform {
+  TWITTER
+  LINKEDIN
+  BLOG
+}
+
+enum DraftStatus {
+  GENERATED
+  EDITING
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SCHEDULED
+  COPIED
+}
+
+// ─── Models ─────────────────────────────────────────────────────────────────
+
+model User {
+  id            String         @id @default(uuid())
+  githubId      String         @unique
+  username      String
+  email         String?
+  accessToken   String         // Encrypted at rest
+  syncInterval  Int            @default(30) // minutes
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  repository    Repository?
+  contentDrafts ContentDraft[]
+  sessions      Session[]
+}
+
+model Repository {
+  id          String   @id @default(uuid())
+  userId      String   @unique // Enforces one repo per user
+  owner       String
+  name        String
+  fullName    String
+  githubId    Int
+  connectedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  tasks       Task[]
+  syncs       Sync[]
+}
+
+model Task {
+  id             String            @id @default(uuid())
+  repositoryId   String
+  githubIssueId  Int
+  title          String
+  state          TaskState         @default(NOT_STARTED)
+  blockerReason  String?
+  lastInferredAt DateTime?
+  repository     Repository        @relation(fields: [repositoryId], references: [id])
+  evidence       Evidence[]
+  stateHistory   StateTransition[]
+
+  @@unique([repositoryId, githubIssueId])
+}
+
+model Evidence {
+  id        String       @id @default(uuid())
+  taskId    String
+  type      EvidenceType
+  url       String
+  metadata  Json
+  fetchedAt DateTime     @default(now())
+  task      Task         @relation(fields: [taskId], references: [id])
+}
+
+model StateTransition {
+  id            String    @id @default(uuid())
+  taskId        String
+  previousState TaskState
+  newState      TaskState
+  evidenceIds   String[]
+  timestamp     DateTime  @default(now())
+  task          Task      @relation(fields: [taskId], references: [id])
+}
+
+model Sync {
+  id           String     @id @default(uuid())
+  repositoryId String
+  status       SyncStatus
+  startedAt    DateTime
+  completedAt  DateTime?
+  duration     Int?
+  itemsFetched Int?
+  errorMessage String?
+  retryCount   Int        @default(0)
+  repository   Repository @relation(fields: [repositoryId], references: [id])
+}
+
+model ContentDraft {
+  id             String         @id @default(uuid())
+  userId         String
+  platform       Platform
+  status         DraftStatus    @default(GENERATED)
+  currentContent String
+  scheduledAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  user           User           @relation(fields: [userId], references: [id])
+  versions       DraftVersion[]
+}
+
+model DraftVersion {
+  id       String       @id @default(uuid())
+  draftId  String
+  version  Int
+  content  String
+  editedAt DateTime     @default(now())
+  draft    ContentDraft @relation(fields: [draftId], references: [id])
+}
+
+model MarketingAsset {
+  id          String    @id @default(uuid())
+  userId      String
+  type        String
+  status      String
+  completedAt DateTime?
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  lastActiveAt DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  category  String
+  action    String
+  details   Json
+  userId    String?
+  timestamp DateTime @default(now())
+}
