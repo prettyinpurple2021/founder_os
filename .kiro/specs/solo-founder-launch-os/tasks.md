@@ -154,36 +154,36 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
 - [~] 10. Checkpoint - Checklist and marketing
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Content Generator
-  - [~] 11.1 Implement POST /api/content/generate endpoint that generates a draft from recently completed tasks using LLM API with platform-specific prompts
+- [x] 11. Content Generator
+  - [x] 11.1 Implement POST /api/content/generate endpoint that generates a draft from recently completed tasks using LLM API with platform-specific prompts
     - _Requirements: 6.1, 6.2_
-  - [~] 11.2 Implement platform tailoring: Twitter/X (≤280 chars, casual), LinkedIn (professional, 1-3 paragraphs), Blog (longer form, technical)
+  - [x] 11.2 Implement platform tailoring: Twitter/X (≤280 chars, casual), LinkedIn (professional, 1-3 paragraphs), Blog (longer form, technical)
     - _Requirements: 6.2_
-  - [~] 11.3 Implement PUT /api/content/drafts/:id endpoint for editing drafts, creating a new DraftVersion on each edit
+  - [x] 11.3 Implement PUT /api/content/drafts/:id endpoint for editing drafts, creating a new DraftVersion on each edit
     - _Requirements: 6.3, 6.4_
-  - [~] 11.4 Implement GET /api/content/drafts endpoint with filtering by status
+  - [x] 11.4 Implement GET /api/content/drafts endpoint with filtering by status
     - _Requirements: 6.6_
-  - [~] 11.5 Implement GET /api/content/drafts/:id/versions endpoint returning version history
+  - [x] 11.5 Implement GET /api/content/drafts/:id/versions endpoint returning version history
     - _Requirements: 6.4_
-  - [~] 11.6 Write property test for version history monotonicity
+  - [x] 11.6 Write property test for version history monotonicity
     - **Property 9: Content Draft Version History Monotonicity**
     - After N edits, exactly N+1 versions exist for a draft, versions never deleted
     - **Validates: Requirements 6.4**
 
-- [ ] 12. Content Approval and Publishing Control
-  - [~] 12.1 Implement POST /api/content/drafts/:id/approve endpoint that transitions draft to APPROVED status and logs the action
+- [x] 12. Content Approval and Publishing Control
+  - [x] 12.1 Implement POST /api/content/drafts/:id/approve endpoint that transitions draft to APPROVED status and logs the action
     - _Requirements: 7.1, 7.3_
-  - [~] 12.2 Implement POST /api/content/drafts/:id/reject endpoint that moves draft to REJECTED status, preserves content, and logs the action
+  - [x] 12.2 Implement POST /api/content/drafts/:id/reject endpoint that moves draft to REJECTED status, preserves content, and logs the action
     - _Requirements: 7.4, 6.5_
-  - [~] 12.3 Implement POST /api/content/drafts/:id/schedule endpoint (only accessible after approval) allowing user to set publish time or copy content
+  - [x] 12.3 Implement POST /api/content/drafts/:id/schedule endpoint (only accessible after approval) allowing user to set publish time or copy content
     - _Requirements: 7.2_
-  - [~] 12.4 Implement draft lifecycle state machine enforcing valid transitions (generated → editing → pending_approval → approved → scheduled/copied; pending_approval → rejected)
+  - [x] 12.4 Implement draft lifecycle state machine enforcing valid transitions (generated → editing → pending_approval → approved → scheduled/copied; pending_approval → rejected)
     - _Requirements: 7.1, 6.6_
-  - [~] 12.5 Write property test for no auto-publishing invariant
+  - [x] 12.5 Write property test for no auto-publishing invariant
     - **Property 10: No Auto-Publishing Invariant**
     - No draft reaches SCHEDULED or COPIED status without a prior approval log entry
     - **Validates: Requirements 6.6, 7.1**
-  - [~] 12.6 Write property test for rejected drafts preservation
+  - [x] 12.6 Write property test for rejected drafts preservation
     - **Property 11: Rejected Drafts Preserved**
     - Rejected drafts are never deleted, content always preserved
     - **Validates: Requirements 6.5, 7.4**
