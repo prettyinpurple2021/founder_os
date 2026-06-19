@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fc from 'fast-check';
+
+vi.mock('../lib/prisma.js', () => ({ default: {} }));
+vi.mock('../services/logger.js', () => ({
+  logContent: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { VALID_TRANSITIONS, isValidTransition, validateTransition } from '../services/content.js';
 import { DraftStatus } from '../generated/prisma/enums.js';
 

@@ -13,6 +13,7 @@ import {
   rateLimitExceeded,
 } from '../errors/AppError.js';
 import { errorHandler } from '../middleware/errorHandler.js';
+import * as logger from '../services/logger.js';
 
 function createMockRes() {
   const res: Partial<Response> = {};
@@ -22,7 +23,7 @@ function createMockRes() {
   return res as Response;
 }
 
-const mockReq = {} as Request;
+const mockReq = { method: 'GET', path: '/api/test' } as unknown as Request;
 const mockNext = vi.fn() as unknown as NextFunction;
 
 describe('AppError', () => {
@@ -313,6 +314,125 @@ describe('errorHandler middleware', () => {
     errorHandler(err, mockReq, res, mockNext);
 
     expect(res.clearCookie).not.toHaveBeenCalled();
+  });
+});
+
+describe('errorHandler error logging', () => {
+  const originalEnv = process.env.NODE_ENV;
+  let logErrorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    logErrorSpy = vi.spyOn(logger, 'logError').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalEnv;
+    vi.restoreAllMocks();
+  });
+
+  it('calls logError for 500+ AppError with correct schema', () => {
+    const err = internalError('DB connection failed');
+    const req = { method: 'POST', path: '/api/projects', user: { id: 'user-123' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith('user-123', 'request_error', {
+      method: 'POST',
+      path: '/api/projects',
+      statusCode: 500,
+      errorCode: 'INTERNAL_ERROR',
+      message: 'DB connection failed',
+      stack: expect.any(String),
+      retryable: true,
+    });
+  });
+
+  it('calls logError for unknown errors (500) with correct schema', () => {
+    const err = new Error('Something unexpected');
+    const req = { method: 'GET', path: '/api/users', user: { id: 'user-456' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith('user-456', 'request_error', {
+      method: 'GET',
+      path: '/api/users',
+      statusCode: 500,
+      errorCode: 'INTERNAL_ERROR',
+      message: 'Something unexpected',
+      stack: expect.any(String),
+      retryable: true,
+    });
+  });
+
+  it('calls logError for 503 ServiceUnavailable errors', () => {
+    const err = serviceUnavailable('GitHub API is down');
+    const req = { method: 'POST', path: '/api/sync', user: { id: 'user-789' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith('user-789', 'request_error', {
+      method: 'POST',
+      path: '/api/sync',
+      statusCode: 503,
+      errorCode: 'SERVICE_UNAVAILABLE',
+      message: 'GitHub API is down',
+      stack: expect.any(String),
+      retryable: true,
+    });
+  });
+
+  it('does NOT call logError for errors with status < 500', () => {
+    const err = notFound('Item not found');
+    const req = { method: 'GET', path: '/api/items/1' } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes undefined userId when request has no user', () => {
+    const err = internalError('Crash');
+    const req = { method: 'GET', path: '/api/health' } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'request_error', expect.objectContaining({
+      method: 'GET',
+      path: '/api/health',
+      statusCode: 500,
+    }));
+  });
+
+  it('omits stack from log details in production', () => {
+    process.env.NODE_ENV = 'production';
+    const err = internalError('Prod crash');
+    const req = { method: 'DELETE', path: '/api/data', user: { id: 'u1' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'request_error', expect.objectContaining({
+      stack: undefined,
+    }));
+  });
+
+  it('logging errors do not block the error response', () => {
+    logErrorSpy.mockRejectedValue(new Error('logging failed'));
+    const err = internalError('Something broke');
+    const req = { method: 'GET', path: '/api/test' } as unknown as Request;
+    const res = createMockRes();
+
+    // Should not throw even if logError rejects
+    errorHandler(err, req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalled();
   });
 });
 

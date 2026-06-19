@@ -151,7 +151,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - Suggestions always equal the set difference between recommended and completed assets
     - **Validates: Requirements 5.1**
 
-- [~] 10. Checkpoint - Checklist and marketing
+- [ ] 10. Checkpoint - Checklist and marketing
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 11. Content Generator
@@ -204,80 +204,80 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - All tasks in recent progress have completedAt within last 7 days
     - **Validates: Requirements 8.4**
 
-- [~] 14. Checkpoint - Content and dashboard
+- [ ] 14. Checkpoint - Content and dashboard
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Logging Service
   - [x] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
     - _Requirements: 10.5_
-  - [~] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
+  - [ ] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
     - _Requirements: 10.1_
-  - [~] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
+  - [ ] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
     - _Requirements: 10.2_
-  - [~] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
+  - [ ] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
     - _Requirements: 10.3_
-  - [~] 15.5 Add authentication event logging: login, logout, session expiration
+  - [ ] 15.5 Add authentication event logging: login, logout, session expiration
     - _Requirements: 10.4_
-  - [~] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
+  - [ ] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
     - _Requirements: 10.5_
-  - [~] 15.7 Write property test for logging completeness
+  - [ ] 15.7 Write property test for logging completeness
     - **Property 12: Logging Completeness for State Changes**
     - For every state transition, a corresponding log entry exists
     - **Validates: Requirements 10.2**
 
 - [ ] 16. Error Handling and Graceful Degradation
-  - [~] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
+  - [ ] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
     - _Requirements: 11.2_
-  - [~] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
+  - [ ] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
     - _Requirements: 11.1_
-  - [~] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
+  - [ ] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
     - _Requirements: 11.4_
-  - [~] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
+  - [ ] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
     - _Requirements: 11.3_
-  - [~] 16.5 Write property test for data preservation during outages
+  - [ ] 16.5 Write property test for data preservation during outages
     - **Property 15: Data Preservation During Outages**
     - During simulated outages, all user data and drafts remain intact
     - **Validates: Requirements 11.4**
 
 - [ ] 17. Frontend - Core Layout and Dashboard
-  - [~] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
+  - [ ] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
     - _Requirements: 8.5_
-  - [~] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
+  - [ ] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
     - _Requirements: 1.1, 9.1_
-  - [~] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
+  - [ ] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
-  - [~] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
+  - [ ] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
     - _Requirements: 1.2, 1.3_
-  - [~] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
+  - [ ] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
     - _Requirements: 2.2_
 
 - [ ] 18. Frontend - Checklist, Marketing, and Content
-  - [~] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
+  - [ ] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
     - _Requirements: 4.1, 4.3_
-  - [~] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
+  - [ ] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
     - _Requirements: 5.1, 5.2, 5.3_
-  - [~] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
+  - [ ] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
     - _Requirements: 6.1, 6.6_
-  - [~] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
+  - [ ] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
     - _Requirements: 6.3, 6.4, 7.1, 7.2_
-  - [~] 18.5 Implement rejected drafts queue view for reuse/learning
+  - [ ] 18.5 Implement rejected drafts queue view for reuse/learning
     - _Requirements: 6.5, 7.4_
 
 - [ ] 19. Input Validation, Rate Limiting, and Security Hardening
-  - [~] 19.1 Add zod validation schemas for all API request bodies and query parameters
+  - [ ] 19.1 Add zod validation schemas for all API request bodies and query parameters
     - _Requirements: 9.1_
-  - [~] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
+  - [ ] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
     - _Requirements: 9.1_
-  - [~] 19.3 Configure CORS with strict origin policy matching frontend domain
+  - [ ] 19.3 Configure CORS with strict origin policy matching frontend domain
     - _Requirements: 9.1_
-  - [~] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
+  - [ ] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
     - _Requirements: 9.2_
-  - [~] 19.5 Write property test for session expiration enforcement
+  - [ ] 19.5 Write property test for session expiration enforcement
     - **Property 14: Session Expiration Enforcement**
     - No request succeeds with session inactive > 24 hours
     - **Validates: Requirements 9.3, 9.5**
 
-- [~] 20. Final checkpoint - Ensure all tests pass
+- [ ] 20. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

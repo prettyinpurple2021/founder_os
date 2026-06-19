@@ -12,6 +12,7 @@ import prisma from '../lib/prisma.js';
 import { DraftStatus, Platform } from '../generated/prisma/enums.js';
 import { notFound, forbidden, badRequest, internalError } from '../errors/AppError.js';
 import { buildPrompt, type TaskSummary } from './content-prompts.js';
+import { logContent } from './logger.js';
 
 /** Supported content platforms. */
 export type ContentPlatform = 'TWITTER' | 'LINKEDIN' | 'BLOG';
@@ -144,6 +145,12 @@ export async function editDraft(
       },
     }),
   ]);
+
+  // Log the edit action (Requirement 10.3)
+  await logContent(userId, 'edit', {
+    draftId,
+    version: versionCount + 1,
+  });
 
   return {
     draft: {
@@ -747,6 +754,13 @@ export async function generateDraft(
     include: {
       versions: true,
     },
+  });
+
+  // Log the generate action (Requirement 10.3)
+  await logContent(userId, 'generate', {
+    draftId: draft.id,
+    platform: draft.platform,
+    taskCount: completedTasks.length,
   });
 
   return {

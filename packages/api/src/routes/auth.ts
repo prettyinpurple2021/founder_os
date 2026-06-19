@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import passport from '../auth/passport.js';
 import prisma from '../lib/prisma.js';
 import { AppError } from '../errors/AppError.js';
+import { logAuth } from '../services/logger.js';
 
 const router = Router();
 
@@ -57,6 +58,7 @@ router.get('/auth/github/callback', (req: Request, res: Response, next: NextFunc
       const errorCode = DEFAULT_OAUTH_ERROR.code;
       const errorMessage = err.message || DEFAULT_OAUTH_ERROR.message;
       const encodedMessage = encodeURIComponent(errorMessage);
+      logAuth(undefined, 'login_failed', { provider: 'github', error: errorMessage, code: errorCode });
       res.redirect(`${FRONTEND_URL}/login?error=${errorCode}&message=${encodedMessage}&retryable=true`);
       return;
     }
@@ -66,6 +68,7 @@ router.get('/auth/github/callback', (req: Request, res: Response, next: NextFunc
       const infoMessage = info?.message || '';
       const mapped = OAUTH_ERROR_MAP[infoMessage] || DEFAULT_OAUTH_ERROR;
       const encodedMessage = encodeURIComponent(mapped.message);
+      logAuth(undefined, 'login_failed', { provider: 'github', error: mapped.message, code: mapped.code });
       res.redirect(`${FRONTEND_URL}/login?error=${mapped.code}&message=${encodedMessage}&retryable=true`);
       return;
     }
@@ -77,6 +80,9 @@ router.get('/auth/github/callback', (req: Request, res: Response, next: NextFunc
         res.redirect(`${FRONTEND_URL}/login?error=SESSION_INIT_FAILED&message=${encodedMessage}&retryable=true`);
         return;
       }
+      // Fire-and-forget auth login log
+      const authUser = user as { id: string; username?: string };
+      logAuth(authUser.id, 'login', { provider: 'github', username: authUser.username });
       res.redirect(`${FRONTEND_URL}/dashboard`);
     });
   })(req, res, next);
@@ -129,24 +135,11 @@ router.get('/auth/session', async (req: Request, res: Response) => {
 router.post('/auth/logout', (req: Request, res: Response) => {
   const userId = req.user?.id ?? null;
 
-  // Log the logout event
-  const logLogout = () =>
-    prisma.systemLog.create({
-      data: {
-        category: 'auth',
-        action: 'logout',
-        details: { userId, timestamp: new Date().toISOString() },
-        userId,
-      },
-    });
-
   // If no user/session, still return success (idempotent)
   if (!req.user) {
     // Clear cookie regardless and return success
     res.clearCookie('solo.sid', { path: '/' });
-    logLogout().catch(() => {
-      // Silently ignore logging failures
-    });
+    logAuth(userId ?? undefined, 'logout', { reason: 'user_initiated' });
     res.json({ message: 'Logged out successfully' });
     return;
   }
@@ -167,9 +160,8 @@ router.post('/auth/logout', (req: Request, res: Response) => {
         // Still return success since logout itself succeeded
       }
 
-      logLogout().catch(() => {
-        // Silently ignore logging failures
-      });
+      // Fire-and-forget auth logout log
+      logAuth(userId ?? undefined, 'logout', { reason: 'user_initiated' });
 
       res.json({ message: 'Logged out successfully' });
     });

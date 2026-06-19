@@ -37,6 +37,10 @@ vi.mock('../services/content-prompts.js', () => ({
   PLATFORM_CONFIGS: {},
 }));
 
+vi.mock('../services/logger.js', () => ({
+  logContent: vi.fn().mockResolvedValue(undefined),
+}));
+
 import prisma from '../lib/prisma.js';
 import { getDraftVersions } from '../services/content.js';
 import { AppError } from '../errors/AppError.js';

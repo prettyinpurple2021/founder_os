@@ -3,6 +3,9 @@ import fc from 'fast-check';
 
 // Mock prisma before importing services
 vi.mock('../lib/prisma.js', () => ({ default: {} }));
+vi.mock('../services/logger.js', () => ({
+  logContent: vi.fn().mockResolvedValue(undefined),
+}));
 
 import { VALID_TRANSITIONS, isValidTransition } from '../services/content.js';
 import { DraftStatus } from '../generated/prisma/enums.js';

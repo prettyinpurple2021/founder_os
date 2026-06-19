@@ -11,6 +11,7 @@ import prisma from '../lib/prisma.js';
 import { getDecryptedToken } from '../lib/encryption.js';
 import { fetchAllRepoData, GitHubIssue, GitHubPullRequest, GitHubCommit } from './github.js';
 import { inferTaskState, findLinkedPullRequests, findLinkedCommits, InferenceContext } from './inference.js';
+import { logSync, logStateChange } from './logger.js';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 1000;
@@ -49,6 +50,12 @@ export async function performSync(repositoryId: string) {
     },
   });
 
+  // Log sync start
+  await logSync(repository.user.id, 'sync_started', {
+    repositoryId,
+    triggeredBy: 'manual',
+  });
+
   const startTime = Date.now();
   let lastError: Error | null = null;
 
@@ -74,7 +81,8 @@ export async function performSync(repositoryId: string) {
           repositoryId,
           issue,
           repoData.pullRequests,
-          repoData.commits
+          repoData.commits,
+          repository.user.id
         );
         itemsFetched++;
       }
@@ -92,6 +100,14 @@ export async function performSync(repositoryId: string) {
         },
       });
 
+      // Log sync completion
+      await logSync(repository.user.id, 'sync_completed', {
+        repositoryId,
+        duration,
+        itemsFetched,
+        outcome: 'success',
+      });
+
       return completedSync;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -99,6 +115,15 @@ export async function performSync(repositoryId: string) {
       // If we haven't exhausted retries, wait before trying again
       if (attempt < MAX_RETRIES) {
         const backoffMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+
+        // Log retry event
+        await logSync(repository.user.id, 'sync_retry', {
+          repositoryId,
+          attempt,
+          delay: backoffMs,
+          error: lastError.message,
+        });
+
         await delay(backoffMs);
       }
     }
@@ -115,6 +140,15 @@ export async function performSync(repositoryId: string) {
       errorMessage: lastError?.message || 'Unknown error after retries',
       retryCount: MAX_RETRIES,
     },
+  });
+
+  // Log sync failure
+  await logSync(repository.user.id, 'sync_failed', {
+    repositoryId,
+    duration,
+    itemsFetched: 0,
+    outcome: 'failed',
+    errorMessage: lastError?.message || 'Unknown error after retries',
   });
 
   return failedSync;
@@ -135,7 +169,8 @@ export async function upsertTaskFromIssue(
   repositoryId: string,
   issue: GitHubIssue,
   allPullRequests: GitHubPullRequest[],
-  allCommits: GitHubCommit[]
+  allCommits: GitHubCommit[],
+  userId?: string
 ): Promise<void> {
   // Build inference context
   const linkedPRs = findLinkedPullRequests(issue, allPullRequests);
@@ -215,6 +250,17 @@ export async function upsertTaskFromIssue(
         evidenceIds,
       },
     });
+
+    // Log state change when state actually changes (Requirement 10.2)
+    if (stateChanged) {
+      await logStateChange(userId ?? 'system', 'task_state_changed', {
+        taskId: task.id,
+        previousState: previousState,
+        newState: result.state,
+        evidenceIds,
+        taskTitle: issue.title,
+      });
+    }
   }
 }
 

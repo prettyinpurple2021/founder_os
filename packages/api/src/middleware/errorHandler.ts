@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError.js';
+import { logError } from '../services/logger.js';
 
 /**
  * Centralized error-handling middleware.
@@ -25,17 +26,34 @@ import { AppError } from '../errors/AppError.js';
  */
 export function errorHandler(
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  // Log the error (structured logging will replace this later)
+  // Log the error to console
   console.error('[error]', {
     name: err.name,
     message: err.message,
     stack: err.stack,
     ...(err instanceof AppError && { code: err.code, statusCode: err.statusCode }),
   });
+
+  // Determine status code for logging
+  const statusCode = err instanceof AppError ? err.statusCode : 500;
+
+  // Fire-and-forget structured error logging for 500+ errors
+  if (statusCode >= 500) {
+    const userId = (req as Request & { user?: { id?: string } }).user?.id;
+    logError(userId, 'request_error', {
+      method: req.method,
+      path: req.path,
+      statusCode,
+      errorCode: err instanceof AppError ? err.code : 'INTERNAL_ERROR',
+      message: err.message,
+      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      retryable: err instanceof AppError ? err.retryable : true,
+    });
+  }
 
   // --- AppError: known, structured errors ---
   if (err instanceof AppError) {

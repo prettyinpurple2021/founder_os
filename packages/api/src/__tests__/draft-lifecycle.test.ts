@@ -20,6 +20,10 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
+vi.mock('../services/logger.js', () => ({
+  logContent: vi.fn().mockResolvedValue(undefined),
+}));
+
 import prisma from '../lib/prisma.js';
 import {
   VALID_TRANSITIONS,

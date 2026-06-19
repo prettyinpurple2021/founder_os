@@ -19,6 +19,10 @@ vi.mock('../lib/prisma.js', () => ({
   },
 }));
 
+vi.mock('../services/logger.js', () => ({
+  logContent: vi.fn().mockResolvedValue(undefined),
+}));
+
 import prisma from '../lib/prisma.js';
 import { approveDraft } from '../services/content.js';
 import { AppError } from '../errors/AppError.js';

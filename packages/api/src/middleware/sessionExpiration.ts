@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma.js';
 import { unauthorized } from '../errors/AppError.js';
+import { logAuth } from '../services/logger.js';
 
 const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
@@ -30,6 +31,7 @@ export function sessionExpiration(req: Request, _res: Response, next: NextFuncti
     .then((session) => {
       if (!session) {
         // No session record in DB — user needs to re-authenticate
+        logAuth(userId, 'session_expired', { lastActiveAt: null, expiredAfterHours: 24 });
         return destroySessionAndReject(req, next);
       }
 
@@ -39,6 +41,7 @@ export function sessionExpiration(req: Request, _res: Response, next: NextFuncti
 
       if (elapsed > SESSION_TIMEOUT_MS) {
         // Session expired due to inactivity
+        logAuth(userId, 'session_expired', { lastActiveAt: session.lastActiveAt.toISOString(), expiredAfterHours: 24 });
         return destroySessionAndReject(req, next);
       }
 
