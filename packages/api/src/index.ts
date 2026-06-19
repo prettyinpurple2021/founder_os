@@ -10,6 +10,7 @@ import tasksRoutes from './routes/tasks.js';
 import checklistRoutes from './routes/checklist.js';
 import marketingRoutes from './routes/marketing.js';
 import contentRoutes from './routes/content.js';
+import dashboardRoutes from './routes/dashboard.js';
 import { notFound } from './errors/AppError.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
@@ -81,6 +82,9 @@ app.use('/api/marketing', marketingRoutes);
 
 // --- Content routes ---
 app.use('/api/content', contentRoutes);
+
+// --- Dashboard routes ---
+app.use('/api/dashboard', dashboardRoutes);
 
 // --- 404 catch-all (must be after all route definitions) ---
 app.use((_req, _res, next) => {

@@ -188,18 +188,18 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - Rejected drafts are never deleted, content always preserved
     - **Validates: Requirements 6.5, 7.4**
 
-- [ ] 13. Dashboard Aggregator
-  - [~] 13.1 Implement GET /api/dashboard endpoint aggregating project status (total tasks, count by state)
+- [x] 13. Dashboard Aggregator
+  - [x] 13.1 Implement GET /api/dashboard endpoint aggregating project status (total tasks, count by state)
     - _Requirements: 8.1_
-  - [~] 13.2 Implement blockers section: query all tasks with BLOCKED state, include blocker reasons
+  - [x] 13.2 Implement blockers section: query all tasks with BLOCKED state, include blocker reasons
     - _Requirements: 8.2_
-  - [~] 13.3 Implement next action computation: pull highest-priority item from checklist generator
+  - [x] 13.3 Implement next action computation: pull highest-priority item from checklist generator
     - _Requirements: 8.3_
-  - [~] 13.4 Implement recent progress section: tasks completed in last 7 days
+  - [x] 13.4 Implement recent progress section: tasks completed in last 7 days
     - _Requirements: 8.4_
-  - [~] 13.5 Include last sync timestamp and status, launch readiness percentage
+  - [x] 13.5 Include last sync timestamp and status, launch readiness percentage
     - _Requirements: 8.1, 8.5_
-  - [~] 13.6 Write property test for recent progress time bound
+  - [x] 13.6 Write property test for recent progress time bound
     - **Property 13: Dashboard Recent Progress Time Bound**
     - All tasks in recent progress have completedAt within last 7 days
     - **Validates: Requirements 8.4**
@@ -208,7 +208,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Logging Service
-  - [~] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
+  - [x] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
     - _Requirements: 10.5_
   - [~] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
     - _Requirements: 10.1_
