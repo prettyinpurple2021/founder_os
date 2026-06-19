@@ -113,171 +113,171 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
 - [x] 7. Checkpoint - Sync and inference
   - Ensure all tests pass, ask the user if questions arise.
 
-- [-] 8. Launch Readiness Checklist Generator
-  - [ ] 8.1 Implement checklist generation with 6 fixed categories: product, quality, deployment, legal/admin, marketing, content
+- [x] 8. Launch Readiness Checklist Generator
+  - [x] 8.1 Implement checklist generation with 6 fixed categories: product, quality, deployment, legal/admin, marketing, content
     - _Requirements: 4.1_
-  - [ ] 8.2 Implement checklist item status derivation from current task states and repository evidence
+  - [x] 8.2 Implement checklist item status derivation from current task states and repository evidence
     - _Requirements: 4.2_
-  - [ ] 8.3 Implement blockers-first ordering: all blocker items appear before non-blocker items regardless of category
+  - [x] 8.3 Implement blockers-first ordering: all blocker items appear before non-blocker items regardless of category
     - _Requirements: 4.3_
-  - [ ] 8.4 Implement "next best action" computation: highest-priority incomplete non-blocked item
+  - [x] 8.4 Implement "next best action" computation: highest-priority incomplete non-blocked item
     - _Requirements: 4.4_
-  - [ ] 8.5 Implement reactive checklist updates when task states change (within same session)
+  - [x] 8.5 Implement reactive checklist updates when task states change (within same session)
     - _Requirements: 4.5_
-  - [ ] 8.6 Implement GET /api/checklist and PUT /api/checklist/items/:id endpoints
+  - [x] 8.6 Implement GET /api/checklist and PUT /api/checklist/items/:id endpoints
     - _Requirements: 4.1, 4.2_
-  - [ ] 8.7 Write property test for checklist category completeness
+  - [x] 8.7 Write property test for checklist category completeness
     - **Property 6: Checklist Category Completeness**
     - Generated checklist always contains exactly 6 categories, no duplicates
     - **Validates: Requirements 4.1**
-  - [ ] 8.8 Write property test for blockers-first ordering
+  - [x] 8.8 Write property test for blockers-first ordering
     - **Property 7: Blockers-First Ordering**
     - All blocker items appear before all non-blocker items in rendered list
     - **Validates: Requirements 4.3**
 
 - [ ] 9. Marketing Analyzer
-  - [ ] 9.1 Define recommended marketing asset set (landing page, social posts, changelog, screenshots, README)
+  - [~] 9.1 Define recommended marketing asset set (landing page, social posts, changelog, screenshots, README)
     - _Requirements: 5.1, 5.2_
-  - [ ] 9.2 Implement GET /api/marketing/status endpoint comparing user's completed assets against recommended set
+  - [~] 9.2 Implement GET /api/marketing/status endpoint comparing user's completed assets against recommended set
     - _Requirements: 5.1_
-  - [ ] 9.3 Implement suggestion logic: missing assets = recommended set minus completed set, sorted by effort (low-friction first)
+  - [~] 9.3 Implement suggestion logic: missing assets = recommended set minus completed set, sorted by effort (low-friction first)
     - _Requirements: 5.2, 5.4_
-  - [ ] 9.4 Implement channel recommendations based on product type (developer tool → Twitter/X, HackerNews; B2B → LinkedIn, ProductHunt)
+  - [~] 9.4 Implement channel recommendations based on product type (developer tool → Twitter/X, HackerNews; B2B → LinkedIn, ProductHunt)
     - _Requirements: 5.3_
-  - [ ] 9.5 Implement POST /api/marketing/assets/:id/complete endpoint that marks asset complete and updates launch checklist
+  - [~] 9.5 Implement POST /api/marketing/assets/:id/complete endpoint that marks asset complete and updates launch checklist
     - _Requirements: 5.5_
-  - [ ] 9.6 Write property test for marketing asset suggestions
+  - [~] 9.6 Write property test for marketing asset suggestions
     - **Property 8: Marketing Asset Suggestions are Complement**
     - Suggestions always equal the set difference between recommended and completed assets
     - **Validates: Requirements 5.1**
 
-- [ ] 10. Checkpoint - Checklist and marketing
+- [~] 10. Checkpoint - Checklist and marketing
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Content Generator
-  - [ ] 11.1 Implement POST /api/content/generate endpoint that generates a draft from recently completed tasks using LLM API with platform-specific prompts
+  - [~] 11.1 Implement POST /api/content/generate endpoint that generates a draft from recently completed tasks using LLM API with platform-specific prompts
     - _Requirements: 6.1, 6.2_
-  - [ ] 11.2 Implement platform tailoring: Twitter/X (≤280 chars, casual), LinkedIn (professional, 1-3 paragraphs), Blog (longer form, technical)
+  - [~] 11.2 Implement platform tailoring: Twitter/X (≤280 chars, casual), LinkedIn (professional, 1-3 paragraphs), Blog (longer form, technical)
     - _Requirements: 6.2_
-  - [ ] 11.3 Implement PUT /api/content/drafts/:id endpoint for editing drafts, creating a new DraftVersion on each edit
+  - [~] 11.3 Implement PUT /api/content/drafts/:id endpoint for editing drafts, creating a new DraftVersion on each edit
     - _Requirements: 6.3, 6.4_
-  - [ ] 11.4 Implement GET /api/content/drafts endpoint with filtering by status
+  - [~] 11.4 Implement GET /api/content/drafts endpoint with filtering by status
     - _Requirements: 6.6_
-  - [ ] 11.5 Implement GET /api/content/drafts/:id/versions endpoint returning version history
+  - [~] 11.5 Implement GET /api/content/drafts/:id/versions endpoint returning version history
     - _Requirements: 6.4_
-  - [ ] 11.6 Write property test for version history monotonicity
+  - [~] 11.6 Write property test for version history monotonicity
     - **Property 9: Content Draft Version History Monotonicity**
     - After N edits, exactly N+1 versions exist for a draft, versions never deleted
     - **Validates: Requirements 6.4**
 
 - [ ] 12. Content Approval and Publishing Control
-  - [ ] 12.1 Implement POST /api/content/drafts/:id/approve endpoint that transitions draft to APPROVED status and logs the action
+  - [~] 12.1 Implement POST /api/content/drafts/:id/approve endpoint that transitions draft to APPROVED status and logs the action
     - _Requirements: 7.1, 7.3_
-  - [ ] 12.2 Implement POST /api/content/drafts/:id/reject endpoint that moves draft to REJECTED status, preserves content, and logs the action
+  - [~] 12.2 Implement POST /api/content/drafts/:id/reject endpoint that moves draft to REJECTED status, preserves content, and logs the action
     - _Requirements: 7.4, 6.5_
-  - [ ] 12.3 Implement POST /api/content/drafts/:id/schedule endpoint (only accessible after approval) allowing user to set publish time or copy content
+  - [~] 12.3 Implement POST /api/content/drafts/:id/schedule endpoint (only accessible after approval) allowing user to set publish time or copy content
     - _Requirements: 7.2_
-  - [ ] 12.4 Implement draft lifecycle state machine enforcing valid transitions (generated → editing → pending_approval → approved → scheduled/copied; pending_approval → rejected)
+  - [~] 12.4 Implement draft lifecycle state machine enforcing valid transitions (generated → editing → pending_approval → approved → scheduled/copied; pending_approval → rejected)
     - _Requirements: 7.1, 6.6_
-  - [ ] 12.5 Write property test for no auto-publishing invariant
+  - [~] 12.5 Write property test for no auto-publishing invariant
     - **Property 10: No Auto-Publishing Invariant**
     - No draft reaches SCHEDULED or COPIED status without a prior approval log entry
     - **Validates: Requirements 6.6, 7.1**
-  - [ ] 12.6 Write property test for rejected drafts preservation
+  - [~] 12.6 Write property test for rejected drafts preservation
     - **Property 11: Rejected Drafts Preserved**
     - Rejected drafts are never deleted, content always preserved
     - **Validates: Requirements 6.5, 7.4**
 
 - [ ] 13. Dashboard Aggregator
-  - [ ] 13.1 Implement GET /api/dashboard endpoint aggregating project status (total tasks, count by state)
+  - [~] 13.1 Implement GET /api/dashboard endpoint aggregating project status (total tasks, count by state)
     - _Requirements: 8.1_
-  - [ ] 13.2 Implement blockers section: query all tasks with BLOCKED state, include blocker reasons
+  - [~] 13.2 Implement blockers section: query all tasks with BLOCKED state, include blocker reasons
     - _Requirements: 8.2_
-  - [ ] 13.3 Implement next action computation: pull highest-priority item from checklist generator
+  - [~] 13.3 Implement next action computation: pull highest-priority item from checklist generator
     - _Requirements: 8.3_
-  - [ ] 13.4 Implement recent progress section: tasks completed in last 7 days
+  - [~] 13.4 Implement recent progress section: tasks completed in last 7 days
     - _Requirements: 8.4_
-  - [ ] 13.5 Include last sync timestamp and status, launch readiness percentage
+  - [~] 13.5 Include last sync timestamp and status, launch readiness percentage
     - _Requirements: 8.1, 8.5_
-  - [ ] 13.6 Write property test for recent progress time bound
+  - [~] 13.6 Write property test for recent progress time bound
     - **Property 13: Dashboard Recent Progress Time Bound**
     - All tasks in recent progress have completedAt within last 7 days
     - **Validates: Requirements 8.4**
 
-- [ ] 14. Checkpoint - Content and dashboard
+- [~] 14. Checkpoint - Content and dashboard
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 15. Logging Service
-  - [ ] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
+  - [~] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
     - _Requirements: 10.5_
-  - [ ] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
+  - [~] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
     - _Requirements: 10.1_
-  - [ ] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
+  - [~] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
     - _Requirements: 10.2_
-  - [ ] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
+  - [~] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
     - _Requirements: 10.3_
-  - [ ] 15.5 Add authentication event logging: login, logout, session expiration
+  - [~] 15.5 Add authentication event logging: login, logout, session expiration
     - _Requirements: 10.4_
-  - [ ] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
+  - [~] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
     - _Requirements: 10.5_
-  - [ ] 15.7 Write property test for logging completeness
+  - [~] 15.7 Write property test for logging completeness
     - **Property 12: Logging Completeness for State Changes**
     - For every state transition, a corresponding log entry exists
     - **Validates: Requirements 10.2**
 
 - [ ] 16. Error Handling and Graceful Degradation
-  - [ ] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
+  - [~] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
     - _Requirements: 11.2_
-  - [ ] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
+  - [~] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
     - _Requirements: 11.1_
-  - [ ] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
+  - [~] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
     - _Requirements: 11.4_
-  - [ ] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
+  - [~] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
     - _Requirements: 11.3_
-  - [ ] 16.5 Write property test for data preservation during outages
+  - [~] 16.5 Write property test for data preservation during outages
     - **Property 15: Data Preservation During Outages**
     - During simulated outages, all user data and drafts remain intact
     - **Validates: Requirements 11.4**
 
 - [ ] 17. Frontend - Core Layout and Dashboard
-  - [ ] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
+  - [~] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
     - _Requirements: 8.5_
-  - [ ] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
+  - [~] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
     - _Requirements: 1.1, 9.1_
-  - [ ] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
+  - [~] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
-  - [ ] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
+  - [~] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
     - _Requirements: 1.2, 1.3_
-  - [ ] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
+  - [~] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
     - _Requirements: 2.2_
 
 - [ ] 18. Frontend - Checklist, Marketing, and Content
-  - [ ] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
+  - [~] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
     - _Requirements: 4.1, 4.3_
-  - [ ] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
+  - [~] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
     - _Requirements: 5.1, 5.2, 5.3_
-  - [ ] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
+  - [~] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
     - _Requirements: 6.1, 6.6_
-  - [ ] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
+  - [~] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
     - _Requirements: 6.3, 6.4, 7.1, 7.2_
-  - [ ] 18.5 Implement rejected drafts queue view for reuse/learning
+  - [~] 18.5 Implement rejected drafts queue view for reuse/learning
     - _Requirements: 6.5, 7.4_
 
 - [ ] 19. Input Validation, Rate Limiting, and Security Hardening
-  - [ ] 19.1 Add zod validation schemas for all API request bodies and query parameters
+  - [~] 19.1 Add zod validation schemas for all API request bodies and query parameters
     - _Requirements: 9.1_
-  - [ ] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
+  - [~] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
     - _Requirements: 9.1_
-  - [ ] 19.3 Configure CORS with strict origin policy matching frontend domain
+  - [~] 19.3 Configure CORS with strict origin policy matching frontend domain
     - _Requirements: 9.1_
-  - [ ] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
+  - [~] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
     - _Requirements: 9.2_
-  - [ ] 19.5 Write property test for session expiration enforcement
+  - [~] 19.5 Write property test for session expiration enforcement
     - **Property 14: Session Expiration Enforcement**
     - No request succeeds with session inactive > 24 hours
     - **Validates: Requirements 9.3, 9.5**
 
-- [ ] 20. Final checkpoint - Ensure all tests pass
+- [~] 20. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
