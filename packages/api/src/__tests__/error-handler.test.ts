@@ -123,6 +123,7 @@ describe('errorHandler middleware', () => {
 
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(logger, 'logError').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -331,7 +332,7 @@ describe('errorHandler error logging', () => {
     vi.restoreAllMocks();
   });
 
-  it('calls logError for 500+ AppError with correct schema', () => {
+  it('calls logError for 500 AppError with operation context and stack', () => {
     const err = internalError('DB connection failed');
     const req = { method: 'POST', path: '/api/projects', user: { id: 'user-123' } } as unknown as Request;
     const res = createMockRes();
@@ -342,15 +343,14 @@ describe('errorHandler error logging', () => {
       method: 'POST',
       path: '/api/projects',
       statusCode: 500,
-      errorCode: 'INTERNAL_ERROR',
-      message: 'DB connection failed',
+      errorMessage: 'DB connection failed',
       stack: expect.any(String),
-      retryable: true,
+      code: 'INTERNAL_ERROR',
     });
   });
 
-  it('calls logError for unknown errors (500) with correct schema', () => {
-    const err = new Error('Something unexpected');
+  it('calls logError for unknown errors with errorName field', () => {
+    const err = new TypeError('Cannot read property of undefined');
     const req = { method: 'GET', path: '/api/users', user: { id: 'user-456' } } as unknown as Request;
     const res = createMockRes();
 
@@ -360,10 +360,10 @@ describe('errorHandler error logging', () => {
       method: 'GET',
       path: '/api/users',
       statusCode: 500,
-      errorCode: 'INTERNAL_ERROR',
-      message: 'Something unexpected',
+      errorMessage: 'Cannot read property of undefined',
       stack: expect.any(String),
-      retryable: true,
+      code: 'INTERNAL_ERROR',
+      errorName: 'TypeError',
     });
   });
 
@@ -378,21 +378,44 @@ describe('errorHandler error logging', () => {
       method: 'POST',
       path: '/api/sync',
       statusCode: 503,
-      errorCode: 'SERVICE_UNAVAILABLE',
-      message: 'GitHub API is down',
+      errorMessage: 'GitHub API is down',
       stack: expect.any(String),
-      retryable: true,
+      code: 'SERVICE_UNAVAILABLE',
     });
   });
 
-  it('does NOT call logError for errors with status < 500', () => {
+  it('calls logError for 404 errors (logs all errors for query-time filtering)', () => {
     const err = notFound('Item not found');
     const req = { method: 'GET', path: '/api/items/1' } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).not.toHaveBeenCalled();
+    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'request_error', {
+      method: 'GET',
+      path: '/api/items/1',
+      statusCode: 404,
+      errorMessage: 'Item not found',
+      stack: expect.any(String),
+      code: 'NOT_FOUND',
+    });
+  });
+
+  it('calls logError for 400 errors', () => {
+    const err = badRequest('Invalid input');
+    const req = { method: 'POST', path: '/api/data', user: { id: 'u1' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'request_error', {
+      method: 'POST',
+      path: '/api/data',
+      statusCode: 400,
+      errorMessage: 'Invalid input',
+      stack: expect.any(String),
+      code: 'BAD_REQUEST',
+    });
   });
 
   it('passes undefined userId when request has no user', () => {
@@ -433,6 +456,17 @@ describe('errorHandler error logging', () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalled();
+  });
+
+  it('does not include errorName for AppError instances', () => {
+    const err = forbidden('Access denied');
+    const req = { method: 'GET', path: '/api/admin', user: { id: 'u2' } } as unknown as Request;
+    const res = createMockRes();
+
+    errorHandler(err, req, res, mockNext);
+
+    const logCall = logErrorSpy.mock.calls[0];
+    expect(logCall[2]).not.toHaveProperty('errorName');
   });
 });
 

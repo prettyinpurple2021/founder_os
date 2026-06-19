@@ -41,18 +41,29 @@ export function errorHandler(
   // Determine status code for logging
   const statusCode = err instanceof AppError ? err.statusCode : 500;
 
-  // Fire-and-forget structured error logging for 500+ errors
-  if (statusCode >= 500) {
+  // Fire-and-forget structured error logging (skip 404s to avoid noise)
+  if (statusCode !== 404) {
     const userId = (req as Request & { user?: { id?: string } }).user?.id;
-    logError(userId, 'request_error', {
-      method: req.method,
-      path: req.path,
-      statusCode,
-      errorCode: err instanceof AppError ? err.code : 'INTERNAL_ERROR',
-      message: err.message,
-      stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
-      retryable: err instanceof AppError ? err.retryable : true,
-    });
+
+    if (err instanceof AppError) {
+      // Known application errors — log with error code and status
+      logError(userId, 'app_error', {
+        code: err.code,
+        message: err.message,
+        statusCode: err.statusCode,
+        path: req.path,
+        method: req.method,
+        stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      });
+    } else {
+      // Unexpected/unhandled errors — log with full stack trace
+      logError(userId, 'unhandled_error', {
+        message: err.message,
+        stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+        path: req.path,
+        method: req.method,
+      });
+    }
   }
 
   // --- AppError: known, structured errors ---

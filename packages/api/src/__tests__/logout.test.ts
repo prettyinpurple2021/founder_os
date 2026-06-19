@@ -183,7 +183,7 @@ describe('POST /auth/logout', () => {
       data: {
         category: 'auth',
         action: 'logout',
-        details: { userId: 'user-1', timestamp: expect.any(String) },
+        details: { reason: 'user_initiated' },
         userId: 'user-1',
       },
     });
