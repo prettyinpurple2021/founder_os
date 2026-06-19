@@ -135,18 +135,18 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - All blocker items appear before all non-blocker items in rendered list
     - **Validates: Requirements 4.3**
 
-- [ ] 9. Marketing Analyzer
-  - [~] 9.1 Define recommended marketing asset set (landing page, social posts, changelog, screenshots, README)
+- [x] 9. Marketing Analyzer
+  - [x] 9.1 Define recommended marketing asset set (landing page, social posts, changelog, screenshots, README)
     - _Requirements: 5.1, 5.2_
-  - [~] 9.2 Implement GET /api/marketing/status endpoint comparing user's completed assets against recommended set
+  - [x] 9.2 Implement GET /api/marketing/status endpoint comparing user's completed assets against recommended set
     - _Requirements: 5.1_
-  - [~] 9.3 Implement suggestion logic: missing assets = recommended set minus completed set, sorted by effort (low-friction first)
+  - [x] 9.3 Implement suggestion logic: missing assets = recommended set minus completed set, sorted by effort (low-friction first)
     - _Requirements: 5.2, 5.4_
-  - [~] 9.4 Implement channel recommendations based on product type (developer tool → Twitter/X, HackerNews; B2B → LinkedIn, ProductHunt)
+  - [x] 9.4 Implement channel recommendations based on product type (developer tool → Twitter/X, HackerNews; B2B → LinkedIn, ProductHunt)
     - _Requirements: 5.3_
-  - [~] 9.5 Implement POST /api/marketing/assets/:id/complete endpoint that marks asset complete and updates launch checklist
+  - [x] 9.5 Implement POST /api/marketing/assets/:id/complete endpoint that marks asset complete and updates launch checklist
     - _Requirements: 5.5_
-  - [~] 9.6 Write property test for marketing asset suggestions
+  - [x] 9.6 Write property test for marketing asset suggestions
     - **Property 8: Marketing Asset Suggestions are Complement**
     - Suggestions always equal the set difference between recommended and completed assets
     - **Validates: Requirements 5.1**
