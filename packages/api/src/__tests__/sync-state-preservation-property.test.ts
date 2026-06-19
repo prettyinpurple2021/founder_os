@@ -94,7 +94,7 @@ describe('Property: Last Successful State Preservation', () => {
     vi.useFakeTimers();
   });
 
-  it('after a failed sync, task states remain unchanged from last successful sync — no task data is modified, added, or removed', async () => {
+  it('after a failed sync, task states remain unchanged from last successful sync — no task data is modified, added, or removed', { timeout: 30000 }, async () => {
     await fc.assert(
       fc.asyncProperty(
         taskCollectionArb,

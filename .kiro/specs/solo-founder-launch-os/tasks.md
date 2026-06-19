@@ -110,10 +110,10 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - Every state transition has non-empty evidence array referencing valid evidence records
     - **Validates: Requirements 3.8**
 
-- [ ] 7. Checkpoint - Sync and inference
+- [x] 7. Checkpoint - Sync and inference
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Launch Readiness Checklist Generator
+- [-] 8. Launch Readiness Checklist Generator
   - [ ] 8.1 Implement checklist generation with 6 fixed categories: product, quality, deployment, legal/admin, marketing, content
     - _Requirements: 4.1_
   - [ ] 8.2 Implement checklist item status derivation from current task states and repository evidence
