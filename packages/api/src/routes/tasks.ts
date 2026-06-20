@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma.js';
-import { AppError, unauthorized, badRequest, notFound, internalError } from '../errors/AppError.js';
+import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
 import { TaskState } from '../generated/prisma/enums.js';
+import { validate } from '../middleware/validate.js';
+import { tasksQuerySchema } from '../validation/schemas.js';
 
 const router = Router();
 
@@ -28,7 +30,7 @@ router.use(requireAuth);
  *
  * Response: { tasks: Array<{ id, githubIssueId, title, state, blockerReason, lastInferredAt }>, total: number }
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', validate(tasksQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
 
@@ -42,16 +44,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    // Parse query params
-    const stateFilter = req.query.state as string | undefined;
-    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 50, 1), 100);
-    const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-
-    // Validate state filter if provided
-    if (stateFilter && !Object.values(TaskState).includes(stateFilter as TaskState)) {
-      next(badRequest(`Invalid state filter. Must be one of: ${Object.values(TaskState).join(', ')}`));
-      return;
-    }
+    // Query params are already validated and typed by the middleware
+    const { state: stateFilter, limit, offset } = req.query as unknown as { state?: string; limit: number; offset: number };
 
     // Build where clause
     const where: { repositoryId: string; state?: TaskState } = {

@@ -15,6 +15,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { triggerSyncForUser, getLastSuccessfulSync } from '../services/sync.js';
 import { AppError, unauthorized, internalError } from '../errors/AppError.js';
 import prisma from '../lib/prisma.js';
+import { validate } from '../middleware/validate.js';
+import { syncHistoryQuerySchema } from '../validation/schemas.js';
 
 const router = Router();
 
@@ -162,7 +164,7 @@ router.get('/status', async (req: Request, res: Response, next: NextFunction) =>
  * Query params: limit (default 20, max 100), offset (default 0)
  * Ordered by startedAt descending (most recent first).
  */
-router.get('/history', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/history', validate(syncHistoryQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
 
@@ -182,11 +184,8 @@ router.get('/history', async (req: Request, res: Response, next: NextFunction) =
       return;
     }
 
-    // Parse and validate pagination params
-    const rawLimit = parseInt(req.query.limit as string, 10);
-    const rawOffset = parseInt(req.query.offset as string, 10);
-    const limit = Math.min(Math.max(isNaN(rawLimit) ? 20 : rawLimit, 1), 100);
-    const offset = Math.max(isNaN(rawOffset) ? 0 : rawOffset, 0);
+    // Query params are already validated and typed by the middleware
+    const { limit, offset } = req.query as unknown as { limit: number; offset: number };
 
     const [syncs, total] = await Promise.all([
       prisma.sync.findMany({

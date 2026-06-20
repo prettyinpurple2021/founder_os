@@ -1,7 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma.js';
 import { getDecryptedToken } from '../lib/encryption.js';
-import { AppError, unauthorized, badRequest, notFound, internalError } from '../errors/AppError.js';
+import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
+import { validate } from '../middleware/validate.js';
+import { connectRepoSchema } from '../validation/schemas.js';
 
 const router = Router();
 
@@ -93,21 +95,10 @@ router.get('/available', async (req: Request, res: Response, next: NextFunction)
  *
  * Body: { githubId: number, name: string, fullName: string, owner: string }
  */
-router.post('/connect', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/connect', validate(connectRepoSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
     const { githubId, name, fullName, owner } = req.body;
-
-    // Validate required fields
-    if (!githubId || !name || !fullName || !owner) {
-      next(badRequest('Missing required fields: githubId, name, fullName, owner'));
-      return;
-    }
-
-    if (typeof githubId !== 'number') {
-      next(badRequest('githubId must be a number'));
-      return;
-    }
 
     // Check if user already has a connected repository
     const existing = await prisma.repository.findUnique({

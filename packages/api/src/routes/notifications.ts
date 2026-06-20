@@ -12,6 +12,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getUnreadNotifications, getAllNotifications, markNotificationRead, markAllNotificationsRead } from '../services/notification.js';
 import { AppError, unauthorized, internalError } from '../errors/AppError.js';
+import { validate } from '../middleware/validate.js';
+import { notificationsQuerySchema } from '../validation/schemas.js';
 
 const router = Router();
 
@@ -35,20 +37,20 @@ router.use(requireAuth);
  *   - unreadOnly (boolean, default: true) — only return unread notifications
  *   - limit (number, default: 20, max: 100) — max notifications to return
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', validate(notificationsQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const unreadOnly = req.query.unreadOnly !== 'false';
-    const rawLimit = parseInt(req.query.limit as string, 10);
-    const limit = Math.min(Math.max(isNaN(rawLimit) ? 20 : rawLimit, 1), 100);
+    const { unreadOnly, limit } = req.query as unknown as { unreadOnly: 'true' | 'false'; limit: number };
 
-    const notifications = unreadOnly
+    const showUnreadOnly = unreadOnly !== 'false';
+
+    const notifications = showUnreadOnly
       ? await getUnreadNotifications(user.id, limit)
       : await getAllNotifications(user.id, limit);
 
     res.status(200).json({
       notifications,
-      unreadCount: unreadOnly ? notifications.length : notifications.filter(n => !n.read).length,
+      unreadCount: showUnreadOnly ? notifications.length : notifications.filter(n => !n.read).length,
     });
   } catch (err) {
     next(err instanceof AppError ? err : internalError('Failed to fetch notifications'));

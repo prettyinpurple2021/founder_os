@@ -1,13 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { AppError, unauthorized, badRequest, notFound, internalError } from '../errors/AppError.js';
+import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
 import { getChecklist, ChecklistItemStatus } from '../services/checklist.js';
+import { validate } from '../middleware/validate.js';
+import { updateChecklistItemSchema } from '../validation/schemas.js';
 
 const router = Router();
-
-/**
- * Valid checklist item status values for manual override.
- */
-const VALID_STATUSES: ChecklistItemStatus[] = ['complete', 'in_progress', 'blocked', 'incomplete'];
 
 /**
  * Ensures the user is authenticated before accessing checklist routes.
@@ -56,20 +53,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
  *
  * Requirements: 4.1, 4.2
  */
-router.put('/items/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/items/:id', validate(updateChecklistItemSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-
-    if (!status) {
-      next(badRequest('Status is required'));
-      return;
-    }
-
-    if (!VALID_STATUSES.includes(status as ChecklistItemStatus)) {
-      next(badRequest(`Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}`));
-      return;
-    }
 
     // Since the checklist is generated dynamically from task states and not persisted,
     // manual overrides acknowledge the item ID and return the updated status.
