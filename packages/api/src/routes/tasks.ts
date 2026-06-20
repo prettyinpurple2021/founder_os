@@ -30,56 +30,64 @@ router.use(requireAuth);
  *
  * Response: { tasks: Array<{ id, githubIssueId, title, state, blockerReason, lastInferredAt }>, total: number }
  */
-router.get('/', validate(tasksQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
+router.get(
+  '/',
+  validate(tasksQuerySchema, 'query'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
 
-    // Find the user's connected repository
-    const repository = await prisma.repository.findUnique({
-      where: { userId: user.id },
-    });
+      // Find the user's connected repository
+      const repository = await prisma.repository.findUnique({
+        where: { userId: user.id },
+      });
 
-    if (!repository) {
-      next(notFound('No repository is currently connected'));
-      return;
+      if (!repository) {
+        next(notFound('No repository is currently connected'));
+        return;
+      }
+
+      // Query params are already validated and typed by the middleware
+      const {
+        state: stateFilter,
+        limit,
+        offset,
+      } = req.query as unknown as { state?: string; limit: number; offset: number };
+
+      // Build where clause
+      const where: { repositoryId: string; state?: TaskState } = {
+        repositoryId: repository.id,
+      };
+
+      if (stateFilter) {
+        where.state = stateFilter as TaskState;
+      }
+
+      // Fetch tasks and total count in parallel
+      const [tasks, total] = await Promise.all([
+        prisma.task.findMany({
+          where,
+          select: {
+            id: true,
+            githubIssueId: true,
+            title: true,
+            state: true,
+            blockerReason: true,
+            lastInferredAt: true,
+          },
+          orderBy: { githubIssueId: 'asc' },
+          take: limit,
+          skip: offset,
+        }),
+        prisma.task.count({ where }),
+      ]);
+
+      res.json({ tasks, total });
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to fetch tasks'));
     }
-
-    // Query params are already validated and typed by the middleware
-    const { state: stateFilter, limit, offset } = req.query as unknown as { state?: string; limit: number; offset: number };
-
-    // Build where clause
-    const where: { repositoryId: string; state?: TaskState } = {
-      repositoryId: repository.id,
-    };
-
-    if (stateFilter) {
-      where.state = stateFilter as TaskState;
-    }
-
-    // Fetch tasks and total count in parallel
-    const [tasks, total] = await Promise.all([
-      prisma.task.findMany({
-        where,
-        select: {
-          id: true,
-          githubIssueId: true,
-          title: true,
-          state: true,
-          blockerReason: true,
-          lastInferredAt: true,
-        },
-        orderBy: { githubIssueId: 'asc' },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.task.count({ where }),
-    ]);
-
-    res.json({ tasks, total });
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to fetch tasks'));
-  }
-});
+  },
+);
 
 /**
  * GET /api/tasks/:id/evidence

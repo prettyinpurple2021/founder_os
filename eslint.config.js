@@ -48,6 +48,15 @@ export default [
     },
   },
 
+  // Test files — relax strict type rules for mocks and test utilities
+  {
+    files: ['packages/*/src/__tests__/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+    },
+  },
+
   // Web-specific config (React + Browser environment)
   {
     files: ['packages/web/src/**/*.{ts,tsx}'],

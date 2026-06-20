@@ -6,7 +6,7 @@ describe('Property-Based Testing Setup', () => {
     fc.assert(
       fc.property(fc.integer(), fc.integer(), (a, b) => {
         return a + b === b + a;
-      })
+      }),
     );
   });
 
@@ -14,7 +14,7 @@ describe('Property-Based Testing Setup', () => {
     fc.assert(
       fc.property(fc.string(), fc.string(), (a, b) => {
         return (a + b).length === a.length + b.length;
-      })
+      }),
     );
   });
 
@@ -23,7 +23,7 @@ describe('Property-Based Testing Setup', () => {
       fc.property(fc.array(fc.integer()), (arr) => {
         const reversed = [...arr].reverse().reverse();
         return JSON.stringify(reversed) === JSON.stringify(arr);
-      })
+      }),
     );
   });
 });

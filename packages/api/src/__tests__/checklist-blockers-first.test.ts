@@ -10,10 +10,7 @@ vi.mock('../lib/prisma.js', () => ({
   default: {},
 }));
 
-import {
-  sortChecklistBlockersFirst,
-  type ChecklistItem,
-} from '../services/checklist.js';
+import { sortChecklistBlockersFirst, type ChecklistItem } from '../services/checklist.js';
 
 function makeItem(overrides: Partial<ChecklistItem> & { id: string }): ChecklistItem {
   return {
@@ -122,9 +119,7 @@ describe('sortChecklistBlockersFirst', () => {
   });
 
   it('returns a new array reference', () => {
-    const items: ChecklistItem[] = [
-      makeItem({ id: '1', isBlocker: true, priority: 1 }),
-    ];
+    const items: ChecklistItem[] = [makeItem({ id: '1', isBlocker: true, priority: 1 })];
     const result = sortChecklistBlockersFirst(items);
     expect(result).not.toBe(items);
   });

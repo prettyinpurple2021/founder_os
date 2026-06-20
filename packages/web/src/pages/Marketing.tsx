@@ -49,9 +49,7 @@ export default function Marketing() {
       const result = await marketingApi.getStatus();
       setData(result);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load marketing status'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load marketing status');
     } finally {
       setLoading(false);
     }
@@ -79,9 +77,7 @@ export default function Marketing() {
       const updatedCompleted = [...prev.completedAssets, optimisticCompleted];
       const totalAssets = updatedCompleted.length + updatedMissing.length;
       const readinessPercentage =
-        totalAssets > 0
-          ? Math.round((updatedCompleted.length / totalAssets) * 100)
-          : 0;
+        totalAssets > 0 ? Math.round((updatedCompleted.length / totalAssets) * 100) : 0;
       return {
         ...prev,
         missingAssets: updatedMissing,
@@ -118,9 +114,7 @@ export default function Marketing() {
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">
-          Unable to load marketing data
-        </h3>
+        <h3 className="text-sm font-medium text-red-800">Unable to load marketing data</h3>
         <p className="mt-1 text-sm text-red-600">{error}</p>
         <button
           onClick={fetchStatus}
@@ -135,7 +129,7 @@ export default function Marketing() {
   if (!data) return null;
 
   const sortedMissing = [...data.missingAssets].sort(
-    (a, b) => EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort]
+    (a, b) => EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort],
   );
 
   return (
@@ -174,7 +168,9 @@ function ReadinessBadge({ percentage }: { percentage: number }) {
         : 'bg-red-100 text-red-700';
 
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${color}`}>
+    <span
+      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${color}`}
+    >
       {percentage}% ready
     </span>
   );
@@ -182,11 +178,7 @@ function ReadinessBadge({ percentage }: { percentage: number }) {
 
 function ReadinessProgress({ percentage }: { percentage: number }) {
   const barColor =
-    percentage >= 80
-      ? 'bg-green-500'
-      : percentage >= 50
-        ? 'bg-yellow-500'
-        : 'bg-red-500';
+    percentage >= 80 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
@@ -218,9 +210,7 @@ function MissingAssetsList({
       <div className="rounded-lg border border-green-200 bg-green-50 p-5">
         <div className="flex items-center gap-2">
           <span className="text-xl">🎉</span>
-          <p className="text-sm font-medium text-green-800">
-            All marketing assets are complete!
-          </p>
+          <p className="text-sm font-medium text-green-800">All marketing assets are complete!</p>
         </div>
       </div>
     );
@@ -228,9 +218,7 @@ function MissingAssetsList({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">
-        Missing Assets ({assets.length})
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-4">Missing Assets ({assets.length})</h3>
       <ul className="space-y-3">
         {assets.map((asset) => (
           <li
@@ -277,15 +265,10 @@ function CompletedAssetsList({ assets }: { assets: CompletedAsset[] }) {
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">
-        Completed Assets ({assets.length})
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-4">Completed Assets ({assets.length})</h3>
       <ul className="space-y-2">
         {assets.map((asset) => (
-          <li
-            key={asset.id}
-            className="flex items-center gap-3 py-2"
-          >
+          <li key={asset.id} className="flex items-center gap-3 py-2">
             <span className="flex items-center justify-center h-5 w-5 rounded-full bg-green-100 text-green-600 text-xs">
               ✓
             </span>
@@ -316,18 +299,11 @@ function ChannelRecommendationsList({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">
-        Recommended Channels
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-4">Recommended Channels</h3>
       <ul className="space-y-3">
         {sorted.map((rec) => (
-          <li
-            key={rec.channel}
-            className="flex items-start gap-3 p-3 rounded-lg bg-gray-50"
-          >
-            <span className="text-lg shrink-0">
-              {CHANNEL_ICONS[rec.channel] ?? '📢'}
-            </span>
+          <li key={rec.channel} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+            <span className="text-lg shrink-0">{CHANNEL_ICONS[rec.channel] ?? '📢'}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 capitalize">
                 {rec.channel === 'hackernews'

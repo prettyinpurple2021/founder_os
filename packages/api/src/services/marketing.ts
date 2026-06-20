@@ -223,7 +223,6 @@ export async function getMarketingStatus(userId: string): Promise<MarketingStatu
   };
 }
 
-
 // --- Channel Recommendations (Requirement 5.3) ---
 
 /**
@@ -405,9 +404,7 @@ export function getChannelRecommendations(productType: ProductType): Channel[] {
   }
 
   // Sort by effort: low first, then medium, then high (Requirement 5.4)
-  return [...channels].sort(
-    (a, b) => EFFORT_SORT_ORDER[a.effort] - EFFORT_SORT_ORDER[b.effort],
-  );
+  return [...channels].sort((a, b) => EFFORT_SORT_ORDER[a.effort] - EFFORT_SORT_ORDER[b.effort]);
 }
 
 // --- Asset Completion (Requirement 5.5) ---
@@ -430,7 +427,10 @@ export interface MarketingAssetRecord {
  * @param assetType - The asset type identifier (e.g., 'landing-page-copy')
  * @returns The marketing asset record
  */
-export async function markAssetComplete(userId: string, assetType: string): Promise<MarketingAssetRecord> {
+export async function markAssetComplete(
+  userId: string,
+  assetType: string,
+): Promise<MarketingAssetRecord> {
   const now = new Date();
 
   // Check if there's already a completed record (idempotent)
@@ -502,7 +502,10 @@ export async function markAssetComplete(userId: string, assetType: string): Prom
  * @param assetType - The asset type identifier (e.g., 'landing-page-copy')
  * @returns The updated marketing asset record
  */
-export async function markAssetUncomplete(userId: string, assetType: string): Promise<MarketingAssetRecord> {
+export async function markAssetUncomplete(
+  userId: string,
+  assetType: string,
+): Promise<MarketingAssetRecord> {
   const existing = await prisma.marketingAsset.findFirst({
     where: {
       userId,

@@ -94,12 +94,12 @@ describe('Property: Last Successful State Preservation', () => {
     vi.useFakeTimers();
   });
 
-  it('after a failed sync, task states remain unchanged from last successful sync — no task data is modified, added, or removed', { timeout: 30000 }, async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        taskCollectionArb,
-        errorTypeArb,
-        async (initialTasks, error) => {
+  it(
+    'after a failed sync, task states remain unchanged from last successful sync — no task data is modified, added, or removed',
+    { timeout: 30000 },
+    async () => {
+      await fc.assert(
+        fc.asyncProperty(taskCollectionArb, errorTypeArb, async (initialTasks, error) => {
           vi.clearAllMocks();
 
           // Set up the repository mock
@@ -164,67 +164,63 @@ describe('Property: Last Successful State Preservation', () => {
           // "truth" — since no upserts happened, the database state is identical.
           // We verify this by confirming the snapshot hasn't changed (no side effect)
           expect(JSON.parse(JSON.stringify(initialTasks))).toEqual(taskSnapshot);
-        },
-      ),
-      { numRuns: 100 },
-    );
-  });
+        }),
+        { numRuns: 100 },
+      );
+    },
+  );
 
   it('state preservation holds regardless of task count — from empty to many tasks', async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.integer({ min: 0, max: 50 }),
-        errorTypeArb,
-        async (taskCount, error) => {
-          vi.clearAllMocks();
+      fc.asyncProperty(fc.integer({ min: 0, max: 50 }), errorTypeArb, async (taskCount, error) => {
+        vi.clearAllMocks();
 
-          const mockRepo = {
-            id: 'repo-test-1',
-            userId: 'user-test-1',
-            owner: 'testowner',
-            name: 'testrepo',
-            user: {
-              id: 'user-test-1',
-              githubId: 'gh-test-1',
-              username: 'testowner',
-              accessToken: 'encrypted-token',
-            },
-          };
+        const mockRepo = {
+          id: 'repo-test-1',
+          userId: 'user-test-1',
+          owner: 'testowner',
+          name: 'testrepo',
+          user: {
+            id: 'user-test-1',
+            githubId: 'gh-test-1',
+            username: 'testowner',
+            accessToken: 'encrypted-token',
+          },
+        };
 
-          (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockRepo);
-          (prisma.sync.create as ReturnType<typeof vi.fn>).mockResolvedValue({
-            id: 'sync-test-2',
-            repositoryId: 'repo-test-1',
-            status: 'IN_PROGRESS',
-            startedAt: new Date(),
-          });
-          (prisma.sync.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-            id: 'sync-test-2',
-            repositoryId: 'repo-test-1',
-            status: 'FAILED',
-            completedAt: new Date(),
-            duration: 100,
-            errorMessage: error.message,
-            retryCount: 3,
-          });
+        (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockRepo);
+        (prisma.sync.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+          id: 'sync-test-2',
+          repositoryId: 'repo-test-1',
+          status: 'IN_PROGRESS',
+          startedAt: new Date(),
+        });
+        (prisma.sync.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+          id: 'sync-test-2',
+          repositoryId: 'repo-test-1',
+          status: 'FAILED',
+          completedAt: new Date(),
+          duration: 100,
+          errorMessage: error.message,
+          retryCount: 3,
+        });
 
-          // GitHub API always errors
-          mockFetch.mockRejectedValue(error);
+        // GitHub API always errors
+        mockFetch.mockRejectedValue(error);
 
-          // Execute the sync
-          const syncPromise = performSync('repo-test-1');
-          await vi.advanceTimersByTimeAsync(1000);
-          await vi.advanceTimersByTimeAsync(2000);
-          await vi.advanceTimersByTimeAsync(4000);
-          const result = await syncPromise;
+        // Execute the sync
+        const syncPromise = performSync('repo-test-1');
+        await vi.advanceTimersByTimeAsync(1000);
+        await vi.advanceTimersByTimeAsync(2000);
+        await vi.advanceTimersByTimeAsync(4000);
+        const result = await syncPromise;
 
-          // PROPERTY: Regardless of how many tasks exist in the database (0..50),
-          // a failed sync never calls task.upsert — preserving all existing state.
-          expect(prisma.task.upsert).not.toHaveBeenCalled();
-          expect(result.status).toBe('FAILED');
-          expect(result.retryCount).toBe(3);
-        },
-      ),
+        // PROPERTY: Regardless of how many tasks exist in the database (0..50),
+        // a failed sync never calls task.upsert — preserving all existing state.
+        expect(prisma.task.upsert).not.toHaveBeenCalled();
+        expect(result.status).toBe('FAILED');
+        expect(result.retryCount).toBe(3);
+      }),
       { numRuns: 50 },
     );
   });

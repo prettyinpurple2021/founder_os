@@ -200,7 +200,8 @@ describe('Content Platform Prompts', () => {
     });
 
     it('passes valid Blog content with title', () => {
-      const validContent = '# How I Built Auth in a Weekend\n\nLast week I decided to tackle authentication...';
+      const validContent =
+        '# How I Built Auth in a Weekend\n\nLast week I decided to tackle authentication...';
       const result = validatePlatformContent(Platform.BLOG, validContent);
       expect(result.valid).toBe(true);
       expect(result.issues).toHaveLength(0);

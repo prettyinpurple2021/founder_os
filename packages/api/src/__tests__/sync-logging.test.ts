@@ -78,8 +78,12 @@ describe('Sync Logging', () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     // Default mocks for evidence and state transition creation
-    ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'ev-mock' });
-    ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'st-mock' });
+    ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'ev-mock',
+    });
+    ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'st-mock',
+    });
   });
 
   afterEach(() => {
@@ -167,7 +171,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             duration: 1500,
           }),
-        })
+        }),
       );
     });
 
@@ -192,7 +196,8 @@ describe('Sync Logging', () => {
         labels: [],
         statusChecks: [],
       });
-      mockTaskFindFirst.mockResolvedValue(null); mockTaskCreate.mockResolvedValue({ id: "task-mock" });
+      mockTaskFindFirst.mockResolvedValue(null);
+      mockTaskCreate.mockResolvedValue({ id: 'task-mock' });
       mockSyncUpdate.mockImplementation(async (args: any) => ({
         id: 'sync-1',
         ...args.data,
@@ -205,7 +210,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             itemsFetched: 3,
           }),
-        })
+        }),
       );
     });
 
@@ -222,7 +227,14 @@ describe('Sync Logging', () => {
       mockFetchAllRepoData.mockResolvedValue({
         issues: [
           { number: 1, title: 'Issue 1', state: 'open', labels: [], assignees: [] },
-          { number: 2, title: 'PR 1', state: 'open', labels: [], assignees: [], pull_request: { url: 'https://...' } },
+          {
+            number: 2,
+            title: 'PR 1',
+            state: 'open',
+            labels: [],
+            assignees: [],
+            pull_request: { url: 'https://...' },
+          },
           { number: 3, title: 'Issue 2', state: 'open', labels: [], assignees: [] },
         ],
         pullRequests: [],
@@ -230,7 +242,8 @@ describe('Sync Logging', () => {
         labels: [],
         statusChecks: [],
       });
-      mockTaskFindFirst.mockResolvedValue(null); mockTaskCreate.mockResolvedValue({ id: "task-mock" });
+      mockTaskFindFirst.mockResolvedValue(null);
+      mockTaskCreate.mockResolvedValue({ id: 'task-mock' });
       mockSyncUpdate.mockImplementation(async (args: any) => ({
         id: 'sync-1',
         ...args.data,
@@ -244,7 +257,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             itemsFetched: 2,
           }),
-        })
+        }),
       );
     });
 
@@ -276,7 +289,7 @@ describe('Sync Logging', () => {
             status: 'SUCCESS',
             completedAt: expect.any(Date),
           }),
-        })
+        }),
       );
     });
 
@@ -307,7 +320,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             retryCount: 0,
           }),
-        })
+        }),
       );
     });
 
@@ -336,7 +349,8 @@ describe('Sync Logging', () => {
           statusChecks: [],
         };
       });
-      mockTaskFindFirst.mockResolvedValue(null); mockTaskCreate.mockResolvedValue({ id: "task-mock" });
+      mockTaskFindFirst.mockResolvedValue(null);
+      mockTaskCreate.mockResolvedValue({ id: 'task-mock' });
       mockSyncUpdate.mockImplementation(async (args: any) => ({
         id: 'sync-1',
         ...args.data,
@@ -382,7 +396,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             status: 'FAILED',
           }),
-        })
+        }),
       );
     });
 
@@ -411,7 +425,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             errorMessage: 'Rate limit exceeded',
           }),
-        })
+        }),
       );
     });
 
@@ -471,7 +485,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             retryCount: 3,
           }),
-        })
+        }),
       );
     });
 
@@ -540,7 +554,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             errorMessage: 'string error',
           }),
-        })
+        }),
       );
     });
   });
@@ -570,7 +584,8 @@ describe('Sync Logging', () => {
           statusChecks: [],
         };
       });
-      mockTaskFindFirst.mockResolvedValue(null); mockTaskCreate.mockResolvedValue({ id: "task-mock" });
+      mockTaskFindFirst.mockResolvedValue(null);
+      mockTaskCreate.mockResolvedValue({ id: 'task-mock' });
       mockSyncUpdate.mockImplementation(async (args: any) => ({
         id: 'sync-1',
         ...args.data,
@@ -589,7 +604,7 @@ describe('Sync Logging', () => {
             retryCount: 2,
             itemsFetched: 1,
           }),
-        })
+        }),
       );
     });
   });
@@ -599,7 +614,7 @@ describe('Sync Logging', () => {
       mockRepoFindUnique.mockResolvedValue(null);
 
       await expect(performSync('nonexistent-repo')).rejects.toThrow(
-        'Repository not found: nonexistent-repo'
+        'Repository not found: nonexistent-repo',
       );
 
       // No sync record should be created
@@ -633,7 +648,7 @@ describe('Sync Logging', () => {
           data: expect.objectContaining({
             itemsFetched: 0,
           }),
-        })
+        }),
       );
     });
   });
@@ -643,8 +658,12 @@ describe('Sync Logging - logSync calls (Requirement 10.1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'ev-mock' });
-    ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'st-mock' });
+    ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'ev-mock',
+    });
+    ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: 'st-mock',
+    });
   });
 
   afterEach(() => {
@@ -713,9 +732,7 @@ describe('Sync Logging - logSync calls (Requirement 10.1)', () => {
     mockFetchAllRepoData.mockImplementation(async () => {
       vi.advanceTimersByTime(500);
       return {
-        issues: [
-          { number: 1, title: 'Issue 1', state: 'open', labels: [], assignees: [] },
-        ],
+        issues: [{ number: 1, title: 'Issue 1', state: 'open', labels: [], assignees: [] }],
         pullRequests: [],
         commits: [],
         labels: [],
@@ -791,7 +808,12 @@ describe('Sync Logging - logSync calls (Requirement 10.1)', () => {
 
     expect(mockLogSync).toHaveBeenCalledTimes(2);
     expect(mockLogSync).toHaveBeenNthCalledWith(1, 'user-456', 'sync_started', expect.any(Object));
-    expect(mockLogSync).toHaveBeenNthCalledWith(2, 'user-456', 'sync_completed', expect.any(Object));
+    expect(mockLogSync).toHaveBeenNthCalledWith(
+      2,
+      'user-456',
+      'sync_completed',
+      expect.any(Object),
+    );
   });
 
   it('should call logSync exactly twice on failed sync (started + retries + failed)', async () => {
@@ -875,9 +897,7 @@ describe('Sync Logging - logSync calls (Requirement 10.1)', () => {
 
     await performSync('repo-123');
 
-    const retryCalls = mockLogSync.mock.calls.filter(
-      (call: any[]) => call[1] === 'sync_retry'
-    );
+    const retryCalls = mockLogSync.mock.calls.filter((call: any[]) => call[1] === 'sync_retry');
     expect(retryCalls).toHaveLength(0);
   });
 
@@ -922,6 +942,11 @@ describe('Sync Logging - logSync calls (Requirement 10.1)', () => {
       delay: 1000,
       error: 'Transient error',
     });
-    expect(mockLogSync).toHaveBeenNthCalledWith(3, 'user-456', 'sync_completed', expect.any(Object));
+    expect(mockLogSync).toHaveBeenNthCalledWith(
+      3,
+      'user-456',
+      'sync_completed',
+      expect.any(Object),
+    );
   });
 });

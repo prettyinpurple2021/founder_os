@@ -76,9 +76,7 @@ export default function Content() {
       const result = await contentApi.getDrafts(status);
       setDrafts(result);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load content drafts'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load content drafts');
     } finally {
       setLoading(false);
     }
@@ -97,9 +95,7 @@ export default function Content() {
       const filter = statusFilter === 'ALL' ? undefined : statusFilter;
       await fetchDrafts(filter);
     } catch (err) {
-      setGenerateError(
-        err instanceof Error ? err.message : 'Failed to generate draft'
-      );
+      setGenerateError(err instanceof Error ? err.message : 'Failed to generate draft');
     } finally {
       setGenerating(false);
     }
@@ -125,10 +121,7 @@ export default function Content() {
       />
 
       {/* Status Filter Bar */}
-      <StatusFilterBar
-        selected={statusFilter}
-        onChange={setStatusFilter}
-      />
+      <StatusFilterBar selected={statusFilter} onChange={setStatusFilter} />
 
       {/* Drafts List */}
       <DraftsList
@@ -161,14 +154,10 @@ function GenerateDraftForm({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">
-        Generate New Draft
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-3">Generate New Draft</h3>
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">
-            Platform
-          </label>
+          <label className="block text-xs font-medium text-gray-600 mb-1.5">Platform</label>
           <div className="flex gap-2" role="radiogroup" aria-label="Platform selector">
             {platforms.map((platform) => (
               <button
@@ -200,9 +189,7 @@ function GenerateDraftForm({
           {generating ? 'Generating...' : 'Generate'}
         </button>
       </div>
-      {error && (
-        <p className="mt-3 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
@@ -261,9 +248,7 @@ function DraftsList({
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">
-          Unable to load drafts
-        </h3>
+        <h3 className="text-sm font-medium text-red-800">Unable to load drafts</h3>
         <p className="mt-1 text-sm text-red-600">{error}</p>
         <button
           onClick={onRetry}
@@ -279,9 +264,7 @@ function DraftsList({
     return (
       <div className="text-center py-12 rounded-lg border border-gray-200 bg-white">
         <div className="text-3xl mb-3">📝</div>
-        <h3 className="text-base font-medium text-gray-900 mb-1">
-          No drafts yet
-        </h3>
+        <h3 className="text-base font-medium text-gray-900 mb-1">No drafts yet</h3>
         <p className="text-sm text-gray-500">
           Generate your first build-in-public draft from shipped progress.
         </p>

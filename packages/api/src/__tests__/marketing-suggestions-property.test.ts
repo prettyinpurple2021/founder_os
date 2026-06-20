@@ -36,17 +36,17 @@ const recommendedSubsetArb = fc.subarray(ALL_RECOMMENDED_IDS, {
 });
 
 /** Arbitrary for unknown/extra asset type strings that are NOT in the recommended set */
-const unknownTypeArb = fc.string({ minLength: 1, maxLength: 30 }).filter(
-  (s) => !getRecommendedAssetIds().has(s as any),
-);
+const unknownTypeArb = fc
+  .string({ minLength: 1, maxLength: 30 })
+  .filter((s) => !getRecommendedAssetIds().has(s as any));
 
 /** Arbitrary for an array of unknown types (0 to 5) */
 const unknownTypesArb = fc.array(unknownTypeArb, { minLength: 0, maxLength: 5 });
 
 /** Arbitrary for a completed set that mixes known recommended IDs with unknown types */
-const mixedCompletedArb = fc.tuple(recommendedSubsetArb, unknownTypesArb).map(
-  ([known, unknown]) => [...known, ...unknown],
-);
+const mixedCompletedArb = fc
+  .tuple(recommendedSubsetArb, unknownTypesArb)
+  .map(([known, unknown]) => [...known, ...unknown]);
 
 // --- Effort sort order for verification ---
 const EFFORT_SORT_ORDER: Record<EffortLevel, number> = {
@@ -138,9 +138,7 @@ describe('Property 8: Marketing Asset Suggestions are Complement', () => {
         const recommendedIds = getRecommendedAssetIds();
 
         // Separate known from unknown
-        const knownCompleted = completedWithUnknowns.filter((id) =>
-          recommendedIds.has(id as any),
-        );
+        const knownCompleted = completedWithUnknowns.filter((id) => recommendedIds.has(id as any));
 
         // Suggestions with mixed input should equal suggestions with only known input
         const suggestionsWithMixed = computeMissingSuggestions(completedWithUnknowns);

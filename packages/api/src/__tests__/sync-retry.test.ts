@@ -78,12 +78,8 @@ const mockSyncRecord = {
 };
 
 describe('Sync Retry Logic', () => {
-  let delayTimings: number[] = [];
-  let originalSetTimeout: typeof setTimeout;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    delayTimings = [];
 
     // Use fake timers to track delay calls without actually waiting
     vi.useFakeTimers();
@@ -236,9 +232,15 @@ describe('Sync Retry Logic', () => {
 
       // Mock task findFirst + create for new tasks
       ((prisma as any).task.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-      ((prisma as any).task.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'task-mock' });
-      ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'ev-mock' });
-      ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'st-mock' });
+      ((prisma as any).task.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'task-mock',
+      });
+      ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'ev-mock',
+      });
+      ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'st-mock',
+      });
 
       const syncPromise = performSync('repo-123');
       await vi.advanceTimersByTimeAsync(5000);
@@ -303,12 +305,12 @@ describe('Sync Retry Logic', () => {
 
     it('sets retryCount to MAX_RETRIES (3) on total failure', async () => {
       (fetchAllRepoData as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Connection refused')
+        new Error('Connection refused'),
       );
 
       const syncPromise = performSync('repo-123');
       await vi.advanceTimersByTimeAsync(10000);
-      const result = await syncPromise;
+      await syncPromise;
 
       expect(prisma.sync.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -318,14 +320,12 @@ describe('Sync Retry Logic', () => {
             retryCount: 3,
             errorMessage: 'Connection refused',
           }),
-        })
+        }),
       );
     });
 
     it('includes duration in the failed sync record', async () => {
-      (fetchAllRepoData as ReturnType<typeof vi.fn>).mockRejectedValue(
-        new Error('Server error')
-      );
+      (fetchAllRepoData as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Server error'));
 
       const syncPromise = performSync('repo-123');
       await vi.advanceTimersByTimeAsync(10000);
@@ -338,7 +338,7 @@ describe('Sync Retry Logic', () => {
             completedAt: expect.any(Date),
             duration: expect.any(Number),
           }),
-        })
+        }),
       );
     });
 
@@ -360,7 +360,7 @@ describe('Sync Retry Logic', () => {
       (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
       await expect(performSync('non-existent-repo')).rejects.toThrow(
-        'Repository not found: non-existent-repo'
+        'Repository not found: non-existent-repo',
       );
     });
   });

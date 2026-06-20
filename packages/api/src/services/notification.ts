@@ -74,7 +74,9 @@ export interface CreateNotificationOptions {
  * @param options - The notification details
  * @returns The created notification
  */
-export async function createNotification(options: CreateNotificationOptions): Promise<UserNotification> {
+export async function createNotification(
+  options: CreateNotificationOptions,
+): Promise<UserNotification> {
   const {
     userId,
     operation,
@@ -141,7 +143,10 @@ export async function createNotification(options: CreateNotificationOptions): Pr
  * @param limit - Maximum number of notifications to return (default: 20)
  * @returns Array of user notifications
  */
-export async function getUnreadNotifications(userId: string, limit = 20): Promise<UserNotification[]> {
+export async function getUnreadNotifications(
+  userId: string,
+  limit = 20,
+): Promise<UserNotification[]> {
   const logs = await prisma.systemLog.findMany({
     where: {
       userId,
@@ -186,7 +191,10 @@ export async function getAllNotifications(userId: string, limit = 50): Promise<U
  * @param userId - The user's ID (for authorization check)
  * @returns true if the notification was found and updated
  */
-export async function markNotificationRead(notificationId: string, userId: string): Promise<boolean> {
+export async function markNotificationRead(
+  notificationId: string,
+  userId: string,
+): Promise<boolean> {
   const existing = await prisma.systemLog.findFirst({
     where: {
       id: notificationId,
@@ -259,7 +267,10 @@ export function buildResponseNotification(
   message: string,
   retryable: boolean,
   actionHint?: string,
-): Pick<UserNotification, 'title' | 'message' | 'severity' | 'retryable' | 'actionHint' | 'operation' | 'timestamp'> {
+): Pick<
+  UserNotification,
+  'title' | 'message' | 'severity' | 'retryable' | 'actionHint' | 'operation' | 'timestamp'
+> {
   return {
     title: `${formatOperationName(operation)} failed`,
     message,
@@ -274,7 +285,11 @@ export function buildResponseNotification(
 /**
  * Maps a SystemLog entry to a UserNotification object.
  */
-function mapLogToNotification(logEntry: { id: string; details: unknown; timestamp: Date }): UserNotification {
+function mapLogToNotification(logEntry: {
+  id: string;
+  details: unknown;
+  timestamp: Date;
+}): UserNotification {
   const details = logEntry.details as Record<string, unknown>;
 
   return {
@@ -295,7 +310,5 @@ function mapLogToNotification(logEntry: { id: string; details: unknown; timestam
  * e.g., "sync" → "Sync", "content_generation" → "Content generation"
  */
 function formatOperationName(operation: string): string {
-  return operation
-    .replace(/_/g, ' ')
-    .replace(/^\w/, (c) => c.toUpperCase());
+  return operation.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }

@@ -10,7 +10,12 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { getUnreadNotifications, getAllNotifications, markNotificationRead, markAllNotificationsRead } from '../services/notification.js';
+import {
+  getUnreadNotifications,
+  getAllNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from '../services/notification.js';
 import { AppError, unauthorized, internalError } from '../errors/AppError.js';
 import { validate } from '../middleware/validate.js';
 import { notificationsQuerySchema } from '../validation/schemas.js';
@@ -37,23 +42,29 @@ router.use(requireAuth);
  *   - unreadOnly (boolean, default: true) — only return unread notifications
  *   - limit (number, default: 20, max: 100) — max notifications to return
  */
-router.get('/', validate(notificationsQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const { unreadOnly, limit } = req.query as unknown as { unreadOnly: boolean; limit: number };
+router.get(
+  '/',
+  validate(notificationsQuerySchema, 'query'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const { unreadOnly, limit } = req.query as unknown as { unreadOnly: boolean; limit: number };
 
-    const notifications = unreadOnly
-      ? await getUnreadNotifications(user.id, limit)
-      : await getAllNotifications(user.id, limit);
+      const notifications = unreadOnly
+        ? await getUnreadNotifications(user.id, limit)
+        : await getAllNotifications(user.id, limit);
 
-    res.status(200).json({
-      notifications,
-      unreadCount: unreadOnly ? notifications.length : notifications.filter(n => !n.read).length,
-    });
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to fetch notifications'));
-  }
-});
+      res.status(200).json({
+        notifications,
+        unreadCount: unreadOnly
+          ? notifications.length
+          : notifications.filter((n) => !n.read).length,
+      });
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to fetch notifications'));
+    }
+  },
+);
 
 /**
  * POST /api/notifications/:id/read

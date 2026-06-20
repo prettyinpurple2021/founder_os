@@ -69,7 +69,11 @@ router.post('/assets/:id/complete', async (req: Request, res: Response, next: Ne
     // Validate the asset type is from the recommended set
     const recommendedIds = getRecommendedAssetIds();
     if (!recommendedIds.has(assetType as MarketingAssetType)) {
-      next(badRequest(`Invalid asset type: '${assetType}'. Must be one of: ${[...recommendedIds].join(', ')}`));
+      next(
+        badRequest(
+          `Invalid asset type: '${assetType}'. Must be one of: ${[...recommendedIds].join(', ')}`,
+        ),
+      );
       return;
     }
 
@@ -102,7 +106,11 @@ router.post('/assets/:id/uncomplete', async (req: Request, res: Response, next: 
     // Validate the asset type is from the recommended set
     const recommendedIds = getRecommendedAssetIds();
     if (!recommendedIds.has(assetType as MarketingAssetType)) {
-      next(badRequest(`Invalid asset type: '${assetType}'. Must be one of: ${[...recommendedIds].join(', ')}`));
+      next(
+        badRequest(
+          `Invalid asset type: '${assetType}'. Must be one of: ${[...recommendedIds].join(', ')}`,
+        ),
+      );
       return;
     }
 

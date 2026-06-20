@@ -34,7 +34,6 @@ vi.mock('../services/logger.js', () => ({
 
 import prisma from '../lib/prisma.js';
 import { rejectDraft } from '../services/content.js';
-import { AppError } from '../errors/AppError.js';
 
 describe('rejectDraft service', () => {
   const userId = 'user-123';
@@ -90,8 +89,6 @@ describe('rejectDraft service', () => {
     // Key invariant: content MUST be preserved
     expect(result.draft.currentContent).toBe(originalContent);
 
-    // Verify the update call does NOT include currentContent modification
-    const transactionCall = vi.mocked(prisma.$transaction).mock.calls[0][0] as any;
     // The transaction is called with an array of promises - we verify the draft update
     // does not null out content by checking the result
     expect(result.draft.currentContent).not.toBeNull();
@@ -106,7 +103,7 @@ describe('rejectDraft service', () => {
     };
 
     vi.mocked(prisma.contentDraft.findUnique).mockResolvedValue(mockDraftPendingApproval as any);
-    vi.mocked(prisma.$transaction).mockImplementation(async (operations: any) => {
+    vi.mocked(prisma.$transaction).mockImplementation(async (_operations: any) => {
       // Capture the operations passed to $transaction
       return [updatedDraft, { id: 'log-1' }];
     });
@@ -129,17 +126,15 @@ describe('rejectDraft service', () => {
     };
 
     // To verify the reason is passed correctly, we intercept the $transaction call
-    let capturedLogData: any = null;
 
     vi.mocked(prisma.contentDraft.findUnique).mockResolvedValue(mockDraftPendingApproval as any);
 
     // Override the systemLog.create mock to capture data
-    vi.mocked(prisma.systemLog.create).mockImplementation((args: any) => {
-      capturedLogData = args.data;
+    vi.mocked(prisma.systemLog.create).mockImplementation((_args: any) => {
       return { id: 'log-1' } as any;
     });
 
-    vi.mocked(prisma.$transaction).mockImplementation(async (operations: any) => {
+    vi.mocked(prisma.$transaction).mockImplementation(async (_operations: any) => {
       // Execute the operations to capture data
       return [updatedDraft, { id: 'log-1' }];
     });
@@ -170,7 +165,14 @@ describe('rejectDraft service', () => {
   });
 
   it('should return 400 when draft is not in PENDING_APPROVAL state', async () => {
-    const nonPendingStates = ['GENERATED', 'EDITING', 'APPROVED', 'REJECTED', 'SCHEDULED', 'COPIED'];
+    const nonPendingStates = [
+      'GENERATED',
+      'EDITING',
+      'APPROVED',
+      'REJECTED',
+      'SCHEDULED',
+      'COPIED',
+    ];
 
     for (const status of nonPendingStates) {
       vi.mocked(prisma.contentDraft.findUnique).mockResolvedValue({

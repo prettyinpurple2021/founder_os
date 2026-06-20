@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import passport from '../auth/passport.js';
 import prisma from '../lib/prisma.js';
-import { AppError } from '../errors/AppError.js';
+
 import { logAuth } from '../services/logger.js';
 
 const router = Router();
@@ -37,10 +37,7 @@ const DEFAULT_OAUTH_ERROR = {
  * Initiates the GitHub OAuth flow.
  * Requests 'repo' and 'user:email' scopes to access repositories and email.
  */
-router.get(
-  '/auth/github',
-  passport.authenticate('github', { scope: ['repo', 'user:email'] })
-);
+router.get('/auth/github', passport.authenticate('github', { scope: ['repo', 'user:email'] }));
 
 /**
  * GET /auth/github/callback
@@ -52,40 +49,59 @@ router.get(
  * and encode it as query parameters for the frontend to display.
  */
 router.get('/auth/github/callback', (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('github', (err: Error | null, user: Express.User | false, info: { message?: string } | undefined) => {
-    // Case 1: An error occurred during the OAuth exchange (network issue, invalid token, etc.)
-    if (err) {
-      const errorCode = DEFAULT_OAUTH_ERROR.code;
-      const errorMessage = err.message || DEFAULT_OAUTH_ERROR.message;
-      const encodedMessage = encodeURIComponent(errorMessage);
-      logAuth(undefined, 'login_failed', { provider: 'github', error: errorMessage, code: errorCode });
-      res.redirect(`${FRONTEND_URL}/login?error=${errorCode}&message=${encodedMessage}&retryable=true`);
-      return;
-    }
-
-    // Case 2: Authentication failed (user denied access, invalid credentials, etc.)
-    if (!user) {
-      const infoMessage = info?.message || '';
-      const mapped = OAUTH_ERROR_MAP[infoMessage] || DEFAULT_OAUTH_ERROR;
-      const encodedMessage = encodeURIComponent(mapped.message);
-      logAuth(undefined, 'login_failed', { provider: 'github', error: mapped.message, code: mapped.code });
-      res.redirect(`${FRONTEND_URL}/login?error=${mapped.code}&message=${encodedMessage}&retryable=true`);
-      return;
-    }
-
-    // Case 3: Success — log the user in and redirect to dashboard
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        const encodedMessage = encodeURIComponent('Failed to establish session. Please try again.');
-        res.redirect(`${FRONTEND_URL}/login?error=SESSION_INIT_FAILED&message=${encodedMessage}&retryable=true`);
+  passport.authenticate(
+    'github',
+    (err: Error | null, user: Express.User | false, info: { message?: string } | undefined) => {
+      // Case 1: An error occurred during the OAuth exchange (network issue, invalid token, etc.)
+      if (err) {
+        const errorCode = DEFAULT_OAUTH_ERROR.code;
+        const errorMessage = err.message || DEFAULT_OAUTH_ERROR.message;
+        const encodedMessage = encodeURIComponent(errorMessage);
+        logAuth(undefined, 'login_failed', {
+          provider: 'github',
+          error: errorMessage,
+          code: errorCode,
+        });
+        res.redirect(
+          `${FRONTEND_URL}/login?error=${errorCode}&message=${encodedMessage}&retryable=true`,
+        );
         return;
       }
-      // Fire-and-forget auth login log
-      const authUser = user as { id: string; username?: string };
-      logAuth(authUser.id, 'login', { provider: 'github', username: authUser.username });
-      res.redirect(`${FRONTEND_URL}/dashboard`);
-    });
-  })(req, res, next);
+
+      // Case 2: Authentication failed (user denied access, invalid credentials, etc.)
+      if (!user) {
+        const infoMessage = info?.message || '';
+        const mapped = OAUTH_ERROR_MAP[infoMessage] || DEFAULT_OAUTH_ERROR;
+        const encodedMessage = encodeURIComponent(mapped.message);
+        logAuth(undefined, 'login_failed', {
+          provider: 'github',
+          error: mapped.message,
+          code: mapped.code,
+        });
+        res.redirect(
+          `${FRONTEND_URL}/login?error=${mapped.code}&message=${encodedMessage}&retryable=true`,
+        );
+        return;
+      }
+
+      // Case 3: Success — log the user in and redirect to dashboard
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          const encodedMessage = encodeURIComponent(
+            'Failed to establish session. Please try again.',
+          );
+          res.redirect(
+            `${FRONTEND_URL}/login?error=SESSION_INIT_FAILED&message=${encodedMessage}&retryable=true`,
+          );
+          return;
+        }
+        // Fire-and-forget auth login log
+        const authUser = user as { id: string; username?: string };
+        logAuth(authUser.id, 'login', { provider: 'github', username: authUser.username });
+        res.redirect(`${FRONTEND_URL}/dashboard`);
+      });
+    },
+  )(req, res, next);
 });
 
 /**

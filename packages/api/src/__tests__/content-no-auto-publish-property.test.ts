@@ -72,11 +72,6 @@ function findAllValidPaths(start: DraftStatus, maxDepth: number = 10): DraftStat
  */
 const statusArb = fc.constantFrom(...ALL_STATUSES);
 
-const transitionSequenceArb = fc.record({
-  start: statusArb,
-  steps: fc.array(statusArb, { minLength: 1, maxLength: 8 }),
-});
-
 describe('Property: No Auto-Publishing Invariant', () => {
   it('no valid path to SCHEDULED or COPIED without APPROVED in the path', () => {
     /**

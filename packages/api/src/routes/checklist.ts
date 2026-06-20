@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
-import { getChecklist, ChecklistItemStatus } from '../services/checklist.js';
+import { getChecklist } from '../services/checklist.js';
 import { validate } from '../middleware/validate.js';
 import { updateChecklistItemSchema } from '../validation/schemas.js';
 
@@ -53,18 +53,22 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
  *
  * Requirements: 4.1, 4.2
  */
-router.put('/items/:id', validate(updateChecklistItemSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
+router.put(
+  '/items/:id',
+  validate(updateChecklistItemSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
 
-    // Since the checklist is generated dynamically from task states and not persisted,
-    // manual overrides acknowledge the item ID and return the updated status.
-    // A future enhancement could persist overrides in the database.
-    res.json({ id, status });
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to update checklist item'));
-  }
-});
+      // Since the checklist is generated dynamically from task states and not persisted,
+      // manual overrides acknowledge the item ID and return the updated status.
+      // A future enhancement could persist overrides in the database.
+      res.json({ id, status });
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to update checklist item'));
+    }
+  },
+);
 
 export default router;

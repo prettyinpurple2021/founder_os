@@ -10,7 +10,12 @@
 import prisma from '../lib/prisma.js';
 import { getDecryptedToken } from '../lib/encryption.js';
 import { fetchAllRepoData, GitHubIssue, GitHubPullRequest, GitHubCommit } from './github.js';
-import { inferTaskState, findLinkedPullRequests, findLinkedCommits, InferenceContext } from './inference.js';
+import {
+  inferTaskState,
+  findLinkedPullRequests,
+  findLinkedCommits,
+  InferenceContext,
+} from './inference.js';
 import { logSync, logStateChange } from './logger.js';
 
 const MAX_RETRIES = 3;
@@ -63,16 +68,10 @@ export async function performSync(repositoryId: string) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const token = getDecryptedToken(repository.user);
-      const repoData = await fetchAllRepoData(
-        token,
-        repository.owner,
-        repository.name
-      );
+      const repoData = await fetchAllRepoData(token, repository.owner, repository.name);
 
       // Filter to actual issues (GitHub API returns PRs in the issues endpoint too)
-      const actualIssues = repoData.issues.filter(
-        (issue) => !issue.pull_request
-      );
+      const actualIssues = repoData.issues.filter((issue) => !issue.pull_request);
 
       // Upsert tasks from issues using the full inference engine
       let itemsFetched = 0;
@@ -82,7 +81,7 @@ export async function performSync(repositoryId: string) {
           issue,
           repoData.pullRequests,
           repoData.commits,
-          repository.user.id
+          repository.user.id,
         );
         itemsFetched++;
       }
@@ -170,7 +169,7 @@ export async function upsertTaskFromIssue(
   issue: GitHubIssue,
   allPullRequests: GitHubPullRequest[],
   allCommits: GitHubCommit[],
-  userId?: string
+  userId?: string,
 ): Promise<void> {
   // Build inference context
   const linkedPRs = findLinkedPullRequests(issue, allPullRequests);
@@ -235,8 +234,8 @@ export async function upsertTaskFromIssue(
             url: artifact.url,
             metadata: artifact.metadata as object,
           },
-        })
-      )
+        }),
+      ),
     );
 
     const evidenceIds = evidenceRecords.map((e) => e.id);

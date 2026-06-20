@@ -26,17 +26,6 @@ import {
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-function mockResponse(data: unknown, status = 200, headers: Record<string, string> = {}) {
-  return {
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: status === 200 ? 'OK' : 'Error',
-    headers: new Map(Object.entries(headers)),
-    json: () => Promise.resolve(data),
-    text: () => Promise.resolve(JSON.stringify(data)),
-  };
-}
-
 // Override Headers.get to work with our mock
 function mockResponseWithHeaders(data: unknown, status: number, headers: Record<string, string>) {
   return {
@@ -80,7 +69,7 @@ describe('GitHub API Client', () => {
           headers: expect.objectContaining({
             Authorization: `Bearer ${token}`,
           }),
-        })
+        }),
       );
     });
 
@@ -97,9 +86,7 @@ describe('GitHub API Client', () => {
 
   describe('fetchPullRequests', () => {
     it('fetches PRs with state=all to include recently closed/merged', async () => {
-      const mockPRs = [
-        { id: 1, number: 10, title: 'Fix bug', state: 'open', merged: false },
-      ];
+      const mockPRs = [{ id: 1, number: 10, title: 'Fix bug', state: 'open', merged: false }];
       mockFetch.mockResolvedValue(mockResponseWithHeaders(mockPRs, 200, {}));
 
       const result = await fetchPullRequests(token, owner, repo);
@@ -167,7 +154,7 @@ describe('GitHub API Client', () => {
       mockFetch.mockResolvedValue(
         mockResponseWithHeaders('rate limit exceeded', 429, {
           'x-ratelimit-reset': String(resetTimestamp),
-        })
+        }),
       );
 
       await expect(fetchIssues(token, owner, repo)).rejects.toThrow(GitHubRateLimitError);
@@ -178,7 +165,7 @@ describe('GitHub API Client', () => {
       mockFetch.mockResolvedValue(
         mockResponseWithHeaders('API rate limit exceeded for user', 403, {
           'x-ratelimit-reset': String(resetTimestamp),
-        })
+        }),
       );
 
       await expect(fetchIssues(token, owner, repo)).rejects.toThrow(GitHubRateLimitError);
@@ -227,7 +214,7 @@ describe('GitHub API Client', () => {
       mockFetch.mockResolvedValue(
         mockResponseWithHeaders('rate limit', 429, {
           'x-ratelimit-reset': String(resetTimestamp),
-        })
+        }),
       );
 
       try {
@@ -244,19 +231,35 @@ describe('GitHub API Client', () => {
 
   describe('fetchAllRepoData', () => {
     it('fetches all data types in parallel and returns structured result', async () => {
-      const mockIssues = [{ id: 1, number: 1, title: 'Issue 1', state: 'open', labels: [], assignees: [] }];
-      const mockPRs = [{ id: 2, number: 10, title: 'PR 1', state: 'open', merged: false, head: { ref: 'feature', sha: 'abc123' }, base: { ref: 'main' }, requested_reviewers: [], labels: [] }];
-      const mockCommits = [{ sha: 'abc123', commit: { message: 'commit', author: null }, html_url: '', author: null }];
+      const mockIssues = [
+        { id: 1, number: 1, title: 'Issue 1', state: 'open', labels: [], assignees: [] },
+      ];
+      const mockPRs = [
+        {
+          id: 2,
+          number: 10,
+          title: 'PR 1',
+          state: 'open',
+          merged: false,
+          head: { ref: 'feature', sha: 'abc123' },
+          base: { ref: 'main' },
+          requested_reviewers: [],
+          labels: [],
+        },
+      ];
+      const mockCommits = [
+        { sha: 'abc123', commit: { message: 'commit', author: null }, html_url: '', author: null },
+      ];
       const mockLabels = [{ id: 1, name: 'bug', color: 'ff0000', description: null }];
       const mockStatus = { state: 'success', statuses: [], total_count: 0 };
 
       // The function calls fetch 5 times (issues, PRs, commits, labels, then status for PR head)
       mockFetch
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockIssues, 200, {}))  // issues
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockPRs, 200, {}))      // PRs
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockCommits, 200, {}))  // commits
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockLabels, 200, {}))   // labels
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockStatus, 200, {}));  // status check
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockIssues, 200, {})) // issues
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockPRs, 200, {})) // PRs
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockCommits, 200, {})) // commits
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockLabels, 200, {})) // labels
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockStatus, 200, {})); // status check
 
       const result = await fetchAllRepoData(token, owner, repo);
 
@@ -268,14 +271,18 @@ describe('GitHub API Client', () => {
     });
 
     it('returns empty labels array if labels fetch fails', async () => {
-      const mockIssues = [{ id: 1, number: 1, title: 'Issue', state: 'open', labels: [], assignees: [] }];
+      const mockIssues = [
+        { id: 1, number: 1, title: 'Issue', state: 'open', labels: [], assignees: [] },
+      ];
       const mockPRs: unknown[] = [];
-      const mockCommits = [{ sha: 'abc', commit: { message: 'x', author: null }, html_url: '', author: null }];
+      const mockCommits = [
+        { sha: 'abc', commit: { message: 'x', author: null }, html_url: '', author: null },
+      ];
 
       mockFetch
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockIssues, 200, {}))  // issues
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockPRs, 200, {}))      // PRs
-        .mockResolvedValueOnce(mockResponseWithHeaders(mockCommits, 200, {}))  // commits
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockIssues, 200, {})) // issues
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockPRs, 200, {})) // PRs
+        .mockResolvedValueOnce(mockResponseWithHeaders(mockCommits, 200, {})) // commits
         .mockResolvedValueOnce(mockResponseWithHeaders('Not Found', 404, {})); // labels fail
 
       const result = await fetchAllRepoData(token, owner, repo);
@@ -297,7 +304,7 @@ describe('GitHub API Client', () => {
       mockFetch.mockResolvedValue(
         mockResponseWithHeaders('rate limit', 429, {
           'x-ratelimit-reset': String(resetTimestamp),
-        })
+        }),
       );
 
       await expect(fetchAllRepoData(token, owner, repo)).rejects.toThrow(GitHubRateLimitError);

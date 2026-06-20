@@ -33,11 +33,7 @@ vi.mock('../services/sync.js', () => ({
 import * as cron from 'node-cron';
 import prisma from '../lib/prisma.js';
 import { performSync } from '../services/sync.js';
-import {
-  startScheduler,
-  stopScheduler,
-  isSchedulerRunning,
-} from '../services/scheduler.js';
+import { startScheduler, stopScheduler, isSchedulerRunning } from '../services/scheduler.js';
 
 describe('Scheduler Service', () => {
   beforeEach(() => {
@@ -54,10 +50,7 @@ describe('Scheduler Service', () => {
     it('should schedule a cron job that runs every minute', () => {
       startScheduler();
 
-      expect(cron.schedule).toHaveBeenCalledWith(
-        '* * * * *',
-        expect.any(Function)
-      );
+      expect(cron.schedule).toHaveBeenCalledWith('* * * * *', expect.any(Function));
     });
 
     it('should mark scheduler as running after start', () => {
@@ -111,7 +104,7 @@ describe('Scheduler Service', () => {
 
       // Start the scheduler and capture the callback
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       // Execute the cron callback
       await cronCallback();
@@ -140,7 +133,7 @@ describe('Scheduler Service', () => {
       ]);
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       await cronCallback();
       await new Promise((r) => setTimeout(r, 50));
@@ -166,7 +159,7 @@ describe('Scheduler Service', () => {
       vi.mocked(performSync).mockResolvedValue({} as any);
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       await cronCallback();
       await new Promise((r) => setTimeout(r, 50));
@@ -205,7 +198,7 @@ describe('Scheduler Service', () => {
       vi.mocked(performSync).mockResolvedValue({} as any);
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       await cronCallback();
       await new Promise((r) => setTimeout(r, 50));
@@ -232,7 +225,7 @@ describe('Scheduler Service', () => {
       vi.mocked(performSync).mockRejectedValue(new Error('Network error'));
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       // Should not throw even when performSync fails
       await cronCallback();
@@ -242,12 +235,10 @@ describe('Scheduler Service', () => {
     });
 
     it('should handle database query errors gracefully', async () => {
-      vi.mocked(prisma.repository.findMany).mockRejectedValue(
-        new Error('DB connection lost')
-      );
+      vi.mocked(prisma.repository.findMany).mockRejectedValue(new Error('DB connection lost'));
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       // Should not throw even when prisma fails
       await cronCallback();
@@ -274,7 +265,7 @@ describe('Scheduler Service', () => {
       ]);
 
       startScheduler();
-      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as Function;
+      const cronCallback = vi.mocked(cron.schedule).mock.calls[0][1] as () => Promise<void>;
 
       await cronCallback();
       await new Promise((r) => setTimeout(r, 50));

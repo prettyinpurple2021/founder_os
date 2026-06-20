@@ -8,7 +8,14 @@ import { describe, it, expect } from 'vitest';
 interface ContentDraft {
   id: string;
   platform: 'TWITTER' | 'LINKEDIN' | 'BLOG';
-  status: 'GENERATED' | 'EDITING' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'SCHEDULED' | 'COPIED';
+  status:
+    | 'GENERATED'
+    | 'EDITING'
+    | 'PENDING_APPROVAL'
+    | 'APPROVED'
+    | 'REJECTED'
+    | 'SCHEDULED'
+    | 'COPIED';
   currentContent: string;
   createdAt: string;
   updatedAt: string;
@@ -43,16 +50,46 @@ function isPreserved(draft: ContentDraft): boolean {
   // A rejected draft is preserved if:
   // - Its status is REJECTED
   // - Its content is non-null and non-empty
-  return draft.status === 'REJECTED' && draft.currentContent !== null && draft.currentContent.length > 0;
+  return (
+    draft.status === 'REJECTED' && draft.currentContent !== null && draft.currentContent.length > 0
+  );
 }
 
 describe('Rejected Drafts - Filtering', () => {
   it('should filter only rejected drafts from a mixed list', () => {
     const drafts: ContentDraft[] = [
-      { id: '1', platform: 'TWITTER', status: 'APPROVED', currentContent: 'content 1', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z' },
-      { id: '2', platform: 'LINKEDIN', status: 'REJECTED', currentContent: 'content 2', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-03T00:00:00Z' },
-      { id: '3', platform: 'BLOG', status: 'GENERATED', currentContent: 'content 3', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-04T00:00:00Z' },
-      { id: '4', platform: 'TWITTER', status: 'REJECTED', currentContent: 'content 4', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-05T00:00:00Z' },
+      {
+        id: '1',
+        platform: 'TWITTER',
+        status: 'APPROVED',
+        currentContent: 'content 1',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+      },
+      {
+        id: '2',
+        platform: 'LINKEDIN',
+        status: 'REJECTED',
+        currentContent: 'content 2',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-03T00:00:00Z',
+      },
+      {
+        id: '3',
+        platform: 'BLOG',
+        status: 'GENERATED',
+        currentContent: 'content 3',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-04T00:00:00Z',
+      },
+      {
+        id: '4',
+        platform: 'TWITTER',
+        status: 'REJECTED',
+        currentContent: 'content 4',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-05T00:00:00Z',
+      },
     ];
 
     const rejected = filterRejectedDrafts(drafts);
@@ -62,7 +99,14 @@ describe('Rejected Drafts - Filtering', () => {
 
   it('should return empty array when no drafts are rejected', () => {
     const drafts: ContentDraft[] = [
-      { id: '1', platform: 'TWITTER', status: 'APPROVED', currentContent: 'hi', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z' },
+      {
+        id: '1',
+        platform: 'TWITTER',
+        status: 'APPROVED',
+        currentContent: 'hi',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+      },
     ];
 
     const rejected = filterRejectedDrafts(drafts);
@@ -71,8 +115,22 @@ describe('Rejected Drafts - Filtering', () => {
 
   it('should return all drafts when all are rejected', () => {
     const drafts: ContentDraft[] = [
-      { id: '1', platform: 'TWITTER', status: 'REJECTED', currentContent: 'a', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z' },
-      { id: '2', platform: 'LINKEDIN', status: 'REJECTED', currentContent: 'b', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-03T00:00:00Z' },
+      {
+        id: '1',
+        platform: 'TWITTER',
+        status: 'REJECTED',
+        currentContent: 'a',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+      },
+      {
+        id: '2',
+        platform: 'LINKEDIN',
+        status: 'REJECTED',
+        currentContent: 'b',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-03T00:00:00Z',
+      },
     ];
 
     const rejected = filterRejectedDrafts(drafts);
@@ -154,7 +212,14 @@ describe('Rejected Drafts - Date Formatting', () => {
 describe('Rejected Drafts - Summary Text', () => {
   it('should use singular "draft" for count of 1', () => {
     const drafts: ContentDraft[] = [
-      { id: '1', platform: 'TWITTER', status: 'REJECTED', currentContent: 'hi', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z' },
+      {
+        id: '1',
+        platform: 'TWITTER',
+        status: 'REJECTED',
+        currentContent: 'hi',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+      },
     ];
 
     const summary = getDraftSummary(drafts);
@@ -163,9 +228,30 @@ describe('Rejected Drafts - Summary Text', () => {
 
   it('should use plural "drafts" for count > 1', () => {
     const drafts: ContentDraft[] = [
-      { id: '1', platform: 'TWITTER', status: 'REJECTED', currentContent: 'a', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-02T00:00:00Z' },
-      { id: '2', platform: 'LINKEDIN', status: 'REJECTED', currentContent: 'b', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-03T00:00:00Z' },
-      { id: '3', platform: 'BLOG', status: 'REJECTED', currentContent: 'c', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-04T00:00:00Z' },
+      {
+        id: '1',
+        platform: 'TWITTER',
+        status: 'REJECTED',
+        currentContent: 'a',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-02T00:00:00Z',
+      },
+      {
+        id: '2',
+        platform: 'LINKEDIN',
+        status: 'REJECTED',
+        currentContent: 'b',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-03T00:00:00Z',
+      },
+      {
+        id: '3',
+        platform: 'BLOG',
+        status: 'REJECTED',
+        currentContent: 'c',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-04T00:00:00Z',
+      },
     ];
 
     const summary = getDraftSummary(drafts);

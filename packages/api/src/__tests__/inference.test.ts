@@ -17,7 +17,6 @@ import {
   findLinkedPullRequests,
   findLinkedCommits,
   InferenceContext,
-  InferenceResult,
 } from '../services/inference.js';
 import type { GitHubIssue, GitHubPullRequest, GitHubCommit } from '../services/github.js';
 
@@ -160,7 +159,10 @@ describe('Inference Rule 2: Blocked', () => {
       linkedPullRequests: [],
       linkedCommits: [],
       issueComments: [
-        { body: 'This depends on #15 being merged first', html_url: 'https://github.com/user/repo/issues/42#issuecomment-1' },
+        {
+          body: 'This depends on #15 being merged first',
+          html_url: 'https://github.com/user/repo/issues/42#issuecomment-1',
+        },
       ],
     };
 
@@ -176,7 +178,10 @@ describe('Inference Rule 2: Blocked', () => {
       linkedPullRequests: [],
       linkedCommits: [],
       issueComments: [
-        { body: 'Blocked by the API migration', html_url: 'https://github.com/user/repo/issues/42#issuecomment-2' },
+        {
+          body: 'Blocked by the API migration',
+          html_url: 'https://github.com/user/repo/issues/42#issuecomment-2',
+        },
       ],
     };
 
@@ -190,7 +195,10 @@ describe('Inference Rule 2: Blocked', () => {
       linkedPullRequests: [],
       linkedCommits: [],
       issueComments: [
-        { body: 'Waiting for the design team to approve', html_url: 'https://github.com/user/repo/issues/42#issuecomment-3' },
+        {
+          body: 'Waiting for the design team to approve',
+          html_url: 'https://github.com/user/repo/issues/42#issuecomment-3',
+        },
       ],
     };
 
@@ -204,7 +212,10 @@ describe('Inference Rule 2: Blocked', () => {
       linkedPullRequests: [],
       linkedCommits: [],
       issueComments: [
-        { body: 'This requires #20 to be completed', html_url: 'https://github.com/user/repo/issues/42#issuecomment-4' },
+        {
+          body: 'This requires #20 to be completed',
+          html_url: 'https://github.com/user/repo/issues/42#issuecomment-4',
+        },
       ],
     };
 
@@ -225,7 +236,10 @@ describe('Inference Rule 2: Blocked', () => {
 
   it('should not match labels without "block" substring', () => {
     const issue = makeIssue({
-      labels: [{ id: 1, name: 'bug', color: 'red' }, { id: 2, name: 'priority:high', color: 'orange' }],
+      labels: [
+        { id: 1, name: 'bug', color: 'red' },
+        { id: 2, name: 'priority:high', color: 'orange' },
+      ],
     });
 
     const result = inferTaskState(issue, emptyContext());
@@ -414,9 +428,11 @@ describe('Inference Rule 5: Not Started', () => {
     oldDate.setDate(oldDate.getDate() - 45); // Old commit, won't trigger IN_PROGRESS
     const context: InferenceContext = {
       linkedPullRequests: [],
-      linkedCommits: [makeCommit({
-        commit: { message: 'old work', author: { name: 'dev', date: oldDate.toISOString() } },
-      })],
+      linkedCommits: [
+        makeCommit({
+          commit: { message: 'old work', author: { name: 'dev', date: oldDate.toISOString() } },
+        }),
+      ],
     };
 
     const result = inferTaskState(issue, context);
@@ -437,9 +453,11 @@ describe('Inference Rule 6: Uncertain (Fallback)', () => {
     oldDate.setDate(oldDate.getDate() - 45);
     const context: InferenceContext = {
       linkedPullRequests: [],
-      linkedCommits: [makeCommit({
-        commit: { message: 'old', author: { name: 'dev', date: oldDate.toISOString() } },
-      })],
+      linkedCommits: [
+        makeCommit({
+          commit: { message: 'old', author: { name: 'dev', date: oldDate.toISOString() } },
+        }),
+      ],
     };
 
     const result = inferTaskState(issue, context);
@@ -477,7 +495,9 @@ describe('Inference Rule 6: Uncertain (Fallback)', () => {
       assignees: [{ login: 'someone' }],
     });
     const context: InferenceContext = {
-      linkedPullRequests: [makePR({ state: 'closed', merged: false, requested_reviewers: [{ login: 'x' }] })],
+      linkedPullRequests: [
+        makePR({ state: 'closed', merged: false, requested_reviewers: [{ login: 'x' }] }),
+      ],
       linkedCommits: [],
     };
 
@@ -561,7 +581,11 @@ describe('findLinkedPullRequests', () => {
   it('should find PRs with title referencing the issue number', () => {
     const issue = makeIssue({ number: 42 });
     const prs: GitHubPullRequest[] = [
-      makePR({ number: 10, head: { ref: 'unrelated-branch', sha: 'aaa' }, title: 'Fix #42 login bug' }),
+      makePR({
+        number: 10,
+        head: { ref: 'unrelated-branch', sha: 'aaa' },
+        title: 'Fix #42 login bug',
+      }),
       makePR({ number: 11, head: { ref: 'other', sha: 'bbb' }, title: 'No reference here' }),
     ];
 

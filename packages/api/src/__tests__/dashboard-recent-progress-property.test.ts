@@ -36,9 +36,7 @@ function filterRecentProgress(tasks: Task[]): RecentProgressItem[] {
   return tasks
     .filter(
       (t) =>
-        t.state === 'COMPLETED' &&
-        t.lastInferredAt !== null &&
-        t.lastInferredAt >= sevenDaysAgo,
+        t.state === 'COMPLETED' && t.lastInferredAt !== null && t.lastInferredAt >= sevenDaysAgo,
     )
     .sort((a, b) => b.lastInferredAt!.getTime() - a.lastInferredAt!.getTime())
     .map((t) => ({
@@ -64,16 +62,20 @@ const allTaskStates: TaskState[] = [
 const taskStateArb: fc.Arbitrary<TaskState> = fc.constantFrom(...allTaskStates);
 
 /** Generates a date within the last 7 days (exclusive of exactly 7 days ago boundary) */
-const recentDateArb: fc.Arbitrary<Date> = fc.integer({
-  min: 1, // at least 1ms after 7 days ago
-  max: SEVEN_DAYS_MS - 1,
-}).map((msAgo) => new Date(Date.now() - msAgo));
+const recentDateArb: fc.Arbitrary<Date> = fc
+  .integer({
+    min: 1, // at least 1ms after 7 days ago
+    max: SEVEN_DAYS_MS - 1,
+  })
+  .map((msAgo) => new Date(Date.now() - msAgo));
 
 /** Generates a date older than 7 days */
-const oldDateArb: fc.Arbitrary<Date> = fc.integer({
-  min: SEVEN_DAYS_MS + 1, // at least 1ms beyond 7 days
-  max: SEVEN_DAYS_MS * 10, // up to 70 days ago
-}).map((msAgo) => new Date(Date.now() - msAgo));
+const oldDateArb: fc.Arbitrary<Date> = fc
+  .integer({
+    min: SEVEN_DAYS_MS + 1, // at least 1ms beyond 7 days
+    max: SEVEN_DAYS_MS * 10, // up to 70 days ago
+  })
+  .map((msAgo) => new Date(Date.now() - msAgo));
 
 /** Generates a date that is either recent or old */
 const anyDateArb: fc.Arbitrary<Date> = fc.oneof(recentDateArb, oldDateArb);
@@ -119,72 +121,60 @@ const nullDateTaskArb: fc.Arbitrary<Task> = fc.record({
 describe('Property 13: Dashboard Recent Progress Time Bound', () => {
   it('all tasks in recent progress have completedAt within last 7 days', () => {
     fc.assert(
-      fc.property(
-        fc.array(taskArb, { minLength: 0, maxLength: 20 }),
-        (tasks) => {
-          const now = Date.now();
-          const sevenDaysAgoMs = now - SEVEN_DAYS_MS;
+      fc.property(fc.array(taskArb, { minLength: 0, maxLength: 20 }), (tasks) => {
+        const now = Date.now();
+        const sevenDaysAgoMs = now - SEVEN_DAYS_MS;
 
-          const result = filterRecentProgress(tasks);
+        const result = filterRecentProgress(tasks);
 
-          // PROPERTY: Every item in recent progress has a completedAt within 7 days
-          for (const item of result) {
-            expect(item.completedAt.getTime()).toBeGreaterThanOrEqual(sevenDaysAgoMs);
-            expect(item.completedAt.getTime()).toBeLessThanOrEqual(now);
-          }
-        },
-      ),
+        // PROPERTY: Every item in recent progress has a completedAt within 7 days
+        for (const item of result) {
+          expect(item.completedAt.getTime()).toBeGreaterThanOrEqual(sevenDaysAgoMs);
+          expect(item.completedAt.getTime()).toBeLessThanOrEqual(now);
+        }
+      }),
       { numRuns: 200 },
     );
   });
 
   it('no task older than 7 days appears in recent progress', () => {
     fc.assert(
-      fc.property(
-        fc.array(oldTaskArb, { minLength: 1, maxLength: 20 }),
-        (tasks) => {
-          const result = filterRecentProgress(tasks);
+      fc.property(fc.array(oldTaskArb, { minLength: 1, maxLength: 20 }), (tasks) => {
+        const result = filterRecentProgress(tasks);
 
-          // PROPERTY: All tasks with old dates are excluded entirely
-          expect(result).toHaveLength(0);
-        },
-      ),
+        // PROPERTY: All tasks with old dates are excluded entirely
+        expect(result).toHaveLength(0);
+      }),
       { numRuns: 200 },
     );
   });
 
   it('all COMPLETED tasks within 7 days appear in recent progress', () => {
     fc.assert(
-      fc.property(
-        fc.array(completedRecentTaskArb, { minLength: 1, maxLength: 20 }),
-        (tasks) => {
-          const result = filterRecentProgress(tasks);
+      fc.property(fc.array(completedRecentTaskArb, { minLength: 1, maxLength: 20 }), (tasks) => {
+        const result = filterRecentProgress(tasks);
 
-          // PROPERTY: All completed tasks with recent dates are included
-          expect(result).toHaveLength(tasks.length);
+        // PROPERTY: All completed tasks with recent dates are included
+        expect(result).toHaveLength(tasks.length);
 
-          // Verify all original task IDs appear in the result
-          const resultIds = new Set(result.map((r) => r.taskId));
-          for (const task of tasks) {
-            expect(resultIds.has(task.id)).toBe(true);
-          }
-        },
-      ),
+        // Verify all original task IDs appear in the result
+        const resultIds = new Set(result.map((r) => r.taskId));
+        for (const task of tasks) {
+          expect(resultIds.has(task.id)).toBe(true);
+        }
+      }),
       { numRuns: 200 },
     );
   });
 
   it('tasks with null lastInferredAt are always excluded', () => {
     fc.assert(
-      fc.property(
-        fc.array(nullDateTaskArb, { minLength: 1, maxLength: 20 }),
-        (tasks) => {
-          const result = filterRecentProgress(tasks);
+      fc.property(fc.array(nullDateTaskArb, { minLength: 1, maxLength: 20 }), (tasks) => {
+        const result = filterRecentProgress(tasks);
 
-          // PROPERTY: Tasks with null lastInferredAt never appear in results
-          expect(result).toHaveLength(0);
-        },
-      ),
+        // PROPERTY: Tasks with null lastInferredAt never appear in results
+        expect(result).toHaveLength(0);
+      }),
       { numRuns: 200 },
     );
   });

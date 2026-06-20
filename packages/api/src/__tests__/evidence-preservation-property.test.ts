@@ -78,7 +78,10 @@ const pullRequestArb = fc.record({
     ref: fc.constant('main'),
   }),
   requested_reviewers: fc.array(assigneeArb, { minLength: 0, maxLength: 3 }),
-  labels: fc.array(fc.record({ id: fc.integer({ min: 1 }), name: fc.string({ minLength: 1 }) }), { minLength: 0, maxLength: 3 }),
+  labels: fc.array(fc.record({ id: fc.integer({ min: 1 }), name: fc.string({ minLength: 1 }) }), {
+    minLength: 0,
+    maxLength: 3,
+  }),
   created_at: fc.constant('2024-03-01T00:00:00Z'),
   updated_at: fc.constant('2024-06-01T00:00:00Z'),
   closed_at: fc.option(fc.constant('2024-06-05T00:00:00Z'), { nil: null }),
@@ -184,7 +187,7 @@ describe('Property: Evidence Preservation in upsertTaskFromIssue (mocked Prisma)
 
   // Must import after mock setup
   let prisma: any;
-  let upsertTaskFromIssue: typeof import('../services/sync.js')['upsertTaskFromIssue'];
+  let upsertTaskFromIssue: (typeof import('../services/sync.js'))['upsertTaskFromIssue'];
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -207,7 +210,8 @@ describe('Property: Evidence Preservation in upsertTaskFromIssue (mocked Prisma)
 
           // Compute what upsertTaskFromIssue will actually infer using the same
           // linking logic it uses internally
-          const { findLinkedPullRequests, findLinkedCommits } = await import('../services/inference.js');
+          const { findLinkedPullRequests, findLinkedCommits } =
+            await import('../services/inference.js');
           const linkedPRs = findLinkedPullRequests(issue, prs);
           const linkedCommits = findLinkedCommits(issue, linkedPRs, commits);
           const inferredResult = inferTaskState(issue, {

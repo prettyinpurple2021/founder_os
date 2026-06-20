@@ -78,9 +78,7 @@ export default function Checklist() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to load checklist data'
-          );
+          setError(err instanceof Error ? err.message : 'Failed to load checklist data');
         }
       } finally {
         if (!cancelled) {
@@ -109,9 +107,7 @@ export default function Checklist() {
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">
-          Unable to load checklist
-        </h3>
+        <h3 className="text-sm font-medium text-red-800">Unable to load checklist</h3>
         <p className="mt-1 text-sm text-red-600">{error}</p>
       </div>
     );
@@ -121,9 +117,7 @@ export default function Checklist() {
     return (
       <div className="text-center py-16">
         <div className="text-4xl mb-4">📋</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          No Checklist Available
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Checklist Available</h2>
         <p className="text-gray-600">
           Connect your repository and sync to generate your launch readiness checklist.
         </p>
@@ -142,12 +136,8 @@ export default function Checklist() {
       {/* Overall progress bar */}
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">
-            Overall Launch Readiness
-          </span>
-          <span className="text-sm font-semibold text-gray-900">
-            {data.readinessPercentage}%
-          </span>
+          <span className="text-sm font-medium text-gray-700">Overall Launch Readiness</span>
+          <span className="text-sm font-semibold text-gray-900">{data.readinessPercentage}%</span>
         </div>
         <div className="w-full h-3 bg-gray-100 rounded-full">
           <div
@@ -249,9 +239,7 @@ function BlockersSection({ blockers }: { blockers: ChecklistBlocker[] }) {
 
 function CategoryCard({ category }: { category: ChecklistCategory }) {
   const progressPercent =
-    category.totalCount > 0
-      ? Math.round((category.completedCount / category.totalCount) * 100)
-      : 0;
+    category.totalCount > 0 ? Math.round((category.completedCount / category.totalCount) * 100) : 0;
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
@@ -259,9 +247,7 @@ function CategoryCard({ category }: { category: ChecklistCategory }) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{getCategoryIcon(category.name)}</span>
-          <h3 className="text-sm font-semibold text-gray-900">
-            {getCategoryLabel(category.name)}
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900">{getCategoryLabel(category.name)}</h3>
         </div>
         <span className="text-xs font-medium text-gray-500">
           {category.completedCount}/{category.totalCount} complete

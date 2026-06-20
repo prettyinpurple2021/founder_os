@@ -167,7 +167,7 @@ describe('Dashboard - Data Structure Validation', () => {
     // Verify all state counts sum to total
     const sumOfStates = Object.values(data.projectStatus.byState).reduce(
       (sum, count) => sum + (count as number),
-      0
+      0,
     );
     expect(sumOfStates).toBe(data.projectStatus.total);
 
@@ -207,7 +207,17 @@ describe('Dashboard - Data Structure Validation', () => {
 
   it('should handle failed sync status', () => {
     const data: DashboardData = {
-      projectStatus: { total: 3, byState: { NOT_STARTED: 1, IN_PROGRESS: 1, BLOCKED: 0, NEEDS_REVIEW: 0, COMPLETED: 1, UNCERTAIN: 0 } },
+      projectStatus: {
+        total: 3,
+        byState: {
+          NOT_STARTED: 1,
+          IN_PROGRESS: 1,
+          BLOCKED: 0,
+          NEEDS_REVIEW: 0,
+          COMPLETED: 1,
+          UNCERTAIN: 0,
+        },
+      },
       blockers: [],
       nextAction: null,
       recentProgress: [],

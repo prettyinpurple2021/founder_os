@@ -43,7 +43,6 @@ vi.mock('../services/logger.js', () => ({
 
 import prisma from '../lib/prisma.js';
 import { getDraftVersions } from '../services/content.js';
-import { AppError } from '../errors/AppError.js';
 
 const mockFindUnique = vi.mocked(prisma.contentDraft.findUnique);
 const mockFindMany = vi.mocked(prisma.draftVersion.findMany);

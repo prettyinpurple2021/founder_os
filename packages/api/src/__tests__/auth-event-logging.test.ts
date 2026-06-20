@@ -44,7 +44,7 @@ import router from '../routes/auth.js';
 // Helper to extract route handlers from express router
 function getRouteHandler(method: string, path: string) {
   const layer = (router as any).stack.find(
-    (l: any) => l.route?.path === path && l.route?.methods?.[method]
+    (l: any) => l.route?.path === path && l.route?.methods?.[method],
   );
   if (!layer) throw new Error(`${method.toUpperCase()} ${path} route not found`);
   return layer.route.stack[layer.route.stack.length - 1].handle;
@@ -62,7 +62,11 @@ function createMockReq(overrides: Partial<Request> = {}): Request {
   } as unknown as Request;
 }
 
-function createMockRes(): Response & { _json: any; _statusCode: number; _redirectUrl: string | null } {
+function createMockRes(): Response & {
+  _json: any;
+  _statusCode: number;
+  _redirectUrl: string | null;
+} {
   const res: any = {
     _json: null,
     _statusCode: 200,
@@ -96,21 +100,22 @@ describe('Authentication Event Logging', () => {
       const mockUser = { id: 'user-123', username: 'testuser' };
       (passport.authenticate as any).mockImplementation(
         (_strategy: string, cb: (err: Error | null, user: any, info: any) => void) => {
-          return (req: Request, res: Response, next: NextFunction) => {
+          return (req: Request, _res: Response, _next: NextFunction) => {
             // Simulate successful auth — passport calls the callback with a user
             // We need to mock req.logIn as well
             (req as any).logIn = vi.fn((_user: any, loginCb: (err?: Error) => void) => loginCb());
             cb(null, mockUser, undefined);
           };
-        }
+        },
       );
 
       // Re-import to apply the new mock behavior
       // Get the callback handler (it's the single handler on the route)
       const callbackLayer = (router as any).stack.find(
-        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get
+        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get,
       );
-      const callbackHandler = callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
+      const callbackHandler =
+        callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
 
       const req = createMockReq();
       const res = createMockRes();
@@ -135,16 +140,17 @@ describe('Authentication Event Logging', () => {
       const oauthError = new Error('Token exchange failed');
       (passport.authenticate as any).mockImplementation(
         (_strategy: string, cb: (err: Error | null, user: any, info: any) => void) => {
-          return (req: Request, res: Response, _next: NextFunction) => {
+          return (_req: Request, _res: Response, _next: NextFunction) => {
             cb(oauthError, false, undefined);
           };
-        }
+        },
       );
 
       const callbackLayer = (router as any).stack.find(
-        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get
+        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get,
       );
-      const callbackHandler = callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
+      const callbackHandler =
+        callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
 
       const req = createMockReq();
       const res = createMockRes();
@@ -167,16 +173,17 @@ describe('Authentication Event Logging', () => {
     it('logs login_failed event when user denies OAuth access', async () => {
       (passport.authenticate as any).mockImplementation(
         (_strategy: string, cb: (err: Error | null, user: any, info: any) => void) => {
-          return (req: Request, res: Response, _next: NextFunction) => {
+          return (_req: Request, _res: Response, _next: NextFunction) => {
             cb(null, false, { message: 'access_denied' });
           };
-        }
+        },
       );
 
       const callbackLayer = (router as any).stack.find(
-        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get
+        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get,
       );
-      const callbackHandler = callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
+      const callbackHandler =
+        callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
 
       const req = createMockReq();
       const res = createMockRes();

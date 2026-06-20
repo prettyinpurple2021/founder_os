@@ -68,7 +68,13 @@ describe('Reactive Checklist Updates (Requirement 4.5)', () => {
 
     // Task becomes blocked
     const tasksV2: TaskWithState[] = [
-      { id: '1', title: 'Deploy', state: 'BLOCKED', blockerReason: 'DNS issue', category: 'deployment' },
+      {
+        id: '1',
+        title: 'Deploy',
+        state: 'BLOCKED',
+        blockerReason: 'DNS issue',
+        category: 'deployment',
+      },
       { id: '2', title: 'Feature', state: 'COMPLETED', category: 'product' },
     ];
     const itemsV2 = sortChecklistBlockersFirst(deriveChecklistStatus(tasksV2));

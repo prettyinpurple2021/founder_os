@@ -103,9 +103,7 @@ describe('listDrafts', () => {
   });
 
   it('should filter by both status and platform together', async () => {
-    const filtered = mockDrafts.filter(
-      (d) => d.status === 'EDITING' && d.platform === 'TWITTER',
-    );
+    const filtered = mockDrafts.filter((d) => d.status === 'EDITING' && d.platform === 'TWITTER');
     mockFindMany.mockResolvedValue(filtered as any);
 
     const result = await listDrafts('user-1', { status: 'EDITING', platform: 'TWITTER' });

@@ -85,12 +85,12 @@ describe('Structured Logging Utility', () => {
           action: 'repo_synced',
           details: { repoId: 'repo-1' },
           userId: 'user-1',
-        })
+        }),
       ).resolves.toBeUndefined();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[logger] Failed to write log entry:',
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleSpy.mockRestore();

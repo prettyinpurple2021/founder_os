@@ -41,7 +41,10 @@ export function sessionExpiration(req: Request, _res: Response, next: NextFuncti
 
       if (elapsed > SESSION_TIMEOUT_MS) {
         // Session expired due to inactivity
-        logAuth(userId, 'session_expired', { lastActiveAt: session.lastActiveAt.toISOString(), expiredAfterHours: 24 });
+        logAuth(userId, 'session_expired', {
+          lastActiveAt: session.lastActiveAt.toISOString(),
+          expiredAfterHours: 24,
+        });
         return destroySessionAndReject(req, next);
       }
 
@@ -73,7 +76,7 @@ function destroySessionAndReject(req: Request, next: NextFunction): void {
       unauthorized('Session expired', {
         reason: 'session_expired',
         redirectTo: '/login',
-      })
+      }),
     );
   });
 }

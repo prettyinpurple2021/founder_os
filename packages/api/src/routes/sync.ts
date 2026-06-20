@@ -80,7 +80,8 @@ router.post('/trigger', async (req: Request, res: Response, next: NextFunction) 
       failure: {
         stale: true,
         lastSuccessfulSync: lastSuccessful?.completedAt || null,
-        message: 'Sync failed after all retries. Your task data reflects the last successful sync and may be stale.',
+        message:
+          'Sync failed after all retries. Your task data reflects the last successful sync and may be stale.',
         retryable: true,
       },
     });
@@ -92,7 +93,7 @@ router.post('/trigger', async (req: Request, res: Response, next: NextFunction) 
           message: 'No repository is connected. Connect a repository before triggering a sync.',
           statusCode: 400,
           retryable: false,
-        })
+        }),
       );
       return;
     }
@@ -120,7 +121,7 @@ router.get('/status', async (req: Request, res: Response, next: NextFunction) =>
           message: 'No repository is connected. Connect a repository first.',
           statusCode: 400,
           retryable: false,
-        })
+        }),
       );
       return;
     }
@@ -164,57 +165,61 @@ router.get('/status', async (req: Request, res: Response, next: NextFunction) =>
  * Query params: limit (default 20, max 100), offset (default 0)
  * Ordered by startedAt descending (most recent first).
  */
-router.get('/history', validate(syncHistoryQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
+router.get(
+  '/history',
+  validate(syncHistoryQuerySchema, 'query'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
 
-    const repository = await prisma.repository.findUnique({
-      where: { userId: user.id },
-    });
+      const repository = await prisma.repository.findUnique({
+        where: { userId: user.id },
+      });
 
-    if (!repository) {
-      next(
-        new AppError({
-          code: 'NO_REPO_CONNECTED',
-          message: 'No repository is connected. Connect a repository first.',
-          statusCode: 400,
-          retryable: false,
-        })
-      );
-      return;
+      if (!repository) {
+        next(
+          new AppError({
+            code: 'NO_REPO_CONNECTED',
+            message: 'No repository is connected. Connect a repository first.',
+            statusCode: 400,
+            retryable: false,
+          }),
+        );
+        return;
+      }
+
+      // Query params are already validated and typed by the middleware
+      const { limit, offset } = req.query as unknown as { limit: number; offset: number };
+
+      const [syncs, total] = await Promise.all([
+        prisma.sync.findMany({
+          where: { repositoryId: repository.id },
+          orderBy: { startedAt: 'desc' },
+          take: limit,
+          skip: offset,
+        }),
+        prisma.sync.count({
+          where: { repositoryId: repository.id },
+        }),
+      ]);
+
+      res.status(200).json({
+        syncs: syncs.map((s) => ({
+          id: s.id,
+          status: s.status,
+          startedAt: s.startedAt,
+          completedAt: s.completedAt,
+          duration: s.duration,
+          itemsFetched: s.itemsFetched,
+          errorMessage: s.errorMessage,
+          retryCount: s.retryCount,
+        })),
+        total,
+      });
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to fetch sync history'));
     }
-
-    // Query params are already validated and typed by the middleware
-    const { limit, offset } = req.query as unknown as { limit: number; offset: number };
-
-    const [syncs, total] = await Promise.all([
-      prisma.sync.findMany({
-        where: { repositoryId: repository.id },
-        orderBy: { startedAt: 'desc' },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.sync.count({
-        where: { repositoryId: repository.id },
-      }),
-    ]);
-
-    res.status(200).json({
-      syncs: syncs.map((s) => ({
-        id: s.id,
-        status: s.status,
-        startedAt: s.startedAt,
-        completedAt: s.completedAt,
-        duration: s.duration,
-        itemsFetched: s.itemsFetched,
-        errorMessage: s.errorMessage,
-        retryCount: s.retryCount,
-      })),
-      total,
-    });
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to fetch sync history'));
-  }
-});
+  },
+);
 
 export default router;

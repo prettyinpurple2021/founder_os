@@ -121,9 +121,7 @@ export async function getDashboard(userId: string): Promise<DashboardResponse | 
   const recentProgress = tasks
     .filter(
       (t) =>
-        t.state === 'COMPLETED' &&
-        t.lastInferredAt !== null &&
-        t.lastInferredAt >= sevenDaysAgo
+        t.state === 'COMPLETED' && t.lastInferredAt !== null && t.lastInferredAt >= sevenDaysAgo,
     )
     .sort((a, b) => {
       const aTime = a.lastInferredAt!.getTime();

@@ -96,7 +96,13 @@ describe('getNextBestAction', () => {
 
   it('should skip blocked items and return the next actionable item', () => {
     const items: ChecklistItem[] = [
-      makeItem({ id: '1', description: 'Blocked high priority', priority: 1, status: 'blocked', isBlocker: true }),
+      makeItem({
+        id: '1',
+        description: 'Blocked high priority',
+        priority: 1,
+        status: 'blocked',
+        isBlocker: true,
+      }),
       makeItem({ id: '2', description: 'Available task', priority: 3, status: 'incomplete' }),
     ];
 
@@ -136,7 +142,13 @@ describe('getNextBestAction', () => {
 
   it('should return the full ChecklistItem with category, description, and priority', () => {
     const items: ChecklistItem[] = [
-      makeItem({ id: '1', description: 'Write landing page', category: 'marketing', priority: 1, status: 'incomplete' }),
+      makeItem({
+        id: '1',
+        description: 'Write landing page',
+        category: 'marketing',
+        priority: 1,
+        status: 'incomplete',
+      }),
     ];
 
     const result = getNextBestAction(items);
@@ -149,11 +161,42 @@ describe('getNextBestAction', () => {
 
   it('should pick lowest priority number when multiple items are actionable', () => {
     const items: ChecklistItem[] = [
-      makeItem({ id: '1', description: 'Priority 10', priority: 10, status: 'incomplete', category: 'content' }),
-      makeItem({ id: '2', description: 'Priority 2', priority: 2, status: 'in_progress', category: 'product' }),
-      makeItem({ id: '3', description: 'Priority 7', priority: 7, status: 'incomplete', category: 'quality' }),
-      makeItem({ id: '4', description: 'Priority 1 but blocked', priority: 1, status: 'blocked', isBlocker: true, category: 'deployment' }),
-      makeItem({ id: '5', description: 'Priority 1 but complete', priority: 1, status: 'complete', category: 'legal/admin' }),
+      makeItem({
+        id: '1',
+        description: 'Priority 10',
+        priority: 10,
+        status: 'incomplete',
+        category: 'content',
+      }),
+      makeItem({
+        id: '2',
+        description: 'Priority 2',
+        priority: 2,
+        status: 'in_progress',
+        category: 'product',
+      }),
+      makeItem({
+        id: '3',
+        description: 'Priority 7',
+        priority: 7,
+        status: 'incomplete',
+        category: 'quality',
+      }),
+      makeItem({
+        id: '4',
+        description: 'Priority 1 but blocked',
+        priority: 1,
+        status: 'blocked',
+        isBlocker: true,
+        category: 'deployment',
+      }),
+      makeItem({
+        id: '5',
+        description: 'Priority 1 but complete',
+        priority: 1,
+        status: 'complete',
+        category: 'legal/admin',
+      }),
     ];
 
     const result = getNextBestAction(items);
@@ -188,7 +231,14 @@ describe('CHECKLIST_CATEGORIES', () => {
   });
 
   it('should contain all required categories', () => {
-    const expected: ChecklistCategory[] = ['product', 'quality', 'deployment', 'legal/admin', 'marketing', 'content'];
+    const expected: ChecklistCategory[] = [
+      'product',
+      'quality',
+      'deployment',
+      'legal/admin',
+      'marketing',
+      'content',
+    ];
     for (const cat of expected) {
       expect(CHECKLIST_CATEGORIES).toContain(cat);
     }

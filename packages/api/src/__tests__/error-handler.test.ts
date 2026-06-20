@@ -226,7 +226,7 @@ describe('errorHandler middleware', () => {
         message: 'DB connection failed',
         code: 'INTERNAL_ERROR',
         statusCode: 500,
-      })
+      }),
     );
   });
 
@@ -336,7 +336,11 @@ describe('errorHandler error logging', () => {
 
   it('calls logError for 500 AppError with operation context and stack', () => {
     const err = internalError('DB connection failed');
-    const req = { method: 'POST', path: '/api/projects', user: { id: 'user-123' } } as unknown as Request;
+    const req = {
+      method: 'POST',
+      path: '/api/projects',
+      user: { id: 'user-123' },
+    } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
@@ -353,7 +357,11 @@ describe('errorHandler error logging', () => {
 
   it('calls logError for unknown errors with unhandled_error action', () => {
     const err = new TypeError('Cannot read property of undefined');
-    const req = { method: 'GET', path: '/api/users', user: { id: 'user-456' } } as unknown as Request;
+    const req = {
+      method: 'GET',
+      path: '/api/users',
+      user: { id: 'user-456' },
+    } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
@@ -368,7 +376,11 @@ describe('errorHandler error logging', () => {
 
   it('calls logError for 503 ServiceUnavailable errors', () => {
     const err = serviceUnavailable('GitHub API is down');
-    const req = { method: 'POST', path: '/api/sync', user: { id: 'user-789' } } as unknown as Request;
+    const req = {
+      method: 'POST',
+      path: '/api/sync',
+      user: { id: 'user-789' },
+    } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
@@ -417,11 +429,15 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'app_error', expect.objectContaining({
-      method: 'GET',
-      path: '/api/health',
-      statusCode: 500,
-    }));
+    expect(logErrorSpy).toHaveBeenCalledWith(
+      undefined,
+      'app_error',
+      expect.objectContaining({
+        method: 'GET',
+        path: '/api/health',
+        statusCode: 500,
+      }),
+    );
   });
 
   it('omits stack from log details in production', () => {
@@ -432,9 +448,13 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'app_error', expect.objectContaining({
-      stack: undefined,
-    }));
+    expect(logErrorSpy).toHaveBeenCalledWith(
+      'u1',
+      'app_error',
+      expect.objectContaining({
+        stack: undefined,
+      }),
+    );
   });
 
   it('logging errors do not block the error response', () => {

@@ -35,9 +35,7 @@ describe('Security Headers (helmet)', () => {
 
   it('should set Strict-Transport-Security header', async () => {
     const res = await request(app).get('/health');
-    expect(res.headers['strict-transport-security']).toBe(
-      'max-age=31536000; includeSubDomains'
-    );
+    expect(res.headers['strict-transport-security']).toBe('max-age=31536000; includeSubDomains');
   });
 
   it('should not set Content-Security-Policy (disabled for SPA)', async () => {

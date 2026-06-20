@@ -68,10 +68,7 @@ const DEPENDENCY_PATTERNS = [
  * Rule 1: Completed
  * Issue is closed OR linked PR is merged.
  */
-function checkCompleted(
-  issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult | null {
+function checkCompleted(issue: GitHubIssue, context: InferenceContext): InferenceResult | null {
   const evidence: EvidenceArtifact[] = [];
 
   // Check if issue is closed
@@ -102,10 +99,7 @@ function checkCompleted(
  * Rule 2: Blocked
  * Issue has label matching /block/i OR comment contains dependency indicator.
  */
-function checkBlocked(
-  issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult | null {
+function checkBlocked(issue: GitHubIssue, context: InferenceContext): InferenceResult | null {
   const evidence: EvidenceArtifact[] = [];
   let blockerReason: string | undefined;
 
@@ -124,9 +118,7 @@ function checkBlocked(
   // Check comments for dependency indicators
   if (context.issueComments) {
     for (const comment of context.issueComments) {
-      const matchedPattern = DEPENDENCY_PATTERNS.find((pattern) =>
-        pattern.test(comment.body)
-      );
+      const matchedPattern = DEPENDENCY_PATTERNS.find((pattern) => pattern.test(comment.body));
       if (matchedPattern) {
         evidence.push({
           type: 'ISSUE',
@@ -146,17 +138,11 @@ function checkBlocked(
  * Rule 3: Needs Review
  * Open PR with pending review requests.
  */
-function checkNeedsReview(
-  _issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult | null {
+function checkNeedsReview(_issue: GitHubIssue, context: InferenceContext): InferenceResult | null {
   const evidence: EvidenceArtifact[] = [];
 
   const prWithPendingReview = context.linkedPullRequests.find(
-    (pr) =>
-      pr.state === 'open' &&
-      pr.requested_reviewers &&
-      pr.requested_reviewers.length > 0
+    (pr) => pr.state === 'open' && pr.requested_reviewers && pr.requested_reviewers.length > 0,
   );
 
   if (prWithPendingReview) {
@@ -178,19 +164,14 @@ function checkNeedsReview(
  * Rule 4: In Progress
  * Linked branch has recent commits (last 30 days) OR open PR without review requests.
  */
-function checkInProgress(
-  _issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult | null {
+function checkInProgress(_issue: GitHubIssue, context: InferenceContext): InferenceResult | null {
   const evidence: EvidenceArtifact[] = [];
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   // Check for recent commits on linked branches
   const recentCommit = context.linkedCommits.find((commit) => {
-    const commitDate = commit.commit.author?.date
-      ? new Date(commit.commit.author.date)
-      : null;
+    const commitDate = commit.commit.author?.date ? new Date(commit.commit.author.date) : null;
     return commitDate && commitDate >= thirtyDaysAgo;
   });
 
@@ -209,9 +190,7 @@ function checkInProgress(
 
   // Check for open PR without review requests
   const openPRNoReviews = context.linkedPullRequests.find(
-    (pr) =>
-      pr.state === 'open' &&
-      (!pr.requested_reviewers || pr.requested_reviewers.length === 0)
+    (pr) => pr.state === 'open' && (!pr.requested_reviewers || pr.requested_reviewers.length === 0),
   );
 
   if (openPRNoReviews) {
@@ -230,10 +209,7 @@ function checkInProgress(
  * Rule 5: Not Started
  * No linked branch, no commits, no assignee activity.
  */
-function checkNotStarted(
-  issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult | null {
+function checkNotStarted(issue: GitHubIssue, context: InferenceContext): InferenceResult | null {
   const hasLinkedPRs = context.linkedPullRequests.length > 0;
   const hasLinkedCommits = context.linkedCommits.length > 0;
   const hasAssignee = issue.assignees && issue.assignees.length > 0;
@@ -261,10 +237,7 @@ function checkNotStarted(
  * Rule 6: Uncertain (Fallback)
  * None of the above rules match with confidence. Displays available evidence.
  */
-function checkUncertain(
-  issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult {
+function checkUncertain(issue: GitHubIssue, context: InferenceContext): InferenceResult {
   const evidence: EvidenceArtifact[] = [
     {
       type: 'ISSUE',
@@ -307,10 +280,7 @@ function checkUncertain(
  * @param context - Additional context (linked PRs, commits, comments)
  * @returns InferenceResult with state, evidence, and optional blockerReason
  */
-export function inferTaskState(
-  issue: GitHubIssue,
-  context: InferenceContext
-): InferenceResult {
+export function inferTaskState(issue: GitHubIssue, context: InferenceContext): InferenceResult {
   // Rule 1: Completed (highest priority)
   const completedResult = checkCompleted(issue, context);
   if (completedResult) return completedResult;
@@ -343,16 +313,14 @@ export function inferTaskState(
  */
 export function findLinkedPullRequests(
   issue: GitHubIssue,
-  allPullRequests: GitHubPullRequest[]
+  allPullRequests: GitHubPullRequest[],
 ): GitHubPullRequest[] {
   const issueNumber = issue.number;
 
   return allPullRequests.filter((pr) => {
     // Check branch name for issue number reference
     const branchRef = pr.head.ref;
-    const branchHasIssueNumber = new RegExp(`(^|[^\\d])${issueNumber}([^\\d]|$)`).test(
-      branchRef
-    );
+    const branchHasIssueNumber = new RegExp(`(^|[^\\d])${issueNumber}([^\\d]|$)`).test(branchRef);
 
     // Check PR title for issue number reference
     const titleRef = new RegExp(`#${issueNumber}\\b`).test(pr.title);
@@ -368,7 +336,7 @@ export function findLinkedPullRequests(
 export function findLinkedCommits(
   issue: GitHubIssue,
   linkedPRs: GitHubPullRequest[],
-  allCommits: GitHubCommit[]
+  allCommits: GitHubCommit[],
 ): GitHubCommit[] {
   if (linkedPRs.length === 0) return [];
 

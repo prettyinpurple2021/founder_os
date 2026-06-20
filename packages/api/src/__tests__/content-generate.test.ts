@@ -84,7 +84,13 @@ describe('generateDraft', () => {
       updatedAt: now,
       scheduledAt: null,
       versions: [
-        { id: 'version-1', draftId: 'draft-1', version: 1, content: 'Generated content here', editedAt: now },
+        {
+          id: 'version-1',
+          draftId: 'draft-1',
+          version: 1,
+          content: 'Generated content here',
+          editedAt: now,
+        },
       ],
     } as any);
 
@@ -235,9 +241,7 @@ describe('generateDraft', () => {
 
     mockTaskFindMany.mockResolvedValue([]);
 
-    await expect(generateDraft(userId, 'TWITTER')).rejects.toThrow(
-      /No completed tasks found/,
-    );
+    await expect(generateDraft(userId, 'TWITTER')).rejects.toThrow(/No completed tasks found/);
   });
 
   it('should throw an error when no repository is connected', async () => {
@@ -275,9 +279,7 @@ describe('generateDraft', () => {
       createdAt: now,
       updatedAt: now,
       scheduledAt: null,
-      versions: [
-        { id: 'v-1', draftId: 'draft-1', version: 1, content: 'Content', editedAt: now },
-      ],
+      versions: [{ id: 'v-1', draftId: 'draft-1', version: 1, content: 'Content', editedAt: now }],
     } as any);
 
     await generateDraft(userId, 'TWITTER');
@@ -311,9 +313,10 @@ describe('callLLM', () => {
 
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({
-        choices: [{ message: { content: 'AI generated content' } }],
-      }),
+      json: () =>
+        Promise.resolve({
+          choices: [{ message: { content: 'AI generated content' } }],
+        }),
     });
     vi.stubGlobal('fetch', mockFetch);
 

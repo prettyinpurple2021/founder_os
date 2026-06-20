@@ -18,7 +18,11 @@ import { logContent } from './logger.js';
 export type ContentPlatform = 'TWITTER' | 'LINKEDIN' | 'BLOG';
 
 /** States in which a draft can still be edited. */
-const EDITABLE_STATES: DraftStatus[] = [DraftStatus.GENERATED, DraftStatus.EDITING, DraftStatus.PENDING_APPROVAL];
+const EDITABLE_STATES: DraftStatus[] = [
+  DraftStatus.GENERATED,
+  DraftStatus.EDITING,
+  DraftStatus.PENDING_APPROVAL,
+];
 
 /**
  * Lists all content drafts for a user with optional filtering.
@@ -27,10 +31,7 @@ const EDITABLE_STATES: DraftStatus[] = [DraftStatus.GENERATED, DraftStatus.EDITI
  * @param filters - Optional filters for status and platform
  * @returns Array of content drafts ordered by createdAt descending
  */
-export async function listDrafts(
-  userId: string,
-  filters?: { status?: string; platform?: string },
-) {
+export async function listDrafts(userId: string, filters?: { status?: string; platform?: string }) {
   const where: Record<string, unknown> = { userId };
 
   if (filters?.status) {
@@ -92,11 +93,7 @@ export class InvalidFilterError extends Error {
  * @param newContent - The new content for the draft
  * @returns The updated draft and the new version record
  */
-export async function editDraft(
-  userId: string,
-  draftId: string,
-  newContent: string,
-) {
+export async function editDraft(userId: string, draftId: string, newContent: string) {
   // Validate content is non-empty
   if (!newContent || newContent.trim().length === 0) {
     throw badRequest('Content must not be empty');
@@ -200,7 +197,10 @@ export interface DraftVersionsResult {
  * @throws 404 if draft not found
  * @throws 403 if draft belongs to a different user
  */
-export async function getDraftVersions(userId: string, draftId: string): Promise<DraftVersionsResult> {
+export async function getDraftVersions(
+  userId: string,
+  draftId: string,
+): Promise<DraftVersionsResult> {
   const draft = await prisma.contentDraft.findUnique({
     where: { id: draftId },
   });
@@ -233,7 +233,6 @@ export async function getDraftVersions(userId: string, draftId: string): Promise
     })),
   };
 }
-
 
 // --- Draft Lifecycle State Machine (Requirements 7.1, 6.6) ---
 
@@ -359,11 +358,7 @@ export async function submitForReview(userId: string, draftId: string) {
  * @param reason - Optional rejection reason
  * @returns The updated draft with preserved content
  */
-export async function rejectDraft(
-  userId: string,
-  draftId: string,
-  reason?: string,
-) {
+export async function rejectDraft(userId: string, draftId: string, reason?: string) {
   // Find the draft
   const draft = await prisma.contentDraft.findUnique({
     where: { id: draftId },
@@ -499,11 +494,7 @@ export async function approveDraft(userId: string, draftId: string) {
  * @param scheduledAt - Optional ISO date string or Date for when to publish
  * @returns The updated draft
  */
-export async function scheduleDraft(
-  userId: string,
-  draftId: string,
-  scheduledAt?: string | Date,
-) {
+export async function scheduleDraft(userId: string, draftId: string, scheduledAt?: string | Date) {
   // Find the draft
   const draft = await prisma.contentDraft.findUnique({
     where: { id: draftId },
@@ -594,10 +585,7 @@ export { PLATFORM_CONFIGS as PLATFORM_PROMPTS } from './content-prompts.js';
  * @param userPrompt - The user prompt with task details for content generation
  * @returns The generated content string
  */
-export async function callLLM(
-  systemPrompt: string,
-  userPrompt: string,
-): Promise<string> {
+export async function callLLM(systemPrompt: string, userPrompt: string): Promise<string> {
   const apiKey = process.env.LLM_API_KEY;
 
   if (!apiKey) {

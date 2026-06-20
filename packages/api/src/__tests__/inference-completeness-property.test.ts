@@ -52,14 +52,20 @@ const issueArb: fc.Arbitrary<GitHubIssue> = fc.record({
     fc.record({
       url: fc.constant('https://api.github.com/repos/owner/repo/pulls/1'),
       html_url: fc.constant('https://github.com/owner/repo/pull/1'),
-      merged_at: fc.option(fc.date().map((d) => d.toISOString()), { nil: null }),
+      merged_at: fc.option(
+        fc.date().map((d) => d.toISOString()),
+        { nil: null },
+      ),
     }),
     { nil: undefined },
   ),
   html_url: fc.constant('https://github.com/owner/repo/issues/1'),
   created_at: fc.date().map((d) => d.toISOString()),
   updated_at: fc.date().map((d) => d.toISOString()),
-  closed_at: fc.option(fc.date().map((d) => d.toISOString()), { nil: null }),
+  closed_at: fc.option(
+    fc.date().map((d) => d.toISOString()),
+    { nil: null },
+  ),
 });
 
 /** Arbitrary for a GitHub pull request */
@@ -69,7 +75,10 @@ const pullRequestArb: fc.Arbitrary<GitHubPullRequest> = fc.record({
   title: fc.string({ minLength: 1, maxLength: 100 }),
   state: fc.constantFrom('open', 'closed'),
   merged: fc.boolean(),
-  merged_at: fc.option(fc.date().map((d) => d.toISOString()), { nil: null }),
+  merged_at: fc.option(
+    fc.date().map((d) => d.toISOString()),
+    { nil: null },
+  ),
   html_url: fc.constant('https://github.com/owner/repo/pull/1'),
   head: fc.record({
     ref: fc.string({ minLength: 1, maxLength: 50 }),
@@ -85,7 +94,10 @@ const pullRequestArb: fc.Arbitrary<GitHubPullRequest> = fc.record({
   ),
   created_at: fc.date().map((d) => d.toISOString()),
   updated_at: fc.date().map((d) => d.toISOString()),
-  closed_at: fc.option(fc.date().map((d) => d.toISOString()), { nil: null }),
+  closed_at: fc.option(
+    fc.date().map((d) => d.toISOString()),
+    { nil: null },
+  ),
 });
 
 /** Arbitrary for a GitHub commit */

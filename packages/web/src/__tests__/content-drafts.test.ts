@@ -109,8 +109,13 @@ describe('Content Drafts - Status Color Mapping', () => {
 
   it('should have a color mapping for every status', () => {
     const allStatuses: DraftStatus[] = [
-      'GENERATED', 'EDITING', 'PENDING_APPROVAL',
-      'APPROVED', 'REJECTED', 'SCHEDULED', 'COPIED',
+      'GENERATED',
+      'EDITING',
+      'PENDING_APPROVAL',
+      'APPROVED',
+      'REJECTED',
+      'SCHEDULED',
+      'COPIED',
     ];
     for (const status of allStatuses) {
       expect(STATUS_COLORS[status]).toBeDefined();

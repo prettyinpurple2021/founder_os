@@ -57,7 +57,9 @@ const mockTaskFindFirst = prisma.task.findFirst as ReturnType<typeof vi.fn>;
 const mockTaskUpdate = prisma.task.update as ReturnType<typeof vi.fn>;
 const mockTaskCreate = prisma.task.create as ReturnType<typeof vi.fn>;
 const mockEvidenceCreate = (prisma as any).evidence.create as ReturnType<typeof vi.fn>;
-const mockStateTransitionCreate = (prisma as any).stateTransition.create as ReturnType<typeof vi.fn>;
+const mockStateTransitionCreate = (prisma as any).stateTransition.create as ReturnType<
+  typeof vi.fn
+>;
 
 describe('State Change Logging (Requirement 10.2)', () => {
   beforeEach(() => {
@@ -95,21 +97,17 @@ describe('State Change Logging (Requirement 10.2)', () => {
       closedIssue,
       [], // no PRs
       [], // no commits
-      'user-456'
+      'user-456',
     );
 
     expect(mockLogStateChange).toHaveBeenCalledTimes(1);
-    expect(mockLogStateChange).toHaveBeenCalledWith(
-      'user-456',
-      'task_state_changed',
-      {
-        taskId: 'task-123',
-        previousState: 'IN_PROGRESS',
-        newState: 'COMPLETED',
-        evidenceIds: ['ev-001'],
-        taskTitle: 'Implement user authentication',
-      }
-    );
+    expect(mockLogStateChange).toHaveBeenCalledWith('user-456', 'task_state_changed', {
+      taskId: 'task-123',
+      previousState: 'IN_PROGRESS',
+      newState: 'COMPLETED',
+      evidenceIds: ['ev-001'],
+      taskTitle: 'Implement user authentication',
+    });
   });
 
   it('should NOT call logStateChange when state does not change', async () => {
@@ -141,7 +139,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
       openIssue,
       [], // no PRs
       [], // no commits
-      'user-456'
+      'user-456',
     );
 
     expect(mockLogStateChange).not.toHaveBeenCalled();
@@ -166,13 +164,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
       closed_at: null,
     };
 
-    await upsertTaskFromIssue(
-      'repo-abc',
-      newIssue,
-      [],
-      [],
-      'user-456'
-    );
+    await upsertTaskFromIssue('repo-abc', newIssue, [], [], 'user-456');
 
     // New tasks don't count as a "state change" — they're initial transitions
     expect(mockLogStateChange).not.toHaveBeenCalled();
@@ -200,13 +192,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
     };
 
     // Call without userId
-    await upsertTaskFromIssue(
-      'repo-abc',
-      closedIssue,
-      [],
-      [],
-      undefined
-    );
+    await upsertTaskFromIssue('repo-abc', closedIssue, [], [], undefined);
 
     expect(mockLogStateChange).toHaveBeenCalledWith(
       'system',
@@ -215,7 +201,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
         taskId: 'task-555',
         previousState: 'NEEDS_REVIEW',
         newState: 'COMPLETED',
-      })
+      }),
     );
   });
 
@@ -227,9 +213,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
     mockTaskUpdate.mockResolvedValue({ id: 'task-multi' });
 
     // Mock evidence creation to return different IDs
-    mockEvidenceCreate
-      .mockResolvedValueOnce({ id: 'ev-a' })
-      .mockResolvedValueOnce({ id: 'ev-b' });
+    mockEvidenceCreate.mockResolvedValueOnce({ id: 'ev-a' }).mockResolvedValueOnce({ id: 'ev-b' });
 
     // A closed issue with a merged PR will produce multiple evidence artifacts
     const closedIssue: GitHubIssue = {
@@ -246,13 +230,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
       closed_at: '2024-06-15T15:00:00Z',
     };
 
-    await upsertTaskFromIssue(
-      'repo-abc',
-      closedIssue,
-      [],
-      [],
-      'user-456'
-    );
+    await upsertTaskFromIssue('repo-abc', closedIssue, [], [], 'user-456');
 
     expect(mockLogStateChange).toHaveBeenCalledWith(
       'user-456',
@@ -260,7 +238,7 @@ describe('State Change Logging (Requirement 10.2)', () => {
       expect.objectContaining({
         taskId: 'task-multi',
         evidenceIds: ['ev-a'],
-      })
+      }),
     );
   });
 
@@ -285,20 +263,14 @@ describe('State Change Logging (Requirement 10.2)', () => {
       closed_at: '2024-06-15T18:00:00Z',
     };
 
-    await upsertTaskFromIssue(
-      'repo-abc',
-      issueWithTitle,
-      [],
-      [],
-      'user-456'
-    );
+    await upsertTaskFromIssue('repo-abc', issueWithTitle, [], [], 'user-456');
 
     expect(mockLogStateChange).toHaveBeenCalledWith(
       'user-456',
       'task_state_changed',
       expect.objectContaining({
         taskTitle: 'Integrate payment gateway',
-      })
+      }),
     );
   });
 });

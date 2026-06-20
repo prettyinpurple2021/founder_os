@@ -38,16 +38,23 @@ function createTestApp(user?: Express.User | null) {
   app.use('/api/tasks', tasksRouter);
 
   // Error handler
-  app.use((err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean }, _req: Request, res: Response, _next: NextFunction) => {
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-      error: {
-        code: err.code || 'INTERNAL_ERROR',
-        message: err.message,
-        retryable: err.retryable ?? true,
-      },
-    });
-  });
+  app.use(
+    (
+      err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean },
+      _req: Request,
+      res: Response,
+      _next: NextFunction,
+    ) => {
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).json({
+        error: {
+          code: err.code || 'INTERNAL_ERROR',
+          message: err.message,
+          retryable: err.retryable ?? true,
+        },
+      });
+    },
+  );
 
   return app;
 }
@@ -119,7 +126,9 @@ describe('Tasks Routes', () => {
         },
       ];
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockTasks);
       (prisma.task.count as ReturnType<typeof vi.fn>).mockResolvedValueOnce(2);
 
@@ -146,7 +155,9 @@ describe('Tasks Routes', () => {
         },
       ];
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce(filteredTasks);
       (prisma.task.count as ReturnType<typeof vi.fn>).mockResolvedValueOnce(1);
 
@@ -170,7 +181,9 @@ describe('Tasks Routes', () => {
     it('should respect limit and offset query params', async () => {
       const app = createTestApp(mockUser);
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
       (prisma.task.count as ReturnType<typeof vi.fn>).mockResolvedValueOnce(0);
 
@@ -181,14 +194,16 @@ describe('Tasks Routes', () => {
         expect.objectContaining({
           take: 10,
           skip: 20,
-        })
+        }),
       );
     });
 
     it('should cap limit at 100', async () => {
       const app = createTestApp(mockUser);
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
       (prisma.task.count as ReturnType<typeof vi.fn>).mockResolvedValueOnce(0);
 
@@ -198,14 +213,16 @@ describe('Tasks Routes', () => {
       expect(prisma.task.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           take: 100,
-        })
+        }),
       );
     });
 
     it('should default limit to 50 and offset to 0', async () => {
       const app = createTestApp(mockUser);
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findMany as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
       (prisma.task.count as ReturnType<typeof vi.fn>).mockResolvedValueOnce(0);
 
@@ -216,7 +233,7 @@ describe('Tasks Routes', () => {
         expect.objectContaining({
           take: 50,
           skip: 0,
-        })
+        }),
       );
     });
 
@@ -266,7 +283,9 @@ describe('Tasks Routes', () => {
         ],
       };
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockTask);
 
       const res = await request(app).get('/api/tasks/task-1/evidence');
@@ -284,7 +303,9 @@ describe('Tasks Routes', () => {
     it('should return 404 when task is not found', async () => {
       const app = createTestApp(mockUser);
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       (prisma.task.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
       const res = await request(app).get('/api/tasks/nonexistent-task/evidence');
@@ -310,7 +331,9 @@ describe('Tasks Routes', () => {
       const app = createTestApp(mockUser);
 
       // The repository findUnique returns the user's repo
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockRepository,
+      );
       // But findFirst returns null because the task doesn't match the repo
       (prisma.task.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
@@ -326,7 +349,7 @@ describe('Tasks Routes', () => {
             id: 'other-user-task',
             repositoryId: 'repo-1',
           },
-        })
+        }),
       );
     });
   });

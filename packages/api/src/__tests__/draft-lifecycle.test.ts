@@ -131,8 +131,12 @@ describe('Draft Lifecycle State Machine', () => {
   describe('validateTransition', () => {
     it('should not throw for valid transitions', () => {
       expect(() => validateTransition(DraftStatus.GENERATED, DraftStatus.EDITING)).not.toThrow();
-      expect(() => validateTransition(DraftStatus.EDITING, DraftStatus.PENDING_APPROVAL)).not.toThrow();
-      expect(() => validateTransition(DraftStatus.PENDING_APPROVAL, DraftStatus.APPROVED)).not.toThrow();
+      expect(() =>
+        validateTransition(DraftStatus.EDITING, DraftStatus.PENDING_APPROVAL),
+      ).not.toThrow();
+      expect(() =>
+        validateTransition(DraftStatus.PENDING_APPROVAL, DraftStatus.APPROVED),
+      ).not.toThrow();
       expect(() => validateTransition(DraftStatus.APPROVED, DraftStatus.SCHEDULED)).not.toThrow();
     });
 

@@ -73,24 +73,24 @@ export const CHECKLIST_CATEGORIES: ChecklistCategory[] = [
  * Category descriptions used when generating checklist items.
  */
 const CATEGORY_DESCRIPTIONS: Record<ChecklistCategory, string> = {
-  'product': 'Core features complete and critical bugs resolved',
-  'quality': 'Tests passing and no open critical issues',
-  'deployment': 'CI/CD configured, environment ready, domain set up',
+  product: 'Core features complete and critical bugs resolved',
+  quality: 'Tests passing and no open critical issues',
+  deployment: 'CI/CD configured, environment ready, domain set up',
   'legal/admin': 'Terms of service, privacy policy, business registration',
-  'marketing': 'Landing page, social profiles, announcement posts',
-  'content': 'Launch post drafted, changelog prepared',
+  marketing: 'Landing page, social profiles, announcement posts',
+  content: 'Launch post drafted, changelog prepared',
 };
 
 /**
  * Priority values for categories (lower = higher priority).
  */
 const CATEGORY_PRIORITY: Record<ChecklistCategory, number> = {
-  'product': 1,
-  'quality': 2,
-  'deployment': 3,
+  product: 1,
+  quality: 2,
+  deployment: 3,
   'legal/admin': 4,
-  'marketing': 5,
-  'content': 6,
+  marketing: 5,
+  content: 6,
 };
 
 // --- Status derivation (Requirement 4.2) ---
@@ -130,9 +130,7 @@ export function deriveItemStatus(tasks: TaskWithState[]): {
   }
 
   // Check for any task in progress or needs review
-  const hasInProgress = tasks.some(
-    (t) => t.state === 'IN_PROGRESS' || t.state === 'NEEDS_REVIEW'
-  );
+  const hasInProgress = tasks.some((t) => t.state === 'IN_PROGRESS' || t.state === 'NEEDS_REVIEW');
   if (hasInProgress) {
     return { status: 'in_progress', isBlocker: false };
   }
@@ -195,7 +193,7 @@ export function sortChecklistBlockersFirst(items: ChecklistItem[]): ChecklistIte
 export function getNextBestAction(items: ChecklistItem[]): ChecklistItem | null {
   // Filter to actionable items (not complete, not blocked)
   const actionable = items.filter(
-    (item) => item.status !== 'complete' && item.status !== 'blocked'
+    (item) => item.status !== 'complete' && item.status !== 'blocked',
   );
 
   if (actionable.length === 0) {
@@ -203,9 +201,7 @@ export function getNextBestAction(items: ChecklistItem[]): ChecklistItem | null 
   }
 
   // Find the one with lowest priority number (highest priority)
-  return actionable.reduce((best, current) =>
-    current.priority < best.priority ? current : best
-  );
+  return actionable.reduce((best, current) => (current.priority < best.priority ? current : best));
 }
 
 // --- Reactive checklist generation (Requirement 4.5) ---

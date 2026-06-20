@@ -104,7 +104,13 @@ describe('Marketing Suggestions', () => {
     it('sorts low effort before medium before high', () => {
       const items: MarketingSuggestion[] = [
         { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'high', priority: 1 },
-        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        {
+          id: 'social-announcement-twitter',
+          name: 'B',
+          description: 'desc',
+          effort: 'low',
+          priority: 1,
+        },
         { id: 'product-changelog', name: 'C', description: 'desc', effort: 'medium', priority: 1 },
       ];
 
@@ -118,7 +124,13 @@ describe('Marketing Suggestions', () => {
     it('sorts by priority within same effort level', () => {
       const items: MarketingSuggestion[] = [
         { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'low', priority: 3 },
-        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        {
+          id: 'social-announcement-twitter',
+          name: 'B',
+          description: 'desc',
+          effort: 'low',
+          priority: 1,
+        },
         { id: 'product-changelog', name: 'C', description: 'desc', effort: 'low', priority: 2 },
       ];
 
@@ -132,7 +144,13 @@ describe('Marketing Suggestions', () => {
     it('does not mutate the original array', () => {
       const items: MarketingSuggestion[] = [
         { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'high', priority: 1 },
-        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        {
+          id: 'social-announcement-twitter',
+          name: 'B',
+          description: 'desc',
+          effort: 'low',
+          priority: 1,
+        },
       ];
 
       const original = [...items];

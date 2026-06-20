@@ -25,10 +25,13 @@ dotenv.config();
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Warn if using default session secret in production
-if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'dev-secret-change-me')) {
+if (
+  isProduction &&
+  (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'dev-secret-change-me')
+) {
   console.warn(
     '[api] WARNING: SESSION_SECRET is not set or is using the default placeholder in production. ' +
-    'Please set a strong, unique secret via the SESSION_SECRET environment variable.'
+      'Please set a strong, unique secret via the SESSION_SECRET environment variable.',
   );
 }
 
@@ -45,15 +48,17 @@ app.use(
       includeSubDomains: true,
     },
     noSniff: true, // X-Content-Type-Options: nosniff (enabled by default, explicit for clarity)
-  })
+  }),
 );
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(express.json());
 
 // --- Session middleware ---
@@ -70,7 +75,7 @@ app.use(
       sameSite: 'strict',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
-  })
+  }),
 );
 
 // --- Passport initialization ---

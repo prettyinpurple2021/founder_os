@@ -76,8 +76,7 @@ describe('Encryption Utilities', () => {
       // Tamper with the ciphertext portion
       const tamperedCiphertext =
         parts[2].length > 0
-          ? parts[2].slice(0, -2) +
-            (parts[2].slice(-2) === 'ff' ? '00' : 'ff')
+          ? parts[2].slice(0, -2) + (parts[2].slice(-2) === 'ff' ? '00' : 'ff')
           : 'ff';
       const tampered = `${parts[0]}:${parts[1]}:${tamperedCiphertext}`;
 
@@ -90,8 +89,7 @@ describe('Encryption Utilities', () => {
 
       const parts = encrypted.split(':');
       // Tamper with the auth tag portion
-      const tamperedTag =
-        parts[1].slice(0, -2) + (parts[1].slice(-2) === 'ff' ? '00' : 'ff');
+      const tamperedTag = parts[1].slice(0, -2) + (parts[1].slice(-2) === 'ff' ? '00' : 'ff');
       const tampered = `${parts[0]}:${tamperedTag}:${parts[2]}`;
 
       expect(() => decrypt(tampered)).toThrow();
@@ -102,25 +100,19 @@ describe('Encryption Utilities', () => {
     it('should throw if ENCRYPTION_KEY is not set', () => {
       delete process.env.ENCRYPTION_KEY;
 
-      expect(() => encrypt('test')).toThrow(
-        'ENCRYPTION_KEY environment variable is not set'
-      );
+      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY environment variable is not set');
     });
 
     it('should throw if ENCRYPTION_KEY is too short', () => {
       process.env.ENCRYPTION_KEY = 'abcd1234'; // Only 8 hex chars
 
-      expect(() => encrypt('test')).toThrow(
-        'ENCRYPTION_KEY must be exactly 64 hex characters'
-      );
+      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be exactly 64 hex characters');
     });
 
     it('should throw if ENCRYPTION_KEY is too long', () => {
       process.env.ENCRYPTION_KEY = 'a'.repeat(128);
 
-      expect(() => encrypt('test')).toThrow(
-        'ENCRYPTION_KEY must be exactly 64 hex characters'
-      );
+      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be exactly 64 hex characters');
     });
   });
 

@@ -37,15 +37,10 @@ const EFFORT_ORDER: Record<MissingAsset['effort'], number> = {
 };
 
 function sortByEffort(assets: MissingAsset[]): MissingAsset[] {
-  return [...assets].sort(
-    (a, b) => EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort]
-  );
+  return [...assets].sort((a, b) => EFFORT_ORDER[a.effort] - EFFORT_ORDER[b.effort]);
 }
 
-function computeOptimisticReadiness(
-  completedCount: number,
-  missingCount: number
-): number {
+function computeOptimisticReadiness(completedCount: number, missingCount: number): number {
   const total = completedCount + missingCount;
   return total > 0 ? Math.round((completedCount / total) * 100) : 0;
 }
@@ -59,9 +54,27 @@ function formatChannelName(channel: string): string {
 describe('Marketing - Effort-Based Sorting', () => {
   it('should sort missing assets by effort (low first)', () => {
     const assets: MissingAsset[] = [
-      { id: '1', type: 'landing_page', title: 'Landing Page', description: 'Create a landing page', effort: 'high' },
-      { id: '2', type: 'social_post', title: 'Social Post', description: 'Write a post', effort: 'low' },
-      { id: '3', type: 'changelog', title: 'Changelog', description: 'Prepare changelog', effort: 'medium' },
+      {
+        id: '1',
+        type: 'landing_page',
+        title: 'Landing Page',
+        description: 'Create a landing page',
+        effort: 'high',
+      },
+      {
+        id: '2',
+        type: 'social_post',
+        title: 'Social Post',
+        description: 'Write a post',
+        effort: 'low',
+      },
+      {
+        id: '3',
+        type: 'changelog',
+        title: 'Changelog',
+        description: 'Prepare changelog',
+        effort: 'medium',
+      },
     ];
 
     const sorted = sortByEffort(assets);
@@ -73,9 +86,27 @@ describe('Marketing - Effort-Based Sorting', () => {
 
   it('should preserve relative order within same effort level', () => {
     const assets: MissingAsset[] = [
-      { id: '1', type: 'social_post', title: 'Twitter Post', description: 'Write tweet', effort: 'low' },
-      { id: '2', type: 'social_post', title: 'LinkedIn Post', description: 'Write LinkedIn post', effort: 'low' },
-      { id: '3', type: 'changelog', title: 'Changelog', description: 'Prepare changelog', effort: 'medium' },
+      {
+        id: '1',
+        type: 'social_post',
+        title: 'Twitter Post',
+        description: 'Write tweet',
+        effort: 'low',
+      },
+      {
+        id: '2',
+        type: 'social_post',
+        title: 'LinkedIn Post',
+        description: 'Write LinkedIn post',
+        effort: 'low',
+      },
+      {
+        id: '3',
+        type: 'changelog',
+        title: 'Changelog',
+        description: 'Prepare changelog',
+        effort: 'medium',
+      },
     ];
 
     const sorted = sortByEffort(assets);
@@ -147,9 +178,27 @@ describe('Marketing - Data Structure Validation', () => {
         { id: '2', type: 'screenshots', completedAt: '2024-03-11T09:00:00Z' },
       ],
       missingAssets: [
-        { id: '3', type: 'landing_page', title: 'Landing Page', description: 'Create a launch landing page', effort: 'high' },
-        { id: '4', type: 'social_post', title: 'Twitter Announcement', description: 'Draft a launch tweet', effort: 'low' },
-        { id: '5', type: 'changelog', title: 'Changelog', description: 'Prepare public changelog', effort: 'medium' },
+        {
+          id: '3',
+          type: 'landing_page',
+          title: 'Landing Page',
+          description: 'Create a launch landing page',
+          effort: 'high',
+        },
+        {
+          id: '4',
+          type: 'social_post',
+          title: 'Twitter Announcement',
+          description: 'Draft a launch tweet',
+          effort: 'low',
+        },
+        {
+          id: '5',
+          type: 'changelog',
+          title: 'Changelog',
+          description: 'Prepare public changelog',
+          effort: 'medium',
+        },
       ],
       channelRecommendations: [
         { channel: 'twitter', reason: 'Developer tools thrive on Twitter/X', priority: 1 },
@@ -168,7 +217,13 @@ describe('Marketing - Data Structure Validation', () => {
     const data: MarketingStatusResponse = {
       completedAssets: [],
       missingAssets: [
-        { id: '1', type: 'landing_page', title: 'Landing Page', description: 'Create landing page', effort: 'high' },
+        {
+          id: '1',
+          type: 'landing_page',
+          title: 'Landing Page',
+          description: 'Create landing page',
+          effort: 'high',
+        },
       ],
       channelRecommendations: [],
       readinessPercentage: 0,

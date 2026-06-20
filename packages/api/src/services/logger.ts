@@ -39,26 +39,46 @@ export async function log(entry: LogEntry): Promise<void> {
 }
 
 /** Log a sync-related event */
-export async function logSync(userId: string, action: string, details: Record<string, unknown>): Promise<void> {
+export async function logSync(
+  userId: string,
+  action: string,
+  details: Record<string, unknown>,
+): Promise<void> {
   return log({ category: 'sync', action, details, userId });
 }
 
 /** Log a state change event */
-export async function logStateChange(userId: string, action: string, details: Record<string, unknown>): Promise<void> {
+export async function logStateChange(
+  userId: string,
+  action: string,
+  details: Record<string, unknown>,
+): Promise<void> {
   return log({ category: 'state_change', action, details, userId });
 }
 
 /** Log a content-related event */
-export async function logContent(userId: string, action: string, details: Record<string, unknown>): Promise<void> {
+export async function logContent(
+  userId: string,
+  action: string,
+  details: Record<string, unknown>,
+): Promise<void> {
   return log({ category: 'content', action, details, userId });
 }
 
 /** Log an auth-related event */
-export async function logAuth(userId: string | undefined, action: string, details: Record<string, unknown>): Promise<void> {
+export async function logAuth(
+  userId: string | undefined,
+  action: string,
+  details: Record<string, unknown>,
+): Promise<void> {
   return log({ category: 'auth', action, details, userId });
 }
 
 /** Log an error event */
-export async function logError(userId: string | undefined, action: string, details: Record<string, unknown>): Promise<void> {
+export async function logError(
+  userId: string | undefined,
+  action: string,
+  details: Record<string, unknown>,
+): Promise<void> {
   return log({ category: 'error', action, details, userId });
 }

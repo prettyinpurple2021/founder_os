@@ -54,7 +54,7 @@ describe('Marketing Asset Completion', () => {
       };
 
       (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce(null)  // no completed record
+        .mockResolvedValueOnce(null) // no completed record
         .mockResolvedValueOnce(null); // no existing record at all
       (prisma.marketingAsset.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockCreated);
 
@@ -80,7 +80,9 @@ describe('Marketing Asset Completion', () => {
         completedAt: new Date('2024-01-01T00:00:00.000Z'),
       };
 
-      (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(existingCompleted);
+      (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        existingCompleted,
+      );
 
       const result = await markAssetComplete(userId, validAssetType);
 
@@ -105,7 +107,7 @@ describe('Marketing Asset Completion', () => {
       };
 
       (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce(null)          // no completed record
+        .mockResolvedValueOnce(null) // no completed record
         .mockResolvedValueOnce(existingMissing); // existing with status 'missing'
       (prisma.marketingAsset.update as ReturnType<typeof vi.fn>).mockResolvedValue(updatedAsset);
 
@@ -138,7 +140,9 @@ describe('Marketing Asset Completion', () => {
         completedAt: null,
       };
 
-      (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(existingCompleted);
+      (prisma.marketingAsset.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        existingCompleted,
+      );
       (prisma.marketingAsset.update as ReturnType<typeof vi.fn>).mockResolvedValue(updatedAsset);
 
       const result = await markAssetUncomplete(userId, validAssetType);

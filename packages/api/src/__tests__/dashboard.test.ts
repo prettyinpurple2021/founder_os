@@ -123,8 +123,18 @@ describe('getDashboard', () => {
     it('returns blocked tasks with their reasons', async () => {
       mockPrisma.repository.findUnique.mockResolvedValue(MOCK_REPOSITORY);
       mockPrisma.task.findMany.mockResolvedValue([
-        makeMockTask({ id: '1', title: 'Auth Flow', state: 'BLOCKED', blockerReason: 'Waiting on OAuth setup' }),
-        makeMockTask({ id: '2', title: 'Deploy', state: 'BLOCKED', blockerReason: 'Need DNS access' }),
+        makeMockTask({
+          id: '1',
+          title: 'Auth Flow',
+          state: 'BLOCKED',
+          blockerReason: 'Waiting on OAuth setup',
+        }),
+        makeMockTask({
+          id: '2',
+          title: 'Deploy',
+          state: 'BLOCKED',
+          blockerReason: 'Need DNS access',
+        }),
         makeMockTask({ id: '3', title: 'Tests', state: 'IN_PROGRESS' }),
       ]);
       mockPrisma.sync.findFirst.mockResolvedValue(null);
@@ -217,7 +227,14 @@ describe('getDashboard', () => {
         categories: [],
         items: [],
         nextBestAction: null,
-        summary: { total: 6, complete: 6, inProgress: 0, blocked: 0, incomplete: 0, readinessPercentage: 100 },
+        summary: {
+          total: 6,
+          complete: 6,
+          inProgress: 0,
+          blocked: 0,
+          incomplete: 0,
+          readinessPercentage: 100,
+        },
       });
 
       const result = await getDashboard(MOCK_USER_ID);
@@ -246,9 +263,24 @@ describe('getDashboard', () => {
 
       mockPrisma.repository.findUnique.mockResolvedValue(MOCK_REPOSITORY);
       mockPrisma.task.findMany.mockResolvedValue([
-        makeMockTask({ id: '1', title: 'Recent Task', state: 'COMPLETED', lastInferredAt: threeDaysAgo }),
-        makeMockTask({ id: '2', title: 'Older Recent Task', state: 'COMPLETED', lastInferredAt: sixDaysAgo }),
-        makeMockTask({ id: '3', title: 'Old Task', state: 'COMPLETED', lastInferredAt: tenDaysAgo }),
+        makeMockTask({
+          id: '1',
+          title: 'Recent Task',
+          state: 'COMPLETED',
+          lastInferredAt: threeDaysAgo,
+        }),
+        makeMockTask({
+          id: '2',
+          title: 'Older Recent Task',
+          state: 'COMPLETED',
+          lastInferredAt: sixDaysAgo,
+        }),
+        makeMockTask({
+          id: '3',
+          title: 'Old Task',
+          state: 'COMPLETED',
+          lastInferredAt: tenDaysAgo,
+        }),
         makeMockTask({ id: '4', title: 'Active Task', state: 'IN_PROGRESS', lastInferredAt: now }),
       ]);
       mockPrisma.sync.findFirst.mockResolvedValue(null);
@@ -269,9 +301,24 @@ describe('getDashboard', () => {
 
       mockPrisma.repository.findUnique.mockResolvedValue(MOCK_REPOSITORY);
       mockPrisma.task.findMany.mockResolvedValue([
-        makeMockTask({ id: '1', title: 'Five days ago', state: 'COMPLETED', lastInferredAt: fiveDaysAgo }),
-        makeMockTask({ id: '2', title: 'One day ago', state: 'COMPLETED', lastInferredAt: oneDayAgo }),
-        makeMockTask({ id: '3', title: 'Two days ago', state: 'COMPLETED', lastInferredAt: twoDaysAgo }),
+        makeMockTask({
+          id: '1',
+          title: 'Five days ago',
+          state: 'COMPLETED',
+          lastInferredAt: fiveDaysAgo,
+        }),
+        makeMockTask({
+          id: '2',
+          title: 'One day ago',
+          state: 'COMPLETED',
+          lastInferredAt: oneDayAgo,
+        }),
+        makeMockTask({
+          id: '3',
+          title: 'Two days ago',
+          state: 'COMPLETED',
+          lastInferredAt: twoDaysAgo,
+        }),
       ]);
       mockPrisma.sync.findFirst.mockResolvedValue(null);
       mockGetChecklist.mockResolvedValue(null);
@@ -348,7 +395,14 @@ describe('getDashboard', () => {
         categories: [],
         items: [],
         nextBestAction: null,
-        summary: { total: 6, complete: 4, inProgress: 1, blocked: 1, incomplete: 0, readinessPercentage: 67 },
+        summary: {
+          total: 6,
+          complete: 4,
+          inProgress: 1,
+          blocked: 1,
+          incomplete: 0,
+          readinessPercentage: 67,
+        },
       });
 
       const result = await getDashboard(MOCK_USER_ID);

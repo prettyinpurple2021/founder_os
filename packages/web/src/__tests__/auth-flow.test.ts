@@ -20,10 +20,13 @@ describe('Auth Flow', () => {
 
     it('redirects to /login on 401 response', async () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-        new Response(JSON.stringify({ error: { code: 'UNAUTHORIZED', message: 'Expired', retryable: false } }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        })
+        new Response(
+          JSON.stringify({ error: { code: 'UNAUTHORIZED', message: 'Expired', retryable: false } }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        ),
       );
 
       const { get } = await import('../lib/api.js');
@@ -37,7 +40,7 @@ describe('Auth Flow', () => {
         new Response(JSON.stringify({ user: { id: '1', username: 'test' } }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-        })
+        }),
       );
 
       const { get } = await import('../lib/api.js');
@@ -51,8 +54,8 @@ describe('Auth Flow', () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(
         new Response(
           JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found', retryable: false } }),
-          { status: 404, headers: { 'Content-Type': 'application/json' } }
-        )
+          { status: 404, headers: { 'Content-Type': 'application/json' } },
+        ),
       );
 
       const { get, ApiError } = await import('../lib/api.js');
@@ -75,7 +78,7 @@ describe('Auth Flow', () => {
         new Response(JSON.stringify({ user: { id: '1', username: 'test' } }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
-        })
+        }),
       );
     });
 
@@ -87,20 +90,26 @@ describe('Auth Flow', () => {
       const { authApi } = await import('../lib/api.js');
       await authApi.getSession();
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('/api/auth/session', expect.objectContaining({
-        method: 'GET',
-        credentials: 'include',
-      }));
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/auth/session',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'include',
+        }),
+      );
     });
 
     it('logout calls POST /api/auth/logout with credentials', async () => {
       const { authApi } = await import('../lib/api.js');
       await authApi.logout();
 
-      expect(globalThis.fetch).toHaveBeenCalledWith('/api/auth/logout', expect.objectContaining({
-        method: 'POST',
-        credentials: 'include',
-      }));
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/auth/logout',
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'include',
+        }),
+      );
     });
   });
 

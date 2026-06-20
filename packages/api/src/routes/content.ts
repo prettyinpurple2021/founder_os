@@ -1,8 +1,22 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppError, unauthorized, internalError } from '../errors/AppError.js';
-import { generateDraft, editDraft, getDraftVersions, approveDraft, rejectDraft, scheduleDraft, submitForReview, type ContentPlatform } from '../services/content.js';
+import {
+  generateDraft,
+  editDraft,
+  getDraftVersions,
+  approveDraft,
+  rejectDraft,
+  scheduleDraft,
+  submitForReview,
+  type ContentPlatform,
+} from '../services/content.js';
 import { validate } from '../middleware/validate.js';
-import { generateContentSchema, editDraftSchema, rejectDraftSchema, scheduleDraftSchema } from '../validation/schemas.js';
+import {
+  generateContentSchema,
+  editDraftSchema,
+  rejectDraftSchema,
+  scheduleDraftSchema,
+} from '../validation/schemas.js';
 
 const router = Router();
 
@@ -32,18 +46,22 @@ router.use(requireAuth);
  *
  * Requirements: 6.1, 6.2
  */
-router.post('/generate', validate(generateContentSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const { platform, timeRangeDays } = req.body;
+router.post(
+  '/generate',
+  validate(generateContentSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const { platform, timeRangeDays } = req.body;
 
-    const draft = await generateDraft(user.id, platform as ContentPlatform, timeRangeDays);
+      const draft = await generateDraft(user.id, platform as ContentPlatform, timeRangeDays);
 
-    res.status(201).json(draft);
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to generate content draft'));
-  }
-});
+      res.status(201).json(draft);
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to generate content draft'));
+    }
+  },
+);
 
 /**
  * PUT /api/content/drafts/:id
@@ -57,19 +75,23 @@ router.post('/generate', validate(generateContentSchema, 'body'), async (req: Re
  *
  * Requirements: 6.3, 6.4
  */
-router.put('/drafts/:id', validate(editDraftSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const draftId = req.params.id;
-    const { content } = req.body;
+router.put(
+  '/drafts/:id',
+  validate(editDraftSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const draftId = req.params.id;
+      const { content } = req.body;
 
-    const result = await editDraft(user.id, draftId, content);
+      const result = await editDraft(user.id, draftId, content);
 
-    res.json(result);
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to edit draft'));
-  }
-});
+      res.json(result);
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to edit draft'));
+    }
+  },
+);
 
 /**
  * GET /api/content/drafts/:id/versions
@@ -161,19 +183,23 @@ router.post('/drafts/:id/approve', async (req: Request, res: Response, next: Nex
  *
  * Requirements: 6.5, 7.4
  */
-router.post('/drafts/:id/reject', validate(rejectDraftSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const draftId = req.params.id;
-    const { reason } = req.body;
+router.post(
+  '/drafts/:id/reject',
+  validate(rejectDraftSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const draftId = req.params.id;
+      const { reason } = req.body;
 
-    const result = await rejectDraft(user.id, draftId, reason);
+      const result = await rejectDraft(user.id, draftId, reason);
 
-    res.json(result);
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to reject draft'));
-  }
-});
+      res.json(result);
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to reject draft'));
+    }
+  },
+);
 
 /**
  * POST /api/content/drafts/:id/schedule
@@ -193,18 +219,22 @@ router.post('/drafts/:id/reject', validate(rejectDraftSchema, 'body'), async (re
  *
  * Requirements: 7.2
  */
-router.post('/drafts/:id/schedule', validate(scheduleDraftSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const draftId = req.params.id;
-    const { scheduledAt } = req.body;
+router.post(
+  '/drafts/:id/schedule',
+  validate(scheduleDraftSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const draftId = req.params.id;
+      const { scheduledAt } = req.body;
 
-    const result = await scheduleDraft(user.id, draftId, scheduledAt);
+      const result = await scheduleDraft(user.id, draftId, scheduledAt);
 
-    res.json(result);
-  } catch (err) {
-    next(err instanceof AppError ? err : internalError('Failed to schedule draft'));
-  }
-});
+      res.json(result);
+    } catch (err) {
+      next(err instanceof AppError ? err : internalError('Failed to schedule draft'));
+    }
+  },
+);
 
 export default router;

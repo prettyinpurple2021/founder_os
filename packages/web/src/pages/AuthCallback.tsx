@@ -16,9 +16,7 @@ export default function AuthCallback() {
     const errorDescription = searchParams.get('error_description');
 
     if (errorParam) {
-      setError(
-        errorDescription || 'Authentication failed. Please try again.'
-      );
+      setError(errorDescription || 'Authentication failed. Please try again.');
       return;
     }
 
@@ -44,10 +42,7 @@ export default function AuthCallback() {
             Try again
           </a>
           <div className="mt-4">
-            <a
-              href="/login"
-              className="text-sm text-gray-500 hover:text-gray-700 underline"
-            >
+            <a href="/login" className="text-sm text-gray-500 hover:text-gray-700 underline">
               Back to login
             </a>
           </div>

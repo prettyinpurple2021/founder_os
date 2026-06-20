@@ -26,9 +26,7 @@ describe('Global Retry Utility', () => {
     });
 
     it('should retry up to 3 times by default and succeed on second attempt', async () => {
-      const fn = vi.fn()
-        .mockRejectedValueOnce(new Error('fail 1'))
-        .mockResolvedValue('success');
+      const fn = vi.fn().mockRejectedValueOnce(new Error('fail 1')).mockResolvedValue('success');
 
       const result = await withRetry(fn, undefined, noDelay);
 
@@ -37,7 +35,8 @@ describe('Global Retry Utility', () => {
     });
 
     it('should retry up to 3 times and succeed on third attempt', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success');
@@ -49,7 +48,8 @@ describe('Global Retry Utility', () => {
     });
 
     it('should throw the last error after exhausting all 3 attempts', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'));
@@ -64,7 +64,8 @@ describe('Global Retry Utility', () => {
         delays.push(ms);
       };
 
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'));
@@ -77,7 +78,8 @@ describe('Global Retry Utility', () => {
     });
 
     it('should respect custom maxAttempts option', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'))
@@ -96,14 +98,13 @@ describe('Global Retry Utility', () => {
         delays.push(ms);
       };
 
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'));
 
-      await expect(
-        withRetry(fn, { baseDelayMs: 500 }, trackingDelay)
-      ).rejects.toThrow('fail 3');
+      await expect(withRetry(fn, { baseDelayMs: 500 }, trackingDelay)).rejects.toThrow('fail 3');
 
       // baseDelay = 500: attempt 2 delay = 500 * 2^0 = 500, attempt 3 delay = 500 * 2^1 = 1000
       expect(delays).toEqual([500, 1000]);
@@ -115,14 +116,13 @@ describe('Global Retry Utility', () => {
         delays.push(ms);
       };
 
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockRejectedValueOnce(new Error('fail 3'));
 
-      await expect(
-        withRetry(fn, { factor: 3 }, trackingDelay)
-      ).rejects.toThrow('fail 3');
+      await expect(withRetry(fn, { factor: 3 }, trackingDelay)).rejects.toThrow('fail 3');
 
       // factor = 3: attempt 2 delay = 1000 * 3^0 = 1000, attempt 3 delay = 1000 * 3^1 = 3000
       expect(delays).toEqual([1000, 3000]);
@@ -131,7 +131,8 @@ describe('Global Retry Utility', () => {
     it('should call onRetry callback on each retry with correct arguments', async () => {
       const onRetry = vi.fn();
 
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('network error'))
         .mockRejectedValueOnce(new Error('timeout'))
         .mockResolvedValue('success');
@@ -139,8 +140,18 @@ describe('Global Retry Utility', () => {
       await withRetry(fn, { onRetry }, noDelay);
 
       expect(onRetry).toHaveBeenCalledTimes(2);
-      expect(onRetry).toHaveBeenNthCalledWith(1, expect.objectContaining({ message: 'network error' }), 1, 1000);
-      expect(onRetry).toHaveBeenNthCalledWith(2, expect.objectContaining({ message: 'timeout' }), 2, 2000);
+      expect(onRetry).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ message: 'network error' }),
+        1,
+        1000,
+      );
+      expect(onRetry).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ message: 'timeout' }),
+        2,
+        2000,
+      );
     });
 
     it('should not call onRetry when the first attempt succeeds', async () => {
@@ -153,21 +164,19 @@ describe('Global Retry Utility', () => {
     });
 
     it('should stop retrying when isRetryable returns false', async () => {
-      const fn = vi.fn()
-        .mockRejectedValueOnce(new Error('non-retryable error'));
+      const fn = vi.fn().mockRejectedValueOnce(new Error('non-retryable error'));
 
       const isRetryable = (err: Error) => !err.message.includes('non-retryable');
 
-      await expect(
-        withRetry(fn, { isRetryable }, noDelay)
-      ).rejects.toThrow('non-retryable error');
+      await expect(withRetry(fn, { isRetryable }, noDelay)).rejects.toThrow('non-retryable error');
 
       // Should only attempt once since the error is non-retryable
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
     it('should continue retrying when isRetryable returns true', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce(new Error('retryable error'))
         .mockResolvedValue('success');
 
@@ -180,7 +189,8 @@ describe('Global Retry Utility', () => {
     });
 
     it('should convert non-Error throws to Error instances', async () => {
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockRejectedValueOnce('string error')
         .mockRejectedValueOnce(42)
         .mockRejectedValueOnce({ some: 'object' });
@@ -192,9 +202,9 @@ describe('Global Retry Utility', () => {
     it('should throw if maxAttempts is less than 1', async () => {
       const fn = vi.fn().mockResolvedValue('success');
 
-      await expect(
-        withRetry(fn, { maxAttempts: 0 }, noDelay)
-      ).rejects.toThrow('maxAttempts must be at least 1');
+      await expect(withRetry(fn, { maxAttempts: 0 }, noDelay)).rejects.toThrow(
+        'maxAttempts must be at least 1',
+      );
 
       expect(fn).not.toHaveBeenCalled();
     });
@@ -202,9 +212,7 @@ describe('Global Retry Utility', () => {
     it('should work with maxAttempts of 1 (no retries)', async () => {
       const fn = vi.fn().mockRejectedValueOnce(new Error('single attempt'));
 
-      await expect(
-        withRetry(fn, { maxAttempts: 1 }, noDelay)
-      ).rejects.toThrow('single attempt');
+      await expect(withRetry(fn, { maxAttempts: 1 }, noDelay)).rejects.toThrow('single attempt');
 
       expect(fn).toHaveBeenCalledTimes(1);
     });
@@ -215,7 +223,8 @@ describe('Global Retry Utility', () => {
         order.push('onRetry');
       };
 
-      const fn = vi.fn()
+      const fn = vi
+        .fn()
         .mockImplementationOnce(async () => {
           order.push('attempt 1');
           throw new Error('fail');

@@ -112,9 +112,7 @@ export default function Dashboard() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : 'Failed to load dashboard data'
-          );
+          setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
         }
       } finally {
         if (!cancelled) {
@@ -143,9 +141,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">
-          Unable to load dashboard
-        </h3>
+        <h3 className="text-sm font-medium text-red-800">Unable to load dashboard</h3>
         <p className="mt-1 text-sm text-red-600">{error}</p>
       </div>
     );
@@ -155,9 +151,7 @@ export default function Dashboard() {
     return (
       <div className="text-center py-16">
         <div className="text-4xl mb-4">🚀</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Welcome to Launch OS
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Launch OS</h2>
         <p className="text-gray-600 mb-6">
           Connect your GitHub repository to start tracking your launch readiness.
         </p>
@@ -185,10 +179,7 @@ export default function Dashboard() {
       {/* Project Status + Launch Readiness */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ProjectStatusCard
-            status={data.projectStatus}
-            readiness={data.launchReadiness}
-          />
+          <ProjectStatusCard status={data.projectStatus} readiness={data.launchReadiness} />
         </div>
         <div>
           <BlockersList blockers={data.blockers} />
@@ -203,9 +194,7 @@ export default function Dashboard() {
 
 function SyncIndicator({ lastSync }: { lastSync: LastSync | null }) {
   if (!lastSync) {
-    return (
-      <span className="text-xs text-gray-400">No sync data available</span>
-    );
+    return <span className="text-xs text-gray-400">No sync data available</span>;
   }
 
   const isSuccess = lastSync.status === 'SUCCESS';
@@ -213,15 +202,11 @@ function SyncIndicator({ lastSync }: { lastSync: LastSync | null }) {
   return (
     <div className="flex items-center gap-2 text-xs text-gray-500">
       <span
-        className={`inline-block h-2 w-2 rounded-full ${
-          isSuccess ? 'bg-green-400' : 'bg-red-400'
-        }`}
+        className={`inline-block h-2 w-2 rounded-full ${isSuccess ? 'bg-green-400' : 'bg-red-400'}`}
       />
       <span>
         Last synced {formatRelativeDate(lastSync.timestamp)}
-        {!isSuccess && (
-          <span className="ml-1 text-red-500 font-medium">(failed)</span>
-        )}
+        {!isSuccess && <span className="ml-1 text-red-500 font-medium">(failed)</span>}
       </span>
     </div>
   );
@@ -236,16 +221,12 @@ function NextActionCard({ action }: { action: NextAction }) {
           <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
             Next Action
           </p>
-          <p className="text-base font-medium text-gray-900">
-            {action.description}
-          </p>
+          <p className="text-base font-medium text-gray-900">{action.description}</p>
           <div className="mt-2 flex items-center gap-3">
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
               {action.category}
             </span>
-            <span className="text-xs text-gray-500">
-              Priority {action.priority}
-            </span>
+            <span className="text-xs text-gray-500">Priority {action.priority}</span>
           </div>
         </div>
       </div>
@@ -274,9 +255,7 @@ function ProjectStatusCard({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-gray-900">Project Status</h3>
         <div className="text-right">
-          <span className="text-2xl font-bold text-gray-900">
-            {readiness.percentage}%
-          </span>
+          <span className="text-2xl font-bold text-gray-900">{readiness.percentage}%</span>
           <p className="text-xs text-gray-500">launch ready</p>
         </div>
       </div>
@@ -292,21 +271,14 @@ function ProjectStatusCard({
       {/* State counts */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {states.map((state) => (
-          <div
-            key={state}
-            className={`rounded px-3 py-2 text-center ${STATE_COLORS[state]}`}
-          >
-            <div className="text-lg font-semibold">
-              {status.byState[state] ?? 0}
-            </div>
+          <div key={state} className={`rounded px-3 py-2 text-center ${STATE_COLORS[state]}`}>
+            <div className="text-lg font-semibold">{status.byState[state] ?? 0}</div>
             <div className="text-xs">{STATE_LABELS[state]}</div>
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-gray-500">
-        {status.total} total tasks tracked
-      </p>
+      <p className="mt-3 text-xs text-gray-500">{status.total} total tasks tracked</p>
     </div>
   );
 }
@@ -326,18 +298,11 @@ function BlockersList({ blockers }: { blockers: Blocker[] }) {
 
   return (
     <div className="rounded-lg border border-red-100 bg-white p-5 h-full">
-      <h3 className="text-sm font-medium text-red-700 mb-3">
-        🚧 Blockers ({blockers.length})
-      </h3>
+      <h3 className="text-sm font-medium text-red-700 mb-3">🚧 Blockers ({blockers.length})</h3>
       <ul className="space-y-3">
         {blockers.map((blocker) => (
-          <li
-            key={blocker.taskId}
-            className="border-l-2 border-red-300 pl-3"
-          >
-            <p className="text-sm font-medium text-gray-900">
-              {blocker.title}
-            </p>
+          <li key={blocker.taskId} className="border-l-2 border-red-300 pl-3">
+            <p className="text-sm font-medium text-gray-900">{blocker.title}</p>
             <p className="text-xs text-gray-500 mt-0.5">{blocker.reason}</p>
           </li>
         ))}
@@ -350,34 +315,23 @@ function RecentProgressList({ items }: { items: RecentProgressItem[] }) {
   if (items.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">
-          Recent Progress
-        </h3>
-        <p className="text-sm text-gray-500">
-          No tasks completed in the last 7 days.
-        </p>
+        <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Progress</h3>
+        <p className="text-sm text-gray-500">No tasks completed in the last 7 days.</p>
       </div>
     );
   }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">
-        Recent Progress (last 7 days)
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Progress (last 7 days)</h3>
       <ul className="divide-y divide-gray-100">
         {items.map((item) => (
-          <li
-            key={item.taskId}
-            className="flex items-center justify-between py-2"
-          >
+          <li key={item.taskId} className="flex items-center justify-between py-2">
             <div className="flex items-center gap-2">
               <span className="text-green-500">✓</span>
               <span className="text-sm text-gray-800">{item.title}</span>
             </div>
-            <span className="text-xs text-gray-400">
-              {formatDate(item.completedAt)}
-            </span>
+            <span className="text-xs text-gray-400">{formatDate(item.completedAt)}</span>
           </li>
         ))}
       </ul>

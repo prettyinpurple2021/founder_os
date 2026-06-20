@@ -71,7 +71,7 @@ function createTestApp(user?: Express.User | null) {
       err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean },
       _req: Request,
       res: Response,
-      _next: NextFunction
+      _next: NextFunction,
     ) => {
       const statusCode = err.statusCode || 500;
       res.status(statusCode).json({
@@ -81,7 +81,7 @@ function createTestApp(user?: Express.User | null) {
           retryable: err.retryable ?? true,
         },
       });
-    }
+    },
   );
 
   return app;
@@ -315,7 +315,9 @@ describe('Sync Failure Handling', () => {
       (prisma.sync.update as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockFailedSync);
 
       // Return the last successful sync
-      (prisma.sync.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockLastSuccessfulSync);
+      (prisma.sync.findFirst as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        mockLastSuccessfulSync,
+      );
 
       mockFetch.mockRejectedValue(new Error('Rate limited'));
 

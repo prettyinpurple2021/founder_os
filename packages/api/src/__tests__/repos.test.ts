@@ -47,16 +47,23 @@ function createTestApp(user?: Express.User | null) {
   app.use('/api/repos', reposRouter);
 
   // Error handler
-  app.use((err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean }, _req: Request, res: Response, _next: NextFunction) => {
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-      error: {
-        code: err.code || 'INTERNAL_ERROR',
-        message: err.message,
-        retryable: err.retryable ?? true,
-      },
-    });
-  });
+  app.use(
+    (
+      err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean },
+      _req: Request,
+      res: Response,
+      _next: NextFunction,
+    ) => {
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).json({
+        error: {
+          code: err.code || 'INTERNAL_ERROR',
+          message: err.message,
+          retryable: err.retryable ?? true,
+        },
+      });
+    },
+  );
 
   return app;
 }
@@ -193,14 +200,12 @@ describe('Repos Routes', () => {
       (prisma.repository.create as ReturnType<typeof vi.fn>).mockResolvedValueOnce(createdRepo);
       (prisma.sync.create as ReturnType<typeof vi.fn>).mockResolvedValueOnce(createdSync);
 
-      const res = await request(app)
-        .post('/api/repos/connect')
-        .send({
-          githubId: 12345,
-          name: 'my-app',
-          fullName: 'testuser/my-app',
-          owner: 'testuser',
-        });
+      const res = await request(app).post('/api/repos/connect').send({
+        githubId: 12345,
+        name: 'my-app',
+        fullName: 'testuser/my-app',
+        owner: 'testuser',
+      });
 
       expect(res.status).toBe(201);
       expect(res.body.repository.fullName).toBe('testuser/my-app');
@@ -217,14 +222,12 @@ describe('Repos Routes', () => {
         fullName: 'testuser/old-repo',
       });
 
-      const res = await request(app)
-        .post('/api/repos/connect')
-        .send({
-          githubId: 99999,
-          name: 'new-repo',
-          fullName: 'testuser/new-repo',
-          owner: 'testuser',
-        });
+      const res = await request(app).post('/api/repos/connect').send({
+        githubId: 99999,
+        name: 'new-repo',
+        fullName: 'testuser/new-repo',
+        owner: 'testuser',
+      });
 
       expect(res.status).toBe(409);
       expect(res.body.error.code).toBe('REPO_ALREADY_CONNECTED');
@@ -233,9 +236,7 @@ describe('Repos Routes', () => {
     it('should return 400 when required fields are missing', async () => {
       const app = createTestApp(mockUser);
 
-      const res = await request(app)
-        .post('/api/repos/connect')
-        .send({ githubId: 123 });
+      const res = await request(app).post('/api/repos/connect').send({ githubId: 123 });
 
       expect(res.status).toBe(422);
       expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -244,14 +245,12 @@ describe('Repos Routes', () => {
     it('should return 400 when githubId is not a number', async () => {
       const app = createTestApp(mockUser);
 
-      const res = await request(app)
-        .post('/api/repos/connect')
-        .send({
-          githubId: 'not-a-number',
-          name: 'repo',
-          fullName: 'user/repo',
-          owner: 'user',
-        });
+      const res = await request(app).post('/api/repos/connect').send({
+        githubId: 'not-a-number',
+        name: 'repo',
+        fullName: 'user/repo',
+        owner: 'user',
+      });
 
       expect(res.status).toBe(422);
       expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -261,16 +260,16 @@ describe('Repos Routes', () => {
       const app = createTestApp(mockUser);
 
       (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
-      (prisma.repository.create as ReturnType<typeof vi.fn>).mockRejectedValueOnce({ code: 'P2002' });
+      (prisma.repository.create as ReturnType<typeof vi.fn>).mockRejectedValueOnce({
+        code: 'P2002',
+      });
 
-      const res = await request(app)
-        .post('/api/repos/connect')
-        .send({
-          githubId: 12345,
-          name: 'my-app',
-          fullName: 'testuser/my-app',
-          owner: 'testuser',
-        });
+      const res = await request(app).post('/api/repos/connect').send({
+        githubId: 12345,
+        name: 'my-app',
+        fullName: 'testuser/my-app',
+        owner: 'testuser',
+      });
 
       expect(res.status).toBe(409);
       expect(res.body.error.code).toBe('REPO_ALREADY_CONNECTED');
@@ -287,7 +286,9 @@ describe('Repos Routes', () => {
         fullName: 'testuser/my-app',
       };
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(existingRepo);
+      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+        existingRepo,
+      );
       (prisma.repository.delete as ReturnType<typeof vi.fn>).mockResolvedValueOnce(existingRepo);
 
       const res = await request(app).delete('/api/repos/disconnect');

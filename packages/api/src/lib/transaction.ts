@@ -115,7 +115,8 @@ export async function withDataPreservation<T>(
   } catch (error) {
     // Determine if the error is retryable based on its type
     const isRetryable = isRetryableError(error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error during transaction';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error during transaction';
     const errorCode = error instanceof AppError ? error.code : 'TRANSACTION_FAILED';
 
     return {

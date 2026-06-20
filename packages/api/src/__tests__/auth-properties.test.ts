@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fc from 'fast-check';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { encrypt, decrypt } from '../lib/encryption.js';
 import { AppError } from '../errors/AppError.js';
 
@@ -46,7 +46,7 @@ describe('Property: Token Encryption Round-Trip (AES-256-GCM)', () => {
         const decrypted = decrypt(encrypted);
         return decrypted === plaintext;
       }),
-      { numRuns: 200 }
+      { numRuns: 200 },
     );
   });
 
@@ -58,7 +58,7 @@ describe('Property: Token Encryption Round-Trip (AES-256-GCM)', () => {
         // Different ciphertexts due to random IV
         return encrypted1 !== encrypted2;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -79,7 +79,7 @@ describe('Property: Token Encryption Round-Trip (AES-256-GCM)', () => {
         if (ciphertext.length > 0 && !hexPattern.test(ciphertext)) return false;
         return true;
       }),
-      { numRuns: 200 }
+      { numRuns: 200 },
     );
   });
 });
@@ -125,7 +125,6 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
           const destroyFn = vi.fn((cb: (err?: Error) => void) => cb());
           const req = createMockReq('user-prop', destroyFn);
           const res = createMockRes();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const next: any = vi.fn();
 
           const lastActiveAt = new Date(Date.now() - elapsedMs);
@@ -150,9 +149,9 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
           expect(error).toBeInstanceOf(AppError);
           expect(error.statusCode).toBe(401);
           expect(error.code).toBe('UNAUTHORIZED');
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 
@@ -165,7 +164,6 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
           vi.clearAllMocks();
           const req = createMockReq('user-prop');
           const res = createMockRes();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const next: any = vi.fn();
 
           const lastActiveAt = new Date(Date.now() - elapsedMs);
@@ -197,9 +195,9 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
             where: { id: 'session-prop' },
             data: { lastActiveAt: expect.any(Date) },
           });
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 });
@@ -227,7 +225,7 @@ describe('Property: Auth Middleware Behavior', () => {
     fc.assert(
       fc.property(
         fc.string(), // random user id (irrelevant since unauthenticated)
-        (userId) => {
+        (_userId) => {
           vi.clearAllMocks();
           const req = {
             isAuthenticated: () => false,
@@ -243,9 +241,9 @@ describe('Property: Auth Middleware Behavior', () => {
           expect(next).toHaveBeenCalledWith();
           expect(mockedPrisma.session.findFirst).not.toHaveBeenCalled();
           return true;
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 

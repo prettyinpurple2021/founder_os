@@ -37,10 +37,7 @@ function isRepoConnected(connectedRepo: ConnectedRepo | null): boolean {
   return connectedRepo !== null;
 }
 
-function findSelectedRepo(
-  repos: AvailableRepo[],
-  selectedId: string
-): AvailableRepo | undefined {
+function findSelectedRepo(repos: AvailableRepo[], selectedId: string): AvailableRepo | undefined {
   return repos.find((r) => String(r.id) === selectedId);
 }
 

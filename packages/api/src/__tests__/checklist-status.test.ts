@@ -22,9 +22,7 @@ vi.mock('../lib/prisma.js', () => ({
 import {
   deriveChecklistStatus,
   deriveItemStatus,
-  CHECKLIST_CATEGORIES,
   type TaskWithState,
-  type ChecklistCategory,
 } from '../services/checklist.js';
 
 // --- deriveItemStatus ---
@@ -85,9 +83,7 @@ describe('deriveItemStatus', () => {
   });
 
   it('should return "in_progress" when any task is NEEDS_REVIEW', () => {
-    const tasks: TaskWithState[] = [
-      { id: '1', title: 'Task 1', state: 'NEEDS_REVIEW' },
-    ];
+    const tasks: TaskWithState[] = [{ id: '1', title: 'Task 1', state: 'NEEDS_REVIEW' }];
 
     const result = deriveItemStatus(tasks);
     expect(result.status).toBe('in_progress');
@@ -106,9 +102,7 @@ describe('deriveItemStatus', () => {
   });
 
   it('should return "incomplete" for UNCERTAIN tasks only', () => {
-    const tasks: TaskWithState[] = [
-      { id: '1', title: 'Task 1', state: 'UNCERTAIN' },
-    ];
+    const tasks: TaskWithState[] = [{ id: '1', title: 'Task 1', state: 'UNCERTAIN' }];
 
     const result = deriveItemStatus(tasks);
     expect(result.status).toBe('incomplete');
@@ -116,9 +110,7 @@ describe('deriveItemStatus', () => {
   });
 
   it('should return "complete" for a single COMPLETED task', () => {
-    const tasks: TaskWithState[] = [
-      { id: '1', title: 'Task 1', state: 'COMPLETED' },
-    ];
+    const tasks: TaskWithState[] = [{ id: '1', title: 'Task 1', state: 'COMPLETED' }];
 
     const result = deriveItemStatus(tasks);
     expect(result.status).toBe('complete');
@@ -192,7 +184,13 @@ describe('deriveChecklistStatus', () => {
   it('should derive "blocked" for a category when any task is BLOCKED', () => {
     const tasks: TaskWithState[] = [
       { id: '1', title: 'Deploy setup', state: 'IN_PROGRESS', category: 'deployment' },
-      { id: '2', title: 'Domain config', state: 'BLOCKED', blockerReason: 'DNS propagation', category: 'deployment' },
+      {
+        id: '2',
+        title: 'Domain config',
+        state: 'BLOCKED',
+        blockerReason: 'DNS propagation',
+        category: 'deployment',
+      },
     ];
 
     const items = deriveChecklistStatus(tasks);
@@ -221,7 +219,13 @@ describe('deriveChecklistStatus', () => {
       { id: '1', title: 'Feature', state: 'COMPLETED', category: 'product' },
       { id: '2', title: 'Tests', state: 'COMPLETED', category: 'quality' },
       { id: '3', title: 'CI/CD', state: 'IN_PROGRESS', category: 'deployment' },
-      { id: '4', title: 'TOS', state: 'BLOCKED', blockerReason: 'Lawyer review', category: 'legal/admin' },
+      {
+        id: '4',
+        title: 'TOS',
+        state: 'BLOCKED',
+        blockerReason: 'Lawyer review',
+        category: 'legal/admin',
+      },
       { id: '5', title: 'Landing', state: 'NOT_STARTED', category: 'marketing' },
       { id: '6', title: 'Blog', state: 'COMPLETED', category: 'content' },
     ];

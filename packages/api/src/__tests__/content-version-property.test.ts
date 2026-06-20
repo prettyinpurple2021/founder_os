@@ -60,16 +60,16 @@ function simulateVersionCountsOverTime(editContents: string[]): number[] {
 }
 
 // Arbitrary: generates a sequence of 1-10 non-empty edit content strings
-const editSequenceArb = fc.array(
-  fc.string({ minLength: 1, maxLength: 100 }),
-  { minLength: 1, maxLength: 10 },
-);
+const editSequenceArb = fc.array(fc.string({ minLength: 1, maxLength: 100 }), {
+  minLength: 1,
+  maxLength: 10,
+});
 
 // Arbitrary: generates a sequence of 0-10 edits (including no edits)
-const editSequenceWithZeroArb = fc.array(
-  fc.string({ minLength: 1, maxLength: 100 }),
-  { minLength: 0, maxLength: 10 },
-);
+const editSequenceWithZeroArb = fc.array(fc.string({ minLength: 1, maxLength: 100 }), {
+  minLength: 0,
+  maxLength: 10,
+});
 
 describe('Property: Content Draft Version History Monotonicity', () => {
   it('after N edits, exactly N+1 versions exist (1 initial + N edits)', () => {

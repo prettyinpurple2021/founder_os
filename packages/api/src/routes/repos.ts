@@ -32,13 +32,16 @@ router.get('/available', async (req: Request, res: Response, next: NextFunction)
     const token = getDecryptedToken(user);
 
     // Fetch user's repositories from GitHub API (up to 100, sorted by most recently pushed)
-    const response = await fetch('https://api.github.com/user/repos?per_page=100&sort=pushed&direction=desc', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'SoloFounderLaunchOS',
+    const response = await fetch(
+      'https://api.github.com/user/repos?per_page=100&sort=pushed&direction=desc',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'SoloFounderLaunchOS',
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
@@ -51,7 +54,7 @@ router.get('/available', async (req: Request, res: Response, next: NextFunction)
           message: `Failed to fetch repositories from GitHub (status ${response.status})`,
           statusCode: 502,
           retryable: true,
-        })
+        }),
       );
       return;
     }
@@ -95,84 +98,90 @@ router.get('/available', async (req: Request, res: Response, next: NextFunction)
  *
  * Body: { githubId: number, name: string, fullName: string, owner: string }
  */
-router.post('/connect', validate(connectRepoSchema, 'body'), async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user!;
-    const { githubId, name, fullName, owner } = req.body;
+router.post(
+  '/connect',
+  validate(connectRepoSchema, 'body'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = req.user!;
+      const { githubId, name, fullName, owner } = req.body;
 
-    // Check if user already has a connected repository
-    const existing = await prisma.repository.findUnique({
-      where: { userId: user.id },
-    });
+      // Check if user already has a connected repository
+      const existing = await prisma.repository.findUnique({
+        where: { userId: user.id },
+      });
 
-    if (existing) {
-      next(
-        new AppError({
-          code: 'REPO_ALREADY_CONNECTED',
-          message: 'A repository is already connected. Disconnect the current repository before connecting a new one.',
-          statusCode: 409,
-          retryable: false,
-        })
-      );
-      return;
+      if (existing) {
+        next(
+          new AppError({
+            code: 'REPO_ALREADY_CONNECTED',
+            message:
+              'A repository is already connected. Disconnect the current repository before connecting a new one.',
+            statusCode: 409,
+            retryable: false,
+          }),
+        );
+        return;
+      }
+
+      // Create the repository record
+      const repository = await prisma.repository.create({
+        data: {
+          userId: user.id,
+          githubId,
+          name,
+          fullName,
+          owner,
+        },
+      });
+
+      // Trigger initial sync — create a placeholder sync record with PENDING status
+      const sync = await prisma.sync.create({
+        data: {
+          repositoryId: repository.id,
+          status: 'PENDING',
+          startedAt: new Date(),
+        },
+      });
+
+      res.status(201).json({
+        repository: {
+          id: repository.id,
+          githubId: repository.githubId,
+          name: repository.name,
+          fullName: repository.fullName,
+          owner: repository.owner,
+          connectedAt: repository.connectedAt,
+        },
+        initialSync: {
+          id: sync.id,
+          status: sync.status,
+          startedAt: sync.startedAt,
+        },
+      });
+    } catch (err: unknown) {
+      // Handle Prisma unique constraint violation (race condition fallback)
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2002'
+      ) {
+        next(
+          new AppError({
+            code: 'REPO_ALREADY_CONNECTED',
+            message:
+              'A repository is already connected. Disconnect the current repository before connecting a new one.',
+            statusCode: 409,
+            retryable: false,
+          }),
+        );
+        return;
+      }
+      next(err instanceof AppError ? err : internalError('Failed to connect repository'));
     }
-
-    // Create the repository record
-    const repository = await prisma.repository.create({
-      data: {
-        userId: user.id,
-        githubId,
-        name,
-        fullName,
-        owner,
-      },
-    });
-
-    // Trigger initial sync — create a placeholder sync record with PENDING status
-    const sync = await prisma.sync.create({
-      data: {
-        repositoryId: repository.id,
-        status: 'PENDING',
-        startedAt: new Date(),
-      },
-    });
-
-    res.status(201).json({
-      repository: {
-        id: repository.id,
-        githubId: repository.githubId,
-        name: repository.name,
-        fullName: repository.fullName,
-        owner: repository.owner,
-        connectedAt: repository.connectedAt,
-      },
-      initialSync: {
-        id: sync.id,
-        status: sync.status,
-        startedAt: sync.startedAt,
-      },
-    });
-  } catch (err: unknown) {
-    // Handle Prisma unique constraint violation (race condition fallback)
-    if (
-      err &&
-      typeof err === 'object' &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2002'
-    ) {
-      next(
-        new AppError({
-          code: 'REPO_ALREADY_CONNECTED',
-          message: 'A repository is already connected. Disconnect the current repository before connecting a new one.',
-          statusCode: 409,
-          retryable: false,
-        })
-      );
-      return;
-    }
-    next(err instanceof AppError ? err : internalError('Failed to connect repository'));
-  }
-});
+  },
+);
 
 /**
  * DELETE /api/repos/disconnect

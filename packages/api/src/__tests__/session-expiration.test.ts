@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { AppError } from '../errors/AppError.js';
 
 // Mock prisma before importing the middleware
@@ -37,7 +37,6 @@ function createMockRes(): Response {
 }
 
 describe('sessionExpiration middleware', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockNext: any;
 
   beforeEach(() => {

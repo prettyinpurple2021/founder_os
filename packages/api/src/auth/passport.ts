@@ -18,13 +18,10 @@ passport.use(
       accessToken: string,
       _refreshToken: string,
       profile: Profile,
-      done: (err: Error | null, user?: Express.User) => void
+      done: (err: Error | null, user?: Express.User) => void,
     ) => {
       try {
-        const email =
-          profile.emails && profile.emails.length > 0
-            ? profile.emails[0].value
-            : null;
+        const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
 
         // Find or create user in the database
         const user = await prisma.user.upsert({
@@ -46,8 +43,8 @@ passport.use(
       } catch (err) {
         done(err as Error);
       }
-    }
-  )
+    },
+  ),
 );
 
 // Serialize user by ID into the session

@@ -46,10 +46,7 @@ const VALID_CATEGORIES: ChecklistCategory[] = [
 const taskStateArb = fc.constantFrom(...VALID_STATES);
 
 /** Arbitrary for a task category (may also be undefined to simulate uncategorized tasks) */
-const taskCategoryArb = fc.oneof(
-  fc.constantFrom(...VALID_CATEGORIES),
-  fc.constant(undefined),
-);
+const taskCategoryArb = fc.oneof(fc.constantFrom(...VALID_CATEGORIES), fc.constant(undefined));
 
 /** Arbitrary for a single TaskWithState */
 const taskArb: fc.Arbitrary<TaskWithState> = fc.record({

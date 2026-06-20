@@ -16,7 +16,7 @@ let scheduledTask: cron.ScheduledTask | null = null;
  * Converts a syncInterval in minutes to a cron expression.
  * Uses the "every N minutes" pattern.
  */
-function intervalToCron(minutes: number): string {
+export function intervalToCron(minutes: number): string {
   if (minutes <= 0) return '*/30 * * * *'; // fallback to 30 min
   if (minutes >= 60) {
     // For hourly or longer, run at the start of every Nth hour
@@ -65,14 +65,14 @@ async function runScheduledSync(): Promise<void> {
       performSync(repo.id).catch((err) => {
         console.error(
           `[scheduler] Sync failed for repository ${repo.fullName}:`,
-          err instanceof Error ? err.message : err
+          err instanceof Error ? err.message : err,
         );
       });
     }
   } catch (err) {
     console.error(
       '[scheduler] Error running scheduled sync:',
-      err instanceof Error ? err.message : err
+      err instanceof Error ? err.message : err,
     );
   }
 }

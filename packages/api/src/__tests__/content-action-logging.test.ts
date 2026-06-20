@@ -88,7 +88,13 @@ describe('Content Action Logging (Requirement 10.3)', () => {
         updatedAt: now,
         scheduledAt: null,
         versions: [
-          { id: 'v-1', draftId: 'draft-abc', version: 1, content: 'Generated content', editedAt: now },
+          {
+            id: 'v-1',
+            draftId: 'draft-abc',
+            version: 1,
+            content: 'Generated content',
+            editedAt: now,
+          },
         ],
       } as any);
 

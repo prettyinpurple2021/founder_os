@@ -23,7 +23,7 @@ export class GitHubApiError extends Error {
     message: string,
     public readonly statusCode: number,
     public readonly retryable: boolean,
-    public readonly rateLimitReset?: Date
+    public readonly rateLimitReset?: Date,
   ) {
     super(message);
     this.name = 'GitHubApiError';
@@ -37,7 +37,7 @@ export class GitHubRateLimitError extends GitHubApiError {
       `GitHub API rate limit exceeded. Resets at ${resetAt.toISOString()} (in ${waitSeconds}s)`,
       429,
       true,
-      resetAt
+      resetAt,
     );
     this.name = 'GitHubRateLimitError';
   }
@@ -57,7 +57,7 @@ export class GitHubNetworkError extends GitHubApiError {
     super(
       `Network error communicating with GitHub API: ${cause?.message || 'Unknown network error'}`,
       0,
-      true
+      true,
     );
     this.name = 'GitHubNetworkError';
     this.originalError = cause;
@@ -205,17 +205,13 @@ async function githubFetch<T>(url: string, token: string): Promise<T> {
       throw new GitHubApiError(
         `GitHub API forbidden: insufficient permissions or secondary rate limit. ${body}`,
         403,
-        true
+        true,
       );
     }
 
     // Not found
     if (response.status === 404) {
-      throw new GitHubApiError(
-        `GitHub resource not found: ${url}`,
-        404,
-        false
-      );
+      throw new GitHubApiError(`GitHub resource not found: ${url}`, 404, false);
     }
 
     // Server errors are retryable
@@ -223,7 +219,7 @@ async function githubFetch<T>(url: string, token: string): Promise<T> {
       throw new GitHubApiError(
         `GitHub API server error: ${response.status} ${response.statusText} - ${body}`,
         response.status,
-        true
+        true,
       );
     }
 
@@ -231,7 +227,7 @@ async function githubFetch<T>(url: string, token: string): Promise<T> {
     throw new GitHubApiError(
       `GitHub API error: ${response.status} ${response.statusText} - ${body}`,
       response.status,
-      false
+      false,
     );
   }
 
@@ -248,7 +244,7 @@ async function githubFetch<T>(url: string, token: string): Promise<T> {
 export async function fetchIssues(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubIssue[]> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues?state=open&per_page=100&sort=updated&direction=desc`;
   return githubFetch<GitHubIssue[]>(url, token);
@@ -261,7 +257,7 @@ export async function fetchIssues(
 export async function fetchPullRequests(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubPullRequest[]> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls?state=all&per_page=100&sort=updated&direction=desc`;
   return githubFetch<GitHubPullRequest[]>(url, token);
@@ -274,7 +270,7 @@ export async function fetchPullRequests(
 export async function fetchCommits(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubCommit[]> {
   const since = new Date();
   since.setDate(since.getDate() - 30);
@@ -290,7 +286,7 @@ export async function fetchCommits(
 export async function fetchLabels(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubLabel[]> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/labels?per_page=100`;
   return githubFetch<GitHubLabel[]>(url, token);
@@ -304,7 +300,7 @@ export async function fetchStatusChecks(
   token: string,
   owner: string,
   repo: string,
-  ref: string
+  ref: string,
 ): Promise<GitHubStatusCheck> {
   const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/commits/${ref}/status`;
   const result = await githubFetch<Omit<GitHubStatusCheck, 'sha'>>(url, token);
@@ -320,7 +316,7 @@ export async function fetchStatusChecksForPRs(
   token: string,
   owner: string,
   repo: string,
-  pullRequests: GitHubPullRequest[]
+  pullRequests: GitHubPullRequest[],
 ): Promise<GitHubStatusCheck[]> {
   // Limit to 10 most recent PRs to avoid hitting rate limits
   const recentPRs = pullRequests.slice(0, 10);
@@ -366,7 +362,7 @@ export async function fetchStatusChecksForPRs(
 export async function fetchAllRepoData(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubRepoData> {
   // Fetch critical data in parallel
   const [issues, pullRequests, commits, labels] = await Promise.all([
@@ -377,12 +373,9 @@ export async function fetchAllRepoData(
   ]);
 
   // Fetch status checks for recent PRs (non-critical, best-effort)
-  const statusChecks = await fetchStatusChecksForPRs(
-    token,
-    owner,
-    repo,
-    pullRequests
-  ).catch((): GitHubStatusCheck[] => []);
+  const statusChecks = await fetchStatusChecksForPRs(token, owner, repo, pullRequests).catch(
+    (): GitHubStatusCheck[] => [],
+  );
 
   return { issues, pullRequests, commits, labels, statusChecks };
 }

@@ -48,7 +48,7 @@ function createTestApp(user?: Express.User | null) {
       err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean },
       _req: Request,
       res: Response,
-      _next: NextFunction
+      _next: NextFunction,
     ) => {
       const statusCode = err.statusCode || 500;
       res.status(statusCode).json({
@@ -58,7 +58,7 @@ function createTestApp(user?: Express.User | null) {
           retryable: err.retryable ?? true,
         },
       });
-    }
+    },
   );
 
   return app;
@@ -299,9 +299,7 @@ describe('Sync Status & History Routes', () => {
 
       await request(app).get('/api/sync/history?limit=500');
 
-      expect(prisma.sync.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 100 })
-      );
+      expect(prisma.sync.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 100 }));
     });
 
     it('should use default limit=20 when not provided', async () => {
@@ -317,7 +315,7 @@ describe('Sync Status & History Routes', () => {
       await request(app).get('/api/sync/history');
 
       expect(prisma.sync.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 20, skip: 0 })
+        expect.objectContaining({ take: 20, skip: 0 }),
       );
     });
 
@@ -335,7 +333,7 @@ describe('Sync Status & History Routes', () => {
 
       // Invalid limit falls back to default 20; negative offset becomes 0
       expect(prisma.sync.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 20, skip: 0 })
+        expect.objectContaining({ take: 20, skip: 0 }),
       );
     });
 

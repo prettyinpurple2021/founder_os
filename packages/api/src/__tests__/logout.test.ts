@@ -30,7 +30,7 @@ import router from '../routes/auth.js';
 // Extract the logout handler from the router stack
 function getLogoutHandler() {
   const layer = (router as any).stack.find(
-    (l: any) => l.route?.path === '/auth/logout' && l.route?.methods?.post
+    (l: any) => l.route?.path === '/auth/logout' && l.route?.methods?.post,
   );
   if (!layer) throw new Error('POST /auth/logout route not found');
   // The handler is the last function in the route stack
@@ -48,7 +48,11 @@ function createMockReq(overrides: Partial<Request> = {}): Request {
   } as unknown as Request;
 }
 
-function createMockRes(): Response & { _json: any; _statusCode: number; _clearedCookies: string[] } {
+function createMockRes(): Response & {
+  _json: any;
+  _statusCode: number;
+  _clearedCookies: string[];
+} {
   const res: any = {
     _json: null,
     _statusCode: 200,

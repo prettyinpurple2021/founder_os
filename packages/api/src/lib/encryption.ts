@@ -13,13 +13,13 @@ function getKey(): Buffer {
 
   if (!keyHex) {
     throw new Error(
-      'ENCRYPTION_KEY environment variable is not set. A 32-byte hex string (64 characters) is required.'
+      'ENCRYPTION_KEY environment variable is not set. A 32-byte hex string (64 characters) is required.',
     );
   }
 
   if (keyHex.length !== 64) {
     throw new Error(
-      `ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). Got ${keyHex.length} characters.`
+      `ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). Got ${keyHex.length} characters.`,
     );
   }
 
@@ -56,9 +56,7 @@ export function decrypt(encryptedString: string): string {
 
   const parts = encryptedString.split(':');
   if (parts.length !== 3) {
-    throw new Error(
-      'Invalid encrypted string format. Expected iv:authTag:ciphertext'
-    );
+    throw new Error('Invalid encrypted string format. Expected iv:authTag:ciphertext');
   }
 
   const [ivHex, authTagHex, ciphertext] = parts;

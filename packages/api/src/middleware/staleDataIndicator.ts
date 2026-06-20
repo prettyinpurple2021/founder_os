@@ -125,7 +125,10 @@ export async function getStalenessInfo(repositoryId: string): Promise<StalenessI
  * Only adds staleness fields when data is actually stale.
  * When data is fresh, adds `isStale: false` for consistency.
  */
-export function withStaleness<T extends object>(data: T, staleness: StalenessInfo): T & Partial<StalenessInfo> {
+export function withStaleness<T extends object>(
+  data: T,
+  staleness: StalenessInfo,
+): T & Partial<StalenessInfo> {
   if (staleness.isStale) {
     return {
       ...data,
@@ -180,7 +183,7 @@ export async function staleDataIndicator(
     res.locals.staleness = staleness;
 
     next();
-  } catch (err) {
+  } catch {
     // Don't let staleness computation failures block the request
     // Just proceed without staleness info
     next();

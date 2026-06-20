@@ -41,7 +41,10 @@ export class AppError extends Error {
 
 // --- Error Factory Helpers ---
 
-export function notFound(message = 'Resource not found', context?: Record<string, unknown>): AppError {
+export function notFound(
+  message = 'Resource not found',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'NOT_FOUND',
     message,
@@ -61,7 +64,10 @@ export function badRequest(message = 'Bad request', context?: Record<string, unk
   });
 }
 
-export function validationError(message = 'Validation failed', context?: Record<string, unknown>): AppError {
+export function validationError(
+  message = 'Validation failed',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'VALIDATION_ERROR',
     message,
@@ -71,7 +77,10 @@ export function validationError(message = 'Validation failed', context?: Record<
   });
 }
 
-export function unauthorized(message = 'Unauthorized', context?: Record<string, unknown>): AppError {
+export function unauthorized(
+  message = 'Unauthorized',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'UNAUTHORIZED',
     message,
@@ -91,7 +100,10 @@ export function forbidden(message = 'Forbidden', context?: Record<string, unknow
   });
 }
 
-export function conflict(message = 'Resource conflict', context?: Record<string, unknown>): AppError {
+export function conflict(
+  message = 'Resource conflict',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'CONFLICT',
     message,
@@ -101,7 +113,10 @@ export function conflict(message = 'Resource conflict', context?: Record<string,
   });
 }
 
-export function rateLimitExceeded(message = 'Rate limit exceeded', context?: Record<string, unknown>): AppError {
+export function rateLimitExceeded(
+  message = 'Rate limit exceeded',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'RATE_LIMIT_EXCEEDED',
     message,
@@ -111,7 +126,10 @@ export function rateLimitExceeded(message = 'Rate limit exceeded', context?: Rec
   });
 }
 
-export function internalError(message = 'Internal server error', context?: Record<string, unknown>): AppError {
+export function internalError(
+  message = 'Internal server error',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'INTERNAL_ERROR',
     message,
@@ -121,7 +139,10 @@ export function internalError(message = 'Internal server error', context?: Recor
   });
 }
 
-export function serviceUnavailable(message = 'Service unavailable', context?: Record<string, unknown>): AppError {
+export function serviceUnavailable(
+  message = 'Service unavailable',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'SERVICE_UNAVAILABLE',
     message,
@@ -131,7 +152,10 @@ export function serviceUnavailable(message = 'Service unavailable', context?: Re
   });
 }
 
-export function authenticationError(message = 'Authentication failed', context?: Record<string, unknown>): AppError {
+export function authenticationError(
+  message = 'Authentication failed',
+  context?: Record<string, unknown>,
+): AppError {
   return new AppError({
     code: 'AUTH_FAILED',
     message,

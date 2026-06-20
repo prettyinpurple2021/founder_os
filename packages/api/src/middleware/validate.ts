@@ -27,7 +27,7 @@ export function validate(schema: z.ZodType, location: RequestLocation = 'body') 
       next(
         validationError('Validation failed', {
           errors: formatted,
-        })
+        }),
       );
       return;
     }

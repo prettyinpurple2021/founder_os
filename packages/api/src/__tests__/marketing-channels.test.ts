@@ -18,7 +18,6 @@ import {
   getChannelRecommendations,
   CHANNEL_RECOMMENDATIONS,
   ProductType,
-  Channel,
   EffortLevel,
 } from '../services/marketing.js';
 

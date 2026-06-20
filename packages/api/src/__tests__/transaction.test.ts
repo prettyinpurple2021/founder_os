@@ -53,10 +53,13 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
         return await fn({});
       });
 
-      const result = await withDataPreservation(async (_tx) => {
-        // Simulate writing data to DB first, then external service fails
-        throw new Error('OpenAI API error (503): Service temporarily unavailable');
-      }, { operationName: 'generate-content-draft' });
+      const result = await withDataPreservation(
+        async (_tx) => {
+          // Simulate writing data to DB first, then external service fails
+          throw new Error('OpenAI API error (503): Service temporarily unavailable');
+        },
+        { operationName: 'generate-content-draft' },
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBeDefined();
@@ -70,9 +73,12 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
         return await fn({});
       });
 
-      const result = await withDataPreservation(async (_tx) => {
-        throw new Error('Unique constraint violation on field: userId');
-      }, { operationName: 'connect-repo' });
+      const result = await withDataPreservation(
+        async (_tx) => {
+          throw new Error('Unique constraint violation on field: userId');
+        },
+        { operationName: 'connect-repo' },
+      );
 
       expect(result.success).toBe(false);
       expect(result.error!.message).toContain('Unique constraint violation');
@@ -186,14 +192,14 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
         return await fn({});
       });
 
-      await withDataPreservation(async (_tx) => {
-        return 'data';
-      }, { timeout: 60000 });
-
-      expect(mockTransaction).toHaveBeenCalledWith(
-        expect.any(Function),
+      await withDataPreservation(
+        async (_tx) => {
+          return 'data';
+        },
         { timeout: 60000 },
       );
+
+      expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 60000 });
     });
 
     it('should use default 30s timeout when not specified', async () => {
@@ -205,21 +211,23 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
         return 'data';
       });
 
-      expect(mockTransaction).toHaveBeenCalledWith(
-        expect.any(Function),
-        { timeout: 30000 },
-      );
+      expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), { timeout: 30000 });
     });
 
     it('should handle Prisma transaction-level errors (e.g., timeout)', async () => {
       // Simulate Prisma itself throwing due to transaction timeout
       mockTransaction.mockRejectedValue(
-        new Error('Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction.')
+        new Error(
+          'Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction.',
+        ),
       );
 
-      const result = await withDataPreservation(async (_tx) => {
-        return 'never reaches here';
-      }, { operationName: 'slow-sync' });
+      const result = await withDataPreservation(
+        async (_tx) => {
+          return 'never reaches here';
+        },
+        { operationName: 'slow-sync' },
+      );
 
       expect(result.success).toBe(false);
       expect(result.error!.message).toContain('Transaction');
@@ -283,16 +291,19 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
         }
       });
 
-      const result = await withDataPreservation(async (tx: any) => {
-        // Step 1: Create draft record
-        await tx.contentDraft.create({ data: { content: 'test' } });
+      const result = await withDataPreservation(
+        async (tx: any) => {
+          // Step 1: Create draft record
+          await tx.contentDraft.create({ data: { content: 'test' } });
 
-        // Step 2: Create version record
-        await tx.draftVersion.create({ data: { version: 1 } });
+          // Step 2: Create version record
+          await tx.draftVersion.create({ data: { version: 1 } });
 
-        // Step 3: External service call fails
-        throw new Error('LLM API connection refused');
-      }, { operationName: 'generate-content' });
+          // Step 3: External service call fails
+          throw new Error('LLM API connection refused');
+        },
+        { operationName: 'generate-content' },
+      );
 
       expect(result.success).toBe(false);
       // After rollback, no records should persist
@@ -321,9 +332,12 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
       });
 
       await expect(
-        withDataPreservationOrThrow(async (_tx) => {
-          throw new Error('GitHub API returned 500');
-        }, { operationName: 'sync-repository' }),
+        withDataPreservationOrThrow(
+          async (_tx) => {
+            throw new Error('GitHub API returned 500');
+          },
+          { operationName: 'sync-repository' },
+        ),
       ).rejects.toThrow(AppError);
     });
 
@@ -333,9 +347,12 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
       });
 
       try {
-        await withDataPreservationOrThrow(async (_tx) => {
-          throw new Error('Connection timeout');
-        }, { operationName: 'sync-repository' });
+        await withDataPreservationOrThrow(
+          async (_tx) => {
+            throw new Error('Connection timeout');
+          },
+          { operationName: 'sync-repository' },
+        );
         // Should not reach here
         expect(true).toBe(false);
       } catch (err) {
@@ -355,14 +372,17 @@ describe('Data Preservation Transaction Utility (Requirement 11.4)', () => {
       });
 
       try {
-        await withDataPreservationOrThrow(async (_tx) => {
-          throw new AppError({
-            code: 'BAD_REQUEST',
-            message: 'Invalid repository URL',
-            statusCode: 400,
-            retryable: false,
-          });
-        }, { operationName: 'connect-repo' });
+        await withDataPreservationOrThrow(
+          async (_tx) => {
+            throw new AppError({
+              code: 'BAD_REQUEST',
+              message: 'Invalid repository URL',
+              statusCode: 400,
+              retryable: false,
+            });
+          },
+          { operationName: 'connect-repo' },
+        );
         expect(true).toBe(false);
       } catch (err) {
         const appErr = err as AppError;

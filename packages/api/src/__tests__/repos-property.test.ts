@@ -70,16 +70,18 @@ function createTestApp(user: Express.User) {
 }
 
 // Arbitrary for generating random repository metadata
-const repoMetadataArb = fc.record({
-  githubId: fc.integer({ min: 1, max: 999999 }),
-  name: fc.stringMatching(/^[a-z][a-z0-9-]{2,20}$/),
-  owner: fc.stringMatching(/^[a-z][a-z0-9]{2,10}$/),
-}).map(({ githubId, name, owner }) => ({
-  githubId,
-  name,
-  fullName: `${owner}/${name}`,
-  owner,
-}));
+const repoMetadataArb = fc
+  .record({
+    githubId: fc.integer({ min: 1, max: 999999 }),
+    name: fc.stringMatching(/^[a-z][a-z0-9-]{2,20}$/),
+    owner: fc.stringMatching(/^[a-z][a-z0-9]{2,10}$/),
+  })
+  .map(({ githubId, name, owner }) => ({
+    githubId,
+    name,
+    fullName: `${owner}/${name}`,
+    owner,
+  }));
 
 // Arbitrary for generating a sequence of connect operations (1 to 10 attempts)
 const connectSequenceArb = fc.array(repoMetadataArb, { minLength: 1, maxLength: 10 });

@@ -144,7 +144,7 @@ describe('Notification Service', () => {
               retryable: true,
             }),
           }),
-        })
+        }),
       );
     });
 
@@ -223,7 +223,7 @@ describe('Notification Service', () => {
       await getUnreadNotifications('user-1', 5);
 
       expect(mockPrisma.systemLog.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 5 })
+        expect.objectContaining({ take: 5 }),
       );
     });
   });
@@ -376,11 +376,7 @@ describe('Notification Service', () => {
     });
 
     it('handles single-word operation names', () => {
-      const notification = buildResponseNotification(
-        'sync',
-        'Failed',
-        true,
-      );
+      const notification = buildResponseNotification('sync', 'Failed', true);
 
       expect(notification.title).toBe('Sync failed');
     });

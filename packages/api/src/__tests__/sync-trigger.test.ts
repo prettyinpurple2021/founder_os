@@ -63,7 +63,7 @@ function createTestApp(user?: Express.User | null) {
       err: Error & { statusCode?: number; code?: string; message?: string; retryable?: boolean },
       _req: Request,
       res: Response,
-      _next: NextFunction
+      _next: NextFunction,
     ) => {
       const statusCode = err.statusCode || 500;
       res.status(statusCode).json({
@@ -73,7 +73,7 @@ function createTestApp(user?: Express.User | null) {
           retryable: err.retryable ?? true,
         },
       });
-    }
+    },
   );
 
   return app;
@@ -199,7 +199,11 @@ describe('POST /api/sync/trigger', () => {
           labels: [],
           assignee: null,
           assignees: [],
-          pull_request: { url: 'https://api.github.com/repos/testuser/my-app/pulls/3', html_url: 'https://github.com/testuser/my-app/pull/3', merged_at: null },
+          pull_request: {
+            url: 'https://api.github.com/repos/testuser/my-app/pulls/3',
+            html_url: 'https://github.com/testuser/my-app/pull/3',
+            merged_at: null,
+          },
           html_url: 'https://github.com/testuser/my-app/pull/3',
           created_at: '2024-01-03T00:00:00Z',
           updated_at: '2024-01-13T00:00:00Z',
@@ -221,23 +225,31 @@ describe('POST /api/sync/trigger', () => {
       ];
 
       const mockPRs = [{ id: 100, number: 3, title: 'PR 1', state: 'open' }];
-      const mockCommits = [{ sha: 'abc123', commit: { message: 'init', author: null }, html_url: '', author: null }];
+      const mockCommits = [
+        { sha: 'abc123', commit: { message: 'init', author: null }, html_url: '', author: null },
+      ];
       const mockLabels = [{ id: 10, name: 'blocked', color: 'ff0000', description: null }];
       const mockStatus = { state: 'success', statuses: [], sha: 'abc123', total_count: 0 };
 
       // fetchAllRepoData makes 5 parallel calls
       mockFetch
-        .mockResolvedValueOnce({ ok: true, json: async () => mockIssues })    // issues
-        .mockResolvedValueOnce({ ok: true, json: async () => mockPRs })       // pull requests
-        .mockResolvedValueOnce({ ok: true, json: async () => mockCommits })   // commits
-        .mockResolvedValueOnce({ ok: true, json: async () => mockLabels })    // labels
-        .mockResolvedValueOnce({ ok: true, json: async () => mockStatus });   // status checks
+        .mockResolvedValueOnce({ ok: true, json: async () => mockIssues }) // issues
+        .mockResolvedValueOnce({ ok: true, json: async () => mockPRs }) // pull requests
+        .mockResolvedValueOnce({ ok: true, json: async () => mockCommits }) // commits
+        .mockResolvedValueOnce({ ok: true, json: async () => mockLabels }) // labels
+        .mockResolvedValueOnce({ ok: true, json: async () => mockStatus }); // status checks
 
       // Task creation (3 actual issues, PR is filtered out - new tasks)
       ((prisma as any).task.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-      ((prisma as any).task.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'task-mock' });
-      ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'ev-mock' });
-      ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({ id: 'st-mock' });
+      ((prisma as any).task.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'task-mock',
+      });
+      ((prisma as any).evidence.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'ev-mock',
+      });
+      ((prisma as any).stateTransition.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'st-mock',
+      });
 
       // Final sync update (success)
       (prisma.sync.update as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSyncCompleted);
@@ -355,11 +367,14 @@ describe('POST /api/sync/trigger', () => {
 
       // Return empty issues (no actual issues, just empty arrays)
       mockFetch
-        .mockResolvedValueOnce({ ok: true, json: async () => [] })  // issues
-        .mockResolvedValueOnce({ ok: true, json: async () => [] })  // PRs
-        .mockResolvedValueOnce({ ok: true, json: async () => [] })  // commits
-        .mockResolvedValueOnce({ ok: true, json: async () => [] })  // labels
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ state: 'unknown', statuses: [], sha: '', total_count: 0 }) });
+        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // issues
+        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // PRs
+        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // commits
+        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // labels
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ state: 'unknown', statuses: [], sha: '', total_count: 0 }),
+        });
 
       (prisma.sync.update as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockSyncCompleted);
 

@@ -18,11 +18,7 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 import prisma from '../lib/prisma.js';
-import {
-  getMarketingStatus,
-  RECOMMENDED_ASSETS,
-  MarketingStatus,
-} from '../services/marketing.js';
+import { getMarketingStatus, RECOMMENDED_ASSETS } from '../services/marketing.js';
 
 const mockFindMany = vi.mocked(prisma.marketingAsset.findMany);
 

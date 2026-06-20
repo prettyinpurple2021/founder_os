@@ -56,14 +56,19 @@ vi.mock('../services/logger.js', () => ({
 import prisma from '../lib/prisma.js';
 import { upsertTaskFromIssue } from '../services/sync.js';
 import { logStateChange } from '../services/logger.js';
-import { inferTaskState, findLinkedPullRequests, findLinkedCommits } from '../services/inference.js';
+import {
+  inferTaskState,
+  findLinkedPullRequests,
+  findLinkedCommits,
+} from '../services/inference.js';
 
 const mockLogStateChange = logStateChange as ReturnType<typeof vi.fn>;
 const mockTaskFindFirst = prisma.task.findFirst as ReturnType<typeof vi.fn>;
 const mockTaskUpdate = prisma.task.update as ReturnType<typeof vi.fn>;
-const mockTaskCreate = prisma.task.create as ReturnType<typeof vi.fn>;
 const mockEvidenceCreate = (prisma as any).evidence.create as ReturnType<typeof vi.fn>;
-const mockStateTransitionCreate = (prisma as any).stateTransition.create as ReturnType<typeof vi.fn>;
+const mockStateTransitionCreate = (prisma as any).stateTransition.create as ReturnType<
+  typeof vi.fn
+>;
 
 // --- Arbitraries ---
 
@@ -118,10 +123,10 @@ const pullRequestArb = fc.record({
     ref: fc.constant('main'),
   }),
   requested_reviewers: fc.array(assigneeArb, { minLength: 0, maxLength: 3 }),
-  labels: fc.array(
-    fc.record({ id: fc.integer({ min: 1 }), name: fc.string({ minLength: 1 }) }),
-    { minLength: 0, maxLength: 3 },
-  ),
+  labels: fc.array(fc.record({ id: fc.integer({ min: 1 }), name: fc.string({ minLength: 1 }) }), {
+    minLength: 0,
+    maxLength: 3,
+  }),
   created_at: fc.constant('2024-03-01T00:00:00Z'),
   updated_at: fc.constant('2024-06-01T00:00:00Z'),
   closed_at: fc.option(fc.constant('2024-06-05T00:00:00Z'), { nil: null }),

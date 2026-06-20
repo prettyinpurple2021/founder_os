@@ -173,9 +173,7 @@ export interface DraftVersion {
 
 export const contentApi = {
   getDrafts: (status?: DraftStatus) => {
-    const path = status
-      ? `/api/content/drafts?status=${status}`
-      : '/api/content/drafts';
+    const path = status ? `/api/content/drafts?status=${status}` : '/api/content/drafts';
     return get<ContentDraft[]>(path);
   },
   generateDraft: (data: { platform: Platform }) =>
@@ -186,9 +184,11 @@ export const contentApi = {
   rejectDraft: (id: string, reason?: string) =>
     post<ContentDraft>(`/api/content/drafts/${id}/reject`, reason ? { reason } : undefined),
   scheduleDraft: (id: string, scheduledAt?: string) =>
-    post<ContentDraft>(`/api/content/drafts/${id}/schedule`, scheduledAt ? { scheduledAt } : undefined),
-  getVersions: (id: string) =>
-    get<DraftVersion[]>(`/api/content/drafts/${id}/versions`),
+    post<ContentDraft>(
+      `/api/content/drafts/${id}/schedule`,
+      scheduledAt ? { scheduledAt } : undefined,
+    ),
+  getVersions: (id: string) => get<DraftVersion[]>(`/api/content/drafts/${id}/versions`),
 };
 
 export interface CompletedAsset {

@@ -243,8 +243,14 @@ describe('Property 15: Data Preservation During Outages', () => {
                   await tx.contentDraft.create({ data: { content: `draft-${i}` } });
                 } else if (operationType === 'edit-draft') {
                   await tx.draftVersion.create({ data: { draftId: `draft-${i}` } });
-                } else if (operationType === 'update-task-state' || operationType === 'sync-repository') {
-                  await tx.task.update({ where: { id: `task-${i}` }, data: { state: 'IN_PROGRESS' } });
+                } else if (
+                  operationType === 'update-task-state' ||
+                  operationType === 'sync-repository'
+                ) {
+                  await tx.task.update({
+                    where: { id: `task-${i}` },
+                    data: { state: 'IN_PROGRESS' },
+                  });
                 } else {
                   await tx.user.update({ where: { id: preExistingData.userData.id }, data: {} });
                 }
@@ -290,7 +296,7 @@ describe('Property 15: Data Preservation During Outages', () => {
       fc.asyncProperty(
         operationTypeArb,
         preExistingDataArb,
-        async (operationType, preExistingData) => {
+        async (operationType, _preExistingData) => {
           const writtenRecords: string[] = [];
 
           mockTransaction.mockImplementation(async (fn: any) => {

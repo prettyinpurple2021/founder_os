@@ -177,9 +177,7 @@ export function validatePlatformContent(platform: Platform, content: string): Va
 
   // Check max length constraint
   if (config.maxLength !== null && content.length > config.maxLength) {
-    issues.push(
-      `Content exceeds maximum length: ${content.length}/${config.maxLength} characters`,
-    );
+    issues.push(`Content exceeds maximum length: ${content.length}/${config.maxLength} characters`);
   }
 
   // Platform-specific structural checks

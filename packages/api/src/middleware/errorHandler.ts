@@ -25,12 +25,7 @@ import { createNotification, buildResponseNotification } from '../services/notif
  *
  * In production, stack traces are omitted from the context field.
  */
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction
-): void {
+export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
   // Log the error to console
   console.error('[error]', {
     name: err.name,
@@ -71,9 +66,7 @@ export function errorHandler(
   // --- AppError: known, structured errors ---
   if (err instanceof AppError) {
     const context =
-      process.env.NODE_ENV === 'production'
-        ? err.context
-        : { ...err.context, stack: err.stack };
+      process.env.NODE_ENV === 'production' ? err.context : { ...err.context, stack: err.stack };
 
     // For session expiration / invalid session errors, clear the session cookie
     if (err.statusCode === 401 && err.context?.redirectTo) {
@@ -84,17 +77,14 @@ export function errorHandler(
     // and store it for in-app retrieval (Requirement 11.3)
     let notification: ReturnType<typeof buildResponseNotification> | undefined;
     if (err.statusCode >= 500) {
-      const operation = (err.context?.operationName as string) || req.path.replace(/^\/api\//, '').replace(/\//g, '_');
+      const operation =
+        (err.context?.operationName as string) ||
+        req.path.replace(/^\/api\//, '').replace(/\//g, '_');
       const actionHint = err.retryable
         ? 'You can retry this operation. If the problem persists, try again later.'
         : 'Please contact support if this problem continues.';
 
-      notification = buildResponseNotification(
-        operation,
-        err.message,
-        err.retryable,
-        actionHint,
-      );
+      notification = buildResponseNotification(operation, err.message, err.retryable, actionHint);
 
       // Persist as in-app notification if we have a user (fire-and-forget)
       if (userId) {
@@ -143,10 +133,7 @@ export function errorHandler(
 
   // --- JSON SyntaxError (malformed request body) ---
   if (err instanceof SyntaxError && 'body' in err) {
-    const context =
-      process.env.NODE_ENV === 'production'
-        ? undefined
-        : { stack: err.stack };
+    const context = process.env.NODE_ENV === 'production' ? undefined : { stack: err.stack };
 
     res.status(400).json({
       error: {
@@ -160,10 +147,7 @@ export function errorHandler(
   }
 
   // --- Unknown/unhandled error — generic 500 ---
-  const context =
-    process.env.NODE_ENV === 'production'
-      ? undefined
-      : { stack: err.stack };
+  const context = process.env.NODE_ENV === 'production' ? undefined : { stack: err.stack };
 
   // Include a user notification for unknown server errors (Requirement 11.3)
   const operation = req.path.replace(/^\/api\//, '').replace(/\//g, '_');

@@ -16,7 +16,7 @@ export const connectRepoSchema = z.object({
 // --- POST /api/content/generate ---
 export const generateContentSchema = z.object({
   platform: z.enum(['TWITTER', 'LINKEDIN', 'BLOG'], {
-    message: "platform must be one of: TWITTER, LINKEDIN, BLOG",
+    message: 'platform must be one of: TWITTER, LINKEDIN, BLOG',
   }),
   timeRangeDays: z
     .number()
@@ -42,17 +42,16 @@ export const scheduleDraftSchema = z.object({
   scheduledAt: z
     .string()
     .datetime({ message: 'scheduledAt must be a valid ISO date string' })
-    .refine(
-      (val) => new Date(val).getTime() > Date.now(),
-      { message: 'scheduledAt must be in the future' }
-    )
+    .refine((val) => new Date(val).getTime() > Date.now(), {
+      message: 'scheduledAt must be in the future',
+    })
     .optional(),
 });
 
 // --- PUT /api/checklist/items/:id ---
 export const updateChecklistItemSchema = z.object({
   status: z.enum(['complete', 'in_progress', 'blocked', 'incomplete'], {
-    message: "status must be one of: complete, in_progress, blocked, incomplete",
+    message: 'status must be one of: complete, in_progress, blocked, incomplete',
   }),
 });
 
@@ -61,7 +60,8 @@ export const updateChecklistItemSchema = z.object({
 export const tasksQuerySchema = z.object({
   state: z
     .enum(['NOT_STARTED', 'IN_PROGRESS', 'BLOCKED', 'NEEDS_REVIEW', 'COMPLETED', 'UNCERTAIN'], {
-      message: "Invalid state filter. Must be one of: NOT_STARTED, IN_PROGRESS, BLOCKED, NEEDS_REVIEW, COMPLETED, UNCERTAIN",
+      message:
+        'Invalid state filter. Must be one of: NOT_STARTED, IN_PROGRESS, BLOCKED, NEEDS_REVIEW, COMPLETED, UNCERTAIN',
     })
     .optional(),
   limit: z

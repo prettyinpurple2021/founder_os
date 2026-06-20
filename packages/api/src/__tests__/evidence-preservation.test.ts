@@ -148,7 +148,8 @@ describe('Evidence Preservation', () => {
 
       // Verify StateTransition was created
       expect(prisma.stateTransition.create).toHaveBeenCalledOnce();
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
       expect(transitionCall.data.taskId).toBe('task-1');
       expect(transitionCall.data.previousState).toBe('NOT_STARTED');
       expect(transitionCall.data.newState).toBe('IN_PROGRESS');
@@ -198,7 +199,8 @@ describe('Evidence Preservation', () => {
 
       // Verify StateTransition
       expect(prisma.stateTransition.create).toHaveBeenCalledOnce();
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
       expect(transitionCall.data.previousState).toBe('IN_PROGRESS');
       expect(transitionCall.data.newState).toBe('COMPLETED');
     });
@@ -246,7 +248,8 @@ describe('Evidence Preservation', () => {
       expect(evidenceCall.data.metadata).toHaveProperty('labelName', 'blocked');
 
       // Verify transition correctness
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
       expect(transitionCall.data.previousState).toBe('IN_PROGRESS');
       expect(transitionCall.data.newState).toBe('BLOCKED');
     });
@@ -342,7 +345,8 @@ describe('Evidence Preservation', () => {
 
       // StateTransition should be created (initial transition)
       expect(prisma.stateTransition.create).toHaveBeenCalledOnce();
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
       expect(transitionCall.data.taskId).toBe('task-new');
       // For new tasks, previousState = newState (initial transition)
       expect(transitionCall.data.previousState).toBe('NOT_STARTED');
@@ -393,11 +397,12 @@ describe('Evidence Preservation', () => {
       expect(prisma.evidence.create).toHaveBeenCalled();
 
       // Verify the transition references the correct evidence IDs
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
       expect(transitionCall.data.evidenceIds).toEqual(['ev-pr-1']);
       // Each ID in evidenceIds corresponds to an evidence.create call
       expect(transitionCall.data.evidenceIds.length).toBe(
-        (prisma.evidence.create as ReturnType<typeof vi.fn>).mock.calls.length
+        (prisma.evidence.create as ReturnType<typeof vi.fn>).mock.calls.length,
       );
     });
 
@@ -441,17 +446,19 @@ describe('Evidence Preservation', () => {
         async (args: { data: { evidenceIds: string[] } }) => ({
           id: 'transition-7',
           ...args.data,
-        })
+        }),
       );
 
       await upsertTaskFromIssue(repositoryId, issue, [pr], []);
 
       // State changed from NOT_STARTED to UNCERTAIN
       expect(prisma.stateTransition.create).toHaveBeenCalledOnce();
-      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      const transitionCall = (prisma.stateTransition.create as ReturnType<typeof vi.fn>).mock
+        .calls[0][0];
 
       // Each evidenceId maps to an evidence.create call
-      const numEvidenceCreated = (prisma.evidence.create as ReturnType<typeof vi.fn>).mock.calls.length;
+      const numEvidenceCreated = (prisma.evidence.create as ReturnType<typeof vi.fn>).mock.calls
+        .length;
       expect(transitionCall.data.evidenceIds.length).toBe(numEvidenceCreated);
       expect(transitionCall.data.evidenceIds.length).toBeGreaterThan(0);
 

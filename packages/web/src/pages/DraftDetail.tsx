@@ -103,7 +103,9 @@ export default function DraftDetail() {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [fetchDraft, fetchVersions]);
 
   const handleSave = async () => {
@@ -262,7 +264,9 @@ export default function DraftDetail() {
             </p>
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[draft.status]}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[draft.status]}`}
+        >
           {STATUS_LABELS[draft.status]}
         </span>
       </div>
@@ -404,9 +408,7 @@ export default function DraftDetail() {
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-800">
-                            v{v.version}
-                          </span>
+                          <span className="font-medium text-gray-800">v{v.version}</span>
                           <span className="text-xs text-gray-500">
                             {formatDateTime(v.editedAt)}
                           </span>
@@ -588,9 +590,7 @@ function DraftActions({
       </p>
       {status === 'SCHEDULED' && draft.scheduledAt && (
         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-md">
-          <span className="text-sm text-purple-700">
-            📅 {formatDateTime(draft.scheduledAt)}
-          </span>
+          <span className="text-sm text-purple-700">📅 {formatDateTime(draft.scheduledAt)}</span>
         </div>
       )}
     </div>
