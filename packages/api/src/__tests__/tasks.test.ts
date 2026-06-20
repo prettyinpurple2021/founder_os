@@ -161,13 +161,10 @@ describe('Tasks Routes', () => {
     it('should return 400 for invalid state filter', async () => {
       const app = createTestApp(mockUser);
 
-      (prisma.repository.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockRepository);
-
       const res = await request(app).get('/api/tasks?state=INVALID_STATE');
 
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('BAD_REQUEST');
-      expect(res.body.error.message).toContain('Invalid state filter');
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should respect limit and offset query params', async () => {

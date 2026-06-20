@@ -40,17 +40,15 @@ router.use(requireAuth);
 router.get('/', validate(notificationsQuerySchema, 'query'), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
-    const { unreadOnly, limit } = req.query as unknown as { unreadOnly: 'true' | 'false'; limit: number };
+    const { unreadOnly, limit } = req.query as unknown as { unreadOnly: boolean; limit: number };
 
-    const showUnreadOnly = unreadOnly !== 'false';
-
-    const notifications = showUnreadOnly
+    const notifications = unreadOnly
       ? await getUnreadNotifications(user.id, limit)
       : await getAllNotifications(user.id, limit);
 
     res.status(200).json({
       notifications,
-      unreadCount: showUnreadOnly ? notifications.length : notifications.filter(n => !n.read).length,
+      unreadCount: unreadOnly ? notifications.length : notifications.filter(n => !n.read).length,
     });
   } catch (err) {
     next(err instanceof AppError ? err : internalError('Failed to fetch notifications'));

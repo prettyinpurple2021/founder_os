@@ -237,8 +237,8 @@ describe('Repos Routes', () => {
         .post('/api/repos/connect')
         .send({ githubId: 123 });
 
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('BAD_REQUEST');
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should return 400 when githubId is not a number', async () => {
@@ -253,8 +253,8 @@ describe('Repos Routes', () => {
           owner: 'user',
         });
 
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe('BAD_REQUEST');
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('should handle Prisma unique constraint violation (P2002)', async () => {

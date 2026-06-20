@@ -36,7 +36,7 @@ export function validate(schema: z.ZodType, location: RequestLocation = 'body') 
     if (location === 'body') {
       req.body = result.data;
     } else if (location === 'query') {
-      (req as Record<string, unknown>).query = result.data;
+      (req as unknown as { query: unknown }).query = result.data;
     } else {
       req.params = result.data as Record<string, string>;
     }

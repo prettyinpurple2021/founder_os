@@ -57,55 +57,65 @@ export const updateChecklistItemSchema = z.object({
 });
 
 // --- GET /api/tasks (query) ---
+// Coerces and clamps values to valid ranges (preserves existing behavior)
 export const tasksQuerySchema = z.object({
   state: z
     .enum(['NOT_STARTED', 'IN_PROGRESS', 'BLOCKED', 'NEEDS_REVIEW', 'COMPLETED', 'UNCERTAIN'], {
       message: "Invalid state filter. Must be one of: NOT_STARTED, IN_PROGRESS, BLOCKED, NEEDS_REVIEW, COMPLETED, UNCERTAIN",
     })
     .optional(),
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(100)
+  limit: z
+    .string()
     .optional()
-    .default(50),
-  offset: z.coerce
-    .number()
-    .int()
-    .min(0)
+    .transform((val) => {
+      const parsed = parseInt(val ?? '', 10);
+      if (isNaN(parsed)) return 50;
+      return Math.min(Math.max(parsed, 1), 100);
+    }),
+  offset: z
+    .string()
     .optional()
-    .default(0),
+    .transform((val) => {
+      const parsed = parseInt(val ?? '', 10);
+      if (isNaN(parsed)) return 0;
+      return Math.max(parsed, 0);
+    }),
 });
 
 // --- GET /api/sync/history (query) ---
+// Coerces and clamps values to valid ranges (preserves existing behavior)
 export const syncHistoryQuerySchema = z.object({
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(100)
+  limit: z
+    .string()
     .optional()
-    .default(20),
-  offset: z.coerce
-    .number()
-    .int()
-    .min(0)
+    .transform((val) => {
+      const parsed = parseInt(val ?? '', 10);
+      if (isNaN(parsed)) return 20;
+      return Math.min(Math.max(parsed, 1), 100);
+    }),
+  offset: z
+    .string()
     .optional()
-    .default(0),
+    .transform((val) => {
+      const parsed = parseInt(val ?? '', 10);
+      if (isNaN(parsed)) return 0;
+      return Math.max(parsed, 0);
+    }),
 });
 
 // --- GET /api/notifications (query) ---
+// Coerces and clamps values to valid ranges (preserves existing behavior)
 export const notificationsQuerySchema = z.object({
   unreadOnly: z
-    .enum(['true', 'false'])
+    .string()
     .optional()
-    .default('true'),
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(100)
+    .transform((val) => val !== 'false'),
+  limit: z
+    .string()
     .optional()
-    .default(20),
+    .transform((val) => {
+      const parsed = parseInt(val ?? '', 10);
+      if (isNaN(parsed)) return 20;
+      return Math.min(Math.max(parsed, 1), 100);
+    }),
 });
