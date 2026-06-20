@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import cors from 'cors';
 import session from 'express-session';
 import dotenv from 'dotenv';
@@ -16,6 +17,7 @@ import { notFound } from './errors/AppError.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
 import { staleDataIndicator } from './middleware/staleDataIndicator.js';
+import { generalLimiter, authLimiter, contentGenerationLimiter } from './middleware/rateLimit.js';
 import { startScheduler } from './services/scheduler.js';
 
 dotenv.config();
@@ -33,7 +35,25 @@ if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET =
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
-app.use(cors());
+// --- Security headers (helmet) ---
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Let the SPA manage CSP
+    frameguard: { action: 'deny' }, // X-Frame-Options: DENY
+    hsts: {
+      maxAge: 31536000, // 1 year in seconds
+      includeSubDomains: true,
+    },
+    noSniff: true, // X-Content-Type-Options: nosniff (enabled by default, explicit for clarity)
+  })
+);
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 // --- Session middleware ---
@@ -64,11 +84,15 @@ app.use(sessionExpiration);
 // Attaches staleness info to res.locals.staleness for use in route handlers
 app.use(staleDataIndicator);
 
+// --- Rate limiting (after session, before routes) ---
+app.use(generalLimiter);
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// --- Auth routes ---
+// --- Auth routes (stricter rate limit) ---
+app.use('/auth', authLimiter);
 app.use(authRoutes);
 
 // --- Repos routes ---
@@ -86,7 +110,8 @@ app.use('/api/checklist', checklistRoutes);
 // --- Marketing routes ---
 app.use('/api/marketing', marketingRoutes);
 
-// --- Content routes ---
+// --- Content routes (generation endpoint has stricter limit) ---
+app.use('/api/content/generate', contentGenerationLimiter);
 app.use('/api/content', contentRoutes);
 
 // --- Dashboard routes ---

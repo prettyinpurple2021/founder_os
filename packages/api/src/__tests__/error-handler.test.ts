@@ -341,31 +341,28 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('user-123', 'request_error', {
+    expect(logErrorSpy).toHaveBeenCalledWith('user-123', 'app_error', {
       method: 'POST',
       path: '/api/projects',
       statusCode: 500,
-      errorMessage: 'DB connection failed',
+      message: 'DB connection failed',
       stack: expect.any(String),
       code: 'INTERNAL_ERROR',
     });
   });
 
-  it('calls logError for unknown errors with errorName field', () => {
+  it('calls logError for unknown errors with unhandled_error action', () => {
     const err = new TypeError('Cannot read property of undefined');
     const req = { method: 'GET', path: '/api/users', user: { id: 'user-456' } } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('user-456', 'request_error', {
+    expect(logErrorSpy).toHaveBeenCalledWith('user-456', 'unhandled_error', {
       method: 'GET',
       path: '/api/users',
-      statusCode: 500,
-      errorMessage: 'Cannot read property of undefined',
+      message: 'Cannot read property of undefined',
       stack: expect.any(String),
-      code: 'INTERNAL_ERROR',
-      errorName: 'TypeError',
     });
   });
 
@@ -376,31 +373,24 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('user-789', 'request_error', {
+    expect(logErrorSpy).toHaveBeenCalledWith('user-789', 'app_error', {
       method: 'POST',
       path: '/api/sync',
       statusCode: 503,
-      errorMessage: 'GitHub API is down',
+      message: 'GitHub API is down',
       stack: expect.any(String),
       code: 'SERVICE_UNAVAILABLE',
     });
   });
 
-  it('calls logError for 404 errors (logs all errors for query-time filtering)', () => {
+  it('does not log 404 errors to avoid noise', () => {
     const err = notFound('Item not found');
     const req = { method: 'GET', path: '/api/items/1' } as unknown as Request;
     const res = createMockRes();
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'request_error', {
-      method: 'GET',
-      path: '/api/items/1',
-      statusCode: 404,
-      errorMessage: 'Item not found',
-      stack: expect.any(String),
-      code: 'NOT_FOUND',
-    });
+    expect(logErrorSpy).not.toHaveBeenCalled();
   });
 
   it('calls logError for 400 errors', () => {
@@ -410,11 +400,11 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'request_error', {
+    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'app_error', {
       method: 'POST',
       path: '/api/data',
       statusCode: 400,
-      errorMessage: 'Invalid input',
+      message: 'Invalid input',
       stack: expect.any(String),
       code: 'BAD_REQUEST',
     });
@@ -427,7 +417,7 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'request_error', expect.objectContaining({
+    expect(logErrorSpy).toHaveBeenCalledWith(undefined, 'app_error', expect.objectContaining({
       method: 'GET',
       path: '/api/health',
       statusCode: 500,
@@ -442,7 +432,7 @@ describe('errorHandler error logging', () => {
 
     errorHandler(err, req, res, mockNext);
 
-    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'request_error', expect.objectContaining({
+    expect(logErrorSpy).toHaveBeenCalledWith('u1', 'app_error', expect.objectContaining({
       stack: undefined,
     }));
   });

@@ -151,7 +151,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - Suggestions always equal the set difference between recommended and completed assets
     - **Validates: Requirements 5.1**
 
-- [~] 10. Checkpoint - Checklist and marketing
+- [ ] 10. Checkpoint - Checklist and marketing
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 11. Content Generator
@@ -204,7 +204,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - All tasks in recent progress have completedAt within last 7 days
     - **Validates: Requirements 8.4**
 
-- [~] 14. Checkpoint - Content and dashboard
+- [ ] 14. Checkpoint - Content and dashboard
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 15. Logging Service
@@ -264,20 +264,20 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - _Requirements: 6.5, 7.4_
 
 - [ ] 19. Input Validation, Rate Limiting, and Security Hardening
-  - [-] 19.1 Add zod validation schemas for all API request bodies and query parameters
+  - [ ] 19.1 Add zod validation schemas for all API request bodies and query parameters
     - _Requirements: 9.1_
-  - [-] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
+  - [ ] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
     - _Requirements: 9.1_
-  - [-] 19.3 Configure CORS with strict origin policy matching frontend domain
+  - [ ] 19.3 Configure CORS with strict origin policy matching frontend domain
     - _Requirements: 9.1_
-  - [-] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
+  - [ ] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
     - _Requirements: 9.2_
-  - [~] 19.5 Write property test for session expiration enforcement
+  - [ ] 19.5 Write property test for session expiration enforcement
     - **Property 14: Session Expiration Enforcement**
     - No request succeeds with session inactive > 24 hours
     - **Validates: Requirements 9.3, 9.5**
 
-- [~] 20. Final checkpoint - Ensure all tests pass
+- [ ] 20. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

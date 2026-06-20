@@ -37,7 +37,8 @@ function createMockRes(): Response {
 }
 
 describe('sessionExpiration middleware', () => {
-  let mockNext: NextFunction & ReturnType<typeof vi.fn>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNext: any;
 
   beforeEach(() => {
     vi.clearAllMocks();

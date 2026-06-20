@@ -58,28 +58,28 @@ describe('getMarketingStatus', () => {
   it('should correctly compute partial readiness percentage', async () => {
     // Complete 2 out of 6 recommended assets
     mockFindMany.mockResolvedValue([
-      { type: 'landing_page' },
-      { type: 'social_twitter' },
+      { type: 'landing-page-copy' },
+      { type: 'social-announcement-twitter' },
     ] as any);
 
     const result = await getMarketingStatus('user-1');
 
-    expect(result.completed).toEqual(['landing_page', 'social_twitter']);
-    expect(result.missing).not.toContain('landing_page');
-    expect(result.missing).not.toContain('social_twitter');
+    expect(result.completed).toEqual(['landing-page-copy', 'social-announcement-twitter']);
+    expect(result.missing).not.toContain('landing-page-copy');
+    expect(result.missing).not.toContain('social-announcement-twitter');
     expect(result.readinessPercentage).toBe(Math.round((2 / RECOMMENDED_ASSETS.length) * 100));
   });
 
   it('should ignore unknown asset types not in the recommended set', async () => {
     mockFindMany.mockResolvedValue([
-      { type: 'landing_page' },
+      { type: 'landing-page-copy' },
       { type: 'unknown-custom-asset' },
     ] as any);
 
     const result = await getMarketingStatus('user-1');
 
-    // Only landing_page counts as completed (it's in the recommended set)
-    expect(result.completed).toEqual(['landing_page']);
+    // Only landing-page-copy counts as completed (it's in the recommended set)
+    expect(result.completed).toEqual(['landing-page-copy']);
     expect(result.readinessPercentage).toBe(Math.round((1 / RECOMMENDED_ASSETS.length) * 100));
   });
 

@@ -29,7 +29,7 @@ export async function log(entry: LogEntry): Promise<void> {
       data: {
         category: entry.category,
         action: entry.action,
-        details: entry.details,
+        details: entry.details as object,
         userId: entry.userId ?? null,
       },
     });

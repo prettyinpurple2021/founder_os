@@ -125,7 +125,8 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
           const destroyFn = vi.fn((cb: (err?: Error) => void) => cb());
           const req = createMockReq('user-prop', destroyFn);
           const res = createMockRes();
-          const next: NextFunction & ReturnType<typeof vi.fn> = vi.fn();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const next: any = vi.fn();
 
           const lastActiveAt = new Date(Date.now() - elapsedMs);
           mockedPrisma.session.findFirst.mockResolvedValue({
@@ -164,7 +165,8 @@ describe('Property: Session Expiration Logic (24h inactivity)', () => {
           vi.clearAllMocks();
           const req = createMockReq('user-prop');
           const res = createMockRes();
-          const next: NextFunction & ReturnType<typeof vi.fn> = vi.fn();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const next: any = vi.fn();
 
           const lastActiveAt = new Date(Date.now() - elapsedMs);
           mockedPrisma.session.findFirst.mockResolvedValue({

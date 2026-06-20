@@ -103,9 +103,9 @@ describe('Marketing Suggestions', () => {
   describe('sortByEffortThenPriority', () => {
     it('sorts low effort before medium before high', () => {
       const items: MarketingSuggestion[] = [
-        { id: 'a', name: 'A', description: 'desc', effort: 'high', priority: 1 },
-        { id: 'b', name: 'B', description: 'desc', effort: 'low', priority: 1 },
-        { id: 'c', name: 'C', description: 'desc', effort: 'medium', priority: 1 },
+        { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'high', priority: 1 },
+        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        { id: 'product-changelog', name: 'C', description: 'desc', effort: 'medium', priority: 1 },
       ];
 
       const sorted = sortByEffortThenPriority(items);
@@ -117,9 +117,9 @@ describe('Marketing Suggestions', () => {
 
     it('sorts by priority within same effort level', () => {
       const items: MarketingSuggestion[] = [
-        { id: 'a', name: 'A', description: 'desc', effort: 'low', priority: 3 },
-        { id: 'b', name: 'B', description: 'desc', effort: 'low', priority: 1 },
-        { id: 'c', name: 'C', description: 'desc', effort: 'low', priority: 2 },
+        { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'low', priority: 3 },
+        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        { id: 'product-changelog', name: 'C', description: 'desc', effort: 'low', priority: 2 },
       ];
 
       const sorted = sortByEffortThenPriority(items);
@@ -131,8 +131,8 @@ describe('Marketing Suggestions', () => {
 
     it('does not mutate the original array', () => {
       const items: MarketingSuggestion[] = [
-        { id: 'a', name: 'A', description: 'desc', effort: 'high', priority: 1 },
-        { id: 'b', name: 'B', description: 'desc', effort: 'low', priority: 1 },
+        { id: 'landing-page-copy', name: 'A', description: 'desc', effort: 'high', priority: 1 },
+        { id: 'social-announcement-twitter', name: 'B', description: 'desc', effort: 'low', priority: 1 },
       ];
 
       const original = [...items];
