@@ -151,7 +151,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - Suggestions always equal the set difference between recommended and completed assets
     - **Validates: Requirements 5.1**
 
-- [ ] 10. Checkpoint - Checklist and marketing
+- [~] 10. Checkpoint - Checklist and marketing
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 11. Content Generator
@@ -204,7 +204,7 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - All tasks in recent progress have completedAt within last 7 days
     - **Validates: Requirements 8.4**
 
-- [ ] 14. Checkpoint - Content and dashboard
+- [~] 14. Checkpoint - Content and dashboard
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 15. Logging Service
@@ -239,45 +239,45 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
     - During simulated outages, all user data and drafts remain intact
     - **Validates: Requirements 11.4**
 
-- [-] 17. Frontend - Core Layout and Dashboard
-  - [-] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
+- [x] 17. Frontend - Core Layout and Dashboard
+  - [x] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
     - _Requirements: 8.5_
-  - [ ] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
+  - [x] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
     - _Requirements: 1.1, 9.1_
-  - [ ] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
+  - [x] 17.3 Implement Dashboard page: project status summary, blockers list, next action card, recent progress list, last sync indicator
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
-  - [ ] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
+  - [x] 17.4 Implement repository connection UI: repo selection dropdown, connect/disconnect actions
     - _Requirements: 1.2, 1.3_
-  - [ ] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
+  - [x] 17.5 Implement manual sync trigger button with loading state and last-synced timestamp
     - _Requirements: 2.2_
 
 - [ ] 18. Frontend - Checklist, Marketing, and Content
-  - [ ] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
+  - [x] 18.1 Implement Launch Readiness Checklist page: categorized view with blockers at top, progress indicators per category
     - _Requirements: 4.1, 4.3_
-  - [ ] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
+  - [x] 18.2 Implement Marketing Readiness section: missing assets list, channel recommendations, mark-as-complete action
     - _Requirements: 5.1, 5.2, 5.3_
-  - [ ] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
+  - [x] 18.3 Implement Content Drafts page: draft list with status filters, generate new draft form (platform selector)
     - _Requirements: 6.1, 6.6_
-  - [ ] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
+  - [x] 18.4 Implement draft detail view: edit interface, version history sidebar, approve/reject/schedule actions
     - _Requirements: 6.3, 6.4, 7.1, 7.2_
-  - [ ] 18.5 Implement rejected drafts queue view for reuse/learning
+  - [x] 18.5 Implement rejected drafts queue view for reuse/learning
     - _Requirements: 6.5, 7.4_
 
 - [ ] 19. Input Validation, Rate Limiting, and Security Hardening
-  - [ ] 19.1 Add zod validation schemas for all API request bodies and query parameters
+  - [-] 19.1 Add zod validation schemas for all API request bodies and query parameters
     - _Requirements: 9.1_
-  - [ ] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
+  - [-] 19.2 Add API rate limiting middleware (e.g., express-rate-limit)
     - _Requirements: 9.1_
-  - [ ] 19.3 Configure CORS with strict origin policy matching frontend domain
+  - [-] 19.3 Configure CORS with strict origin policy matching frontend domain
     - _Requirements: 9.1_
-  - [ ] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
+  - [-] 19.4 Add security headers (helmet middleware): X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security
     - _Requirements: 9.2_
-  - [ ] 19.5 Write property test for session expiration enforcement
+  - [~] 19.5 Write property test for session expiration enforcement
     - **Property 14: Session Expiration Enforcement**
     - No request succeeds with session inactive > 24 hours
     - **Validates: Requirements 9.3, 9.5**
 
-- [ ] 20. Final checkpoint - Ensure all tests pass
+- [~] 20. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
