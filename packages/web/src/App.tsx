@@ -1,15 +1,32 @@
+// Requirements: 8.5
+// Root app component with React Router configuration
+
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
+import Checklist from './pages/Checklist';
+import Content from './pages/Content';
+import Marketing from './pages/Marketing';
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Solo Founder Launch OS
-        </h1>
-        <p className="text-lg text-gray-600">
-          Your launch readiness companion. Connect your GitHub repo to get started.
-        </p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        {/* Authenticated routes with layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/checklist" element={<Checklist />} />
+          <Route path="/content" element={<Content />} />
+          <Route path="/marketing" element={<Marketing />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
