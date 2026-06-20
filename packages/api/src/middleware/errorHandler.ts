@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError.js';
 import { logError } from '../services/logger.js';
+import { createNotification, buildResponseNotification } from '../services/notification.js';
 
 /**
  * Centralized error-handling middleware.
@@ -41,10 +42,11 @@ export function errorHandler(
   // Determine status code for logging
   const statusCode = err instanceof AppError ? err.statusCode : 500;
 
+  // Extract user ID for logging and notifications
+  const userId = (req as Request & { user?: { id?: string } }).user?.id;
+
   // Fire-and-forget structured error logging (skip 404s to avoid noise)
   if (statusCode !== 404) {
-    const userId = (req as Request & { user?: { id?: string } }).user?.id;
-
     if (err instanceof AppError) {
       // Known application errors — log with error code and status
       logError(userId, 'app_error', {
@@ -78,6 +80,36 @@ export function errorHandler(
       res.clearCookie('solo.sid', { path: '/' });
     }
 
+    // For server errors (5xx), include a user notification in the response
+    // and store it for in-app retrieval (Requirement 11.3)
+    let notification: ReturnType<typeof buildResponseNotification> | undefined;
+    if (err.statusCode >= 500) {
+      const operation = (err.context?.operationName as string) || req.path.replace(/^\/api\//, '').replace(/\//g, '_');
+      const actionHint = err.retryable
+        ? 'You can retry this operation. If the problem persists, try again later.'
+        : 'Please contact support if this problem continues.';
+
+      notification = buildResponseNotification(
+        operation,
+        err.message,
+        err.retryable,
+        actionHint,
+      );
+
+      // Persist as in-app notification if we have a user (fire-and-forget)
+      if (userId) {
+        createNotification({
+          userId,
+          operation,
+          title: notification.title,
+          message: err.message,
+          severity: 'error',
+          retryable: err.retryable,
+          actionHint,
+        }).catch(() => {}); // Never block the response
+      }
+    }
+
     res.status(err.statusCode).json({
       error: {
         code: err.code,
@@ -85,6 +117,7 @@ export function errorHandler(
         retryable: err.retryable,
         ...(context && Object.keys(context).length > 0 && { context }),
       },
+      ...(notification && { notification }),
     });
     return;
   }
@@ -132,6 +165,28 @@ export function errorHandler(
       ? undefined
       : { stack: err.stack };
 
+  // Include a user notification for unknown server errors (Requirement 11.3)
+  const operation = req.path.replace(/^\/api\//, '').replace(/\//g, '_');
+  const unknownNotification = buildResponseNotification(
+    operation,
+    'An unexpected error occurred. The operation did not complete.',
+    true,
+    'You can retry this operation. If the problem persists, try again later.',
+  );
+
+  // Persist as in-app notification if we have a user (fire-and-forget)
+  if (userId) {
+    createNotification({
+      userId,
+      operation,
+      title: unknownNotification.title,
+      message: unknownNotification.message,
+      severity: 'error',
+      retryable: true,
+      actionHint: unknownNotification.actionHint,
+    }).catch(() => {}); // Never block the response
+  }
+
   res.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
@@ -139,6 +194,7 @@ export function errorHandler(
       retryable: true,
       ...(context && { context }),
     },
+    notification: unknownNotification,
   });
 }
 

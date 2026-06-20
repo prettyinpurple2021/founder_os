@@ -179,13 +179,15 @@ describe('errorHandler middleware', () => {
     errorHandler(err, mockReq, res, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: expect.objectContaining({
-        code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred',
-        retryable: true,
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          code: 'INTERNAL_ERROR',
+          message: 'An unexpected error occurred',
+          retryable: true,
+        }),
       }),
-    });
+    );
   });
 
   it('includes stack in context for unknown errors in non-production', () => {

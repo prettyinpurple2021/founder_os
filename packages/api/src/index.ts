@@ -11,9 +11,11 @@ import checklistRoutes from './routes/checklist.js';
 import marketingRoutes from './routes/marketing.js';
 import contentRoutes from './routes/content.js';
 import dashboardRoutes from './routes/dashboard.js';
+import notificationsRoutes from './routes/notifications.js';
 import { notFound } from './errors/AppError.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
+import { staleDataIndicator } from './middleware/staleDataIndicator.js';
 import { startScheduler } from './services/scheduler.js';
 
 dotenv.config();
@@ -58,6 +60,10 @@ app.use(passport.session());
 // --- Session expiration check (after Passport, before routes) ---
 app.use(sessionExpiration);
 
+// --- Stale data indicator (after auth, before routes) ---
+// Attaches staleness info to res.locals.staleness for use in route handlers
+app.use(staleDataIndicator);
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -85,6 +91,9 @@ app.use('/api/content', contentRoutes);
 
 // --- Dashboard routes ---
 app.use('/api/dashboard', dashboardRoutes);
+
+// --- Notifications routes ---
+app.use('/api/notifications', notificationsRoutes);
 
 // --- 404 catch-all (must be after all route definitions) ---
 app.use((_req, _res, next) => {

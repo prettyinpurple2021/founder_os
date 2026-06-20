@@ -207,40 +207,40 @@ This implementation plan breaks down the Solo Founder Launch OS into incremental
 - [ ] 14. Checkpoint - Content and dashboard
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Logging Service
+- [x] 15. Logging Service
   - [x] 15.1 Implement structured logging utility that writes to SystemLog table with consistent schema (category, action, details JSON, userId, timestamp)
     - _Requirements: 10.5_
-  - [ ] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
+  - [x] 15.2 Add sync logging: log every sync operation with timestamp, duration, outcome
     - _Requirements: 10.1_
-  - [ ] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
+  - [x] 15.3 Add state change logging: log every task state transition with previous/new state and evidence references
     - _Requirements: 10.2_
-  - [ ] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
+  - [x] 15.4 Add content action logging: log every draft generate, edit, approve, reject, schedule action
     - _Requirements: 10.3_
-  - [ ] 15.5 Add authentication event logging: login, logout, session expiration
+  - [x] 15.5 Add authentication event logging: login, logout, session expiration
     - _Requirements: 10.4_
-  - [ ] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
+  - [x] 15.6 Add error logging: log errors with operation context, input summary, and stack trace
     - _Requirements: 10.5_
-  - [ ] 15.7 Write property test for logging completeness
+  - [x] 15.7 Write property test for logging completeness
     - **Property 12: Logging Completeness for State Changes**
     - For every state transition, a corresponding log entry exists
     - **Validates: Requirements 10.2**
 
-- [ ] 16. Error Handling and Graceful Degradation
-  - [ ] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
+- [x] 16. Error Handling and Graceful Degradation
+  - [x] 16.1 Implement global retry utility (3 attempts, exponential backoff) usable by sync service and content generator
     - _Requirements: 11.2_
-  - [ ] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
+  - [x] 16.2 Implement stale-data indicator: when GitHub API is unreachable, responses include staleness flag and last successful sync timestamp
     - _Requirements: 11.1_
-  - [ ] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
+  - [x] 16.3 Implement data preservation guarantee: wrap external service calls in transactions, rollback on failure
     - _Requirements: 11.4_
-  - [ ] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
+  - [x] 16.4 Implement user notification mechanism for failed operations (API response field + optional in-app notification)
     - _Requirements: 11.3_
-  - [ ] 16.5 Write property test for data preservation during outages
+  - [x] 16.5 Write property test for data preservation during outages
     - **Property 15: Data Preservation During Outages**
     - During simulated outages, all user data and drafts remain intact
     - **Validates: Requirements 11.4**
 
-- [ ] 17. Frontend - Core Layout and Dashboard
-  - [ ] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
+- [-] 17. Frontend - Core Layout and Dashboard
+  - [-] 17.1 Set up React app with TypeScript, React Router, Tailwind CSS, and API client (axios/fetch wrapper with auth headers)
     - _Requirements: 8.5_
   - [ ] 17.2 Implement authentication flow UI: GitHub login button, OAuth callback handler, session check on app load
     - _Requirements: 1.1, 9.1_

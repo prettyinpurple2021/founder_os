@@ -56,7 +56,7 @@ The application follows a layered architecture with clear separation between the
 4. **LLM for content generation**: Drafts are generated via an LLM API to handle platform-specific tone and formatting.
 5. **No direct social publishing in v1**: The system copies content or schedules reminders, avoiding OAuth complexity with multiple social platforms.
 
-## Components
+## Components and Interfaces
 
 ### 1. Authentication Module
 
@@ -249,7 +249,7 @@ generated → [editing] → pending_approval → approved → scheduled/copied
 - Errors include operation context, input summary, and stack trace
 - Retention: 90 days default
 
-## Data Model
+## Data Models
 
 ### Database Schema (Prisma)
 
@@ -419,79 +419,94 @@ enum DraftStatus {
 ## Correctness Properties
 
 ### Property 1: Single Repository Invariant
-**Requirement**: 1.3
-**Property**: For any sequence of repository connection operations by a single user, the system maintains at most one connected repository. Formally: `count(repositories WHERE userId = u) <= 1` for all users u.
-**Type**: Invariant
+
+For any sequence of repository connection operations by a single user, the system maintains at most one connected repository. Formally: `count(repositories WHERE userId = u) <= 1` for all users u.
+
+**Validates: Requirements 1.3**
 
 ### Property 2: Sync Retry Bounded
-**Requirement**: 2.5, 11.2
-**Property**: For any failed sync operation, the retry count never exceeds 3. The backoff delay for attempt n equals `baseDelay * 2^(n-1)` seconds. After 3 failures, the system marks sync as failed without further retries.
-**Type**: Invariant
+
+For any failed sync operation, the retry count never exceeds 3. The backoff delay for attempt n equals `baseDelay * 2^(n-1)` seconds. After 3 failures, the system marks sync as failed without further retries.
+
+**Validates: Requirements 2.5, 11.2**
 
 ### Property 3: Last Successful State Preservation
-**Requirement**: 2.6, 11.1
-**Property**: After a failed sync (all retries exhausted), all task states and evidence remain identical to the state after the last successful sync. No task data is modified by a failed sync.
-**Type**: Invariant
+
+After a failed sync (all retries exhausted), all task states and evidence remain identical to the state after the last successful sync. No task data is modified by a failed sync.
+
+**Validates: Requirements 2.6, 11.1**
 
 ### Property 4: Task State Inference Completeness
-**Requirement**: 3.1, 3.7
-**Property**: For any set of GitHub evidence associated with a task, the inference engine assigns exactly one Task_State. The function `infer(evidence) → TaskState` is total — it always produces a result, defaulting to "uncertain" when no confident match exists.
-**Type**: Invariant (totality)
+
+For any set of GitHub evidence associated with a task, the inference engine assigns exactly one Task_State. The function `infer(evidence) → TaskState` is total — it always produces a result, defaulting to "uncertain" when no confident match exists.
+
+**Validates: Requirements 3.1, 3.7**
 
 ### Property 5: Evidence Preservation on State Transition
-**Requirement**: 3.8
-**Property**: For every state transition recorded in the system, the associated evidence array is non-empty and references valid evidence records. Formally: `∀ transition: transition.evidenceIds.length > 0 ∧ ∀ id ∈ transition.evidenceIds: exists(evidence[id])`.
-**Type**: Invariant
+
+For every state transition recorded in the system, the associated evidence array is non-empty and references valid evidence records. Formally: `∀ transition: transition.evidenceIds.length > 0 ∧ ∀ id ∈ transition.evidenceIds: exists(evidence[id])`.
+
+**Validates: Requirements 3.8**
 
 ### Property 6: Checklist Category Completeness
-**Requirement**: 4.1
-**Property**: Every generated launch readiness checklist contains exactly 6 categories: product, quality, deployment, legal/admin, marketing, content. No category is ever omitted or duplicated.
-**Type**: Invariant
+
+Every generated launch readiness checklist contains exactly 6 categories: product, quality, deployment, legal/admin, marketing, content. No category is ever omitted or duplicated.
+
+**Validates: Requirements 4.1**
 
 ### Property 7: Blockers-First Ordering
-**Requirement**: 4.3
-**Property**: In the rendered checklist, all items with blocker status appear before any non-blocker items. Formally: `∀ i,j: items[i].isBlocker ∧ ¬items[j].isBlocker → indexOf(i) < indexOf(j)`.
-**Type**: Invariant (ordering)
+
+In the rendered checklist, all items with blocker status appear before any non-blocker items. Formally: `∀ i,j: items[i].isBlocker ∧ ¬items[j].isBlocker → indexOf(i) < indexOf(j)`.
+
+**Validates: Requirements 4.3**
 
 ### Property 8: Marketing Asset Suggestions are Complement
-**Requirement**: 5.1
-**Property**: The set of suggested marketing assets equals the recommended set minus the completed set. `suggestions = recommendedAssets \ completedAssets`. No completed asset appears in suggestions; no missing asset is omitted.
-**Type**: Metamorphic
+
+The set of suggested marketing assets equals the recommended set minus the completed set. `suggestions = recommendedAssets \ completedAssets`. No completed asset appears in suggestions; no missing asset is omitted.
+
+**Validates: Requirements 5.1**
 
 ### Property 9: Content Draft Version History Monotonicity
-**Requirement**: 6.4
-**Property**: For any content draft, the version count is monotonically increasing and equals the number of edits plus one (the initial generation). After N edits, exactly N+1 versions exist. Versions are never deleted.
-**Type**: Invariant
+
+For any content draft, the version count is monotonically increasing and equals the number of edits plus one (the initial generation). After N edits, exactly N+1 versions exist. Versions are never deleted.
+
+**Validates: Requirements 6.4**
 
 ### Property 10: No Auto-Publishing Invariant
-**Requirement**: 6.6, 7.1
-**Property**: No content draft transitions to SCHEDULED or COPIED status without an explicit approval action recorded in the system log. Formally: `∀ draft: draft.status ∈ {SCHEDULED, COPIED} → ∃ log WHERE log.action = 'approve' ∧ log.draftId = draft.id`.
-**Type**: Invariant
+
+No content draft transitions to SCHEDULED or COPIED status without an explicit approval action recorded in the system log. Formally: `∀ draft: draft.status ∈ {SCHEDULED, COPIED} → ∃ log WHERE log.action = 'approve' ∧ log.draftId = draft.id`.
+
+**Validates: Requirements 6.6, 7.1**
 
 ### Property 11: Rejected Drafts Preserved
-**Requirement**: 6.5, 7.4
-**Property**: Once a draft is rejected, its content is preserved and accessible in the rejected queue. Rejected drafts are never deleted from the database. `∀ draft: draft.status = REJECTED → draft.currentContent ≠ null ∧ draft.deletedAt = null`.
-**Type**: Invariant
+
+Once a draft is rejected, its content is preserved and accessible in the rejected queue. Rejected drafts are never deleted from the database. `∀ draft: draft.status = REJECTED → draft.currentContent ≠ null ∧ draft.deletedAt = null`.
+
+**Validates: Requirements 6.5, 7.4**
 
 ### Property 12: Logging Completeness for State Changes
-**Requirement**: 10.2
-**Property**: For every task state transition, a corresponding system log entry exists with category "state_change" containing the previous state, new state, and evidence references. `count(state_transitions) = count(logs WHERE category = 'state_change')`.
-**Type**: Invariant
+
+For every task state transition, a corresponding system log entry exists with category "state_change" containing the previous state, new state, and evidence references. `count(state_transitions) = count(logs WHERE category = 'state_change')`.
+
+**Validates: Requirements 10.2**
 
 ### Property 13: Dashboard Recent Progress Time Bound
-**Requirement**: 8.4
-**Property**: All tasks shown in the dashboard's recent progress section have a completion timestamp within the last 7 days. `∀ task ∈ recentProgress: now() - task.completedAt ≤ 7 days`.
-**Type**: Invariant (filter correctness)
+
+All tasks shown in the dashboard's recent progress section have a completion timestamp within the last 7 days. `∀ task ∈ recentProgress: now() - task.completedAt ≤ 7 days`.
+
+**Validates: Requirements 8.4**
 
 ### Property 14: Session Expiration Enforcement
-**Requirement**: 9.3, 9.5
-**Property**: No API request succeeds with a session whose `lastActiveAt` is more than 24 hours ago. Any such request results in a redirect to the login flow.
-**Type**: Invariant
+
+No API request succeeds with a session whose `lastActiveAt` is more than 24 hours ago. Any such request results in a redirect to the login flow.
+
+**Validates: Requirements 9.3, 9.5**
 
 ### Property 15: Data Preservation During Outages
-**Requirement**: 11.4
-**Property**: During any external service outage (GitHub API, LLM API), all user data, drafts, and task states remain intact. No write operation to user data tables fails silently — either the operation succeeds or an explicit error is surfaced without data loss.
-**Type**: Invariant
+
+During any external service outage (GitHub API, LLM API), all user data, drafts, and task states remain intact. No write operation to user data tables fails silently — either the operation succeeds or an explicit error is surfaced without data loss.
+
+**Validates: Requirements 11.4**
 
 ## API Design
 
@@ -535,7 +550,7 @@ enum DraftStatus {
 | POST | /api/content/drafts/:id/schedule | Schedule draft |
 | GET | /api/content/drafts/:id/versions | Get version history |
 
-## Error Handling Strategy
+## Error Handling
 
 All errors follow a consistent response format:
 
@@ -551,6 +566,53 @@ All errors follow a consistent response format:
 ```
 
 External service failures trigger the retry pipeline (3 attempts, exponential backoff). If all retries fail, the system returns the last known good state with a staleness indicator.
+
+## Testing Strategy
+
+### Unit Tests
+
+- **Task Inference Engine**: Example-based tests for each inference rule with specific GitHub evidence combinations
+- **Checklist Generator**: Tests for category generation, blocker ordering, and status derivation
+- **Content Generator**: Tests for platform-specific prompt construction and draft lifecycle transitions
+- **Marketing Analyzer**: Tests for asset complement calculation and channel recommendations
+- **Auth Module**: Tests for session validation, token encryption/decryption, and expiration enforcement
+- **Error Handler**: Tests for consistent error response formatting and retry logic
+
+### Property-Based Tests
+
+Property-based tests use `fast-check` with a minimum of 100 iterations per property. Each test references its corresponding correctness property from this design document.
+
+- **Property 1** (Single Repository Invariant): Generate random sequences of connect/disconnect operations; assert user never has more than one repo
+- **Property 2** (Sync Retry Bounded): Generate random failure scenarios; assert retry count ≤ 3 and backoff timing is correct
+- **Property 3** (Last Successful State Preservation): Simulate failed syncs; assert task data remains unchanged
+- **Property 4** (Task State Inference Completeness): Generate arbitrary evidence sets; assert exactly one state is returned
+- **Property 5** (Evidence Preservation on State Transition): Generate state transitions; assert evidence array is non-empty and references valid records
+- **Property 6** (Checklist Category Completeness): Generate various project states; assert all 6 categories are present
+- **Property 7** (Blockers-First Ordering): Generate checklists with random blocker/non-blocker items; assert all blockers precede non-blockers
+- **Property 8** (Marketing Asset Suggestions are Complement): Generate random completed asset subsets; assert suggestions equal recommended minus completed
+- **Property 9** (Content Draft Version History Monotonicity): Generate random edit sequences; assert version count equals edits + 1
+- **Property 10** (No Auto-Publishing Invariant): Generate draft state sequences; assert no SCHEDULED/COPIED without prior approval
+- **Property 11** (Rejected Drafts Preserved): Generate rejection actions; assert content is never null or deleted
+- **Property 12** (Logging Completeness for State Changes): Generate state transitions; assert corresponding log entries exist
+- **Property 13** (Dashboard Recent Progress Time Bound): Generate task sets with various completion dates; assert only last-7-day tasks appear
+- **Property 14** (Session Expiration Enforcement): Generate sessions with various ages; assert expired sessions are rejected
+- **Property 15** (Data Preservation During Outages): Simulate service failures; assert no user data is lost or corrupted
+
+Tag format: **Feature: solo-founder-launch-os, Property {number}: {property title}**
+
+### Integration Tests
+
+- **GitHub API Sync**: Test end-to-end sync flow with mocked GitHub responses
+- **Content Generation**: Test LLM API integration with mocked responses
+- **Database Operations**: Test Prisma queries against a test database
+- **Authentication Flow**: Test full OAuth flow with mocked GitHub OAuth
+
+### Test Configuration
+
+- **Framework**: Vitest
+- **Property Testing**: fast-check (minimum 100 iterations per property)
+- **Coverage Target**: 80% line coverage for business logic services
+- **CI Integration**: All tests run on every PR via GitHub Actions
 
 ## Security Considerations
 
