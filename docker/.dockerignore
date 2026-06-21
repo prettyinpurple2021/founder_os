@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Version control
+.git
+.gitignore
+
+# Build output (rebuilt inside container)
+dist
+**/dist
+
+# Test files
+*.test.ts
+**/*.test.ts
+**/__tests__
+coverage
+**/coverage
+
+# Environment files (secrets loaded from AWS Secrets Manager)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# IDE and editor files
+.vscode
+.idea
+
+# Documentation (except README)
+*.md
+!README.md
+
+# Docker files (avoid recursive copy)
+docker-compose.yml
+docker-compose.yaml
+
+# Misc dev-only files
+.prettierignore
+.npmrc
+.eslintcache
+eslint.config.js
+*.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Kiro specs
+.kiro

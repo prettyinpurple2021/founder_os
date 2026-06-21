@@ -1,0 +1,82 @@
+# Local development orchestration for Solo Founder Launch OS
+# Requirements: 1.5
+#
+# Usage:
+#   docker compose up        — Start all services
+#   docker compose up -d     — Start in detached mode
+#   docker compose down      — Stop and remove containers
+#   docker compose down -v   — Stop and remove containers + volumes (resets DB)
+#
+# Requires a .env file in the docker/ directory with local secrets.
+# See .env.example for required variables.
+
+services:
+  # ─── PostgreSQL Database ────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: solo-founder-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-solofounder}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-localdev}
+      POSTGRES_DB: ${POSTGRES_DB:-solofounder}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-solofounder}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ─── API Service (Express) ─────────────────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: solo-founder-api
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${POSTGRES_USER:-solofounder}:${POSTGRES_PASSWORD:-localdev}@postgres:5432/${POSTGRES_DB:-solofounder}
+      SESSION_SECRET: ${SESSION_SECRET:-local-dev-session-secret}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-local-dev-encryption-key-32ch}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:3001/auth/github/callback}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    volumes:
+      - ../packages/api/src:/app/packages/api/src
+      - ../packages/api/prisma:/app/packages/api/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ─── Web Service (Vite Dev Server) ─────────────────────────────────────────
+  web:
+    image: node:20-alpine
+    container_name: solo-founder-web
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ../packages/web:/app
+      - web_node_modules:/app/node_modules
+
+volumes:
+  pgdata:
+    driver: local
+  web_node_modules:
+    driver: local

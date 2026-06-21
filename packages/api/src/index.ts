@@ -13,6 +13,7 @@ import marketingRoutes from './routes/marketing.js';
 import contentRoutes from './routes/content.js';
 import dashboardRoutes from './routes/dashboard.js';
 import notificationsRoutes from './routes/notifications.js';
+import healthRoutes from './routes/health.js';
 import { notFound } from './errors/AppError.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
@@ -92,9 +93,7 @@ app.use(staleDataIndicator);
 // --- Rate limiting (after session, before routes) ---
 app.use(generalLimiter);
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+app.use('/health', healthRoutes);
 
 // --- Auth routes (stricter rate limit) ---
 app.use('/auth', authLimiter);
