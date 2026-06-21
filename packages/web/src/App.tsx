@@ -23,7 +23,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+        <Suspense
+          fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}
+        >
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />

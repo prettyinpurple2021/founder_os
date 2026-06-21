@@ -4,10 +4,7 @@
 // In local development, falls back to environment variables by returning an empty object.
 // Supports separate secret paths per environment: /solo-founder-launch-os/{stage}/
 
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from '@aws-sdk/client-secrets-manager';
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
 /**
  * Determines the current deployment stage from NODE_ENV.

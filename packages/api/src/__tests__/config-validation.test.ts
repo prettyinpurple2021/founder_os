@@ -28,9 +28,7 @@ function buildValidConfig(): Record<string, unknown> {
 
 describe('validateConfig', () => {
   it('rejects an empty config with descriptive errors listing all required fields', () => {
-    expect(() => validateConfig({})).toThrow(
-      /Configuration validation failed/,
-    );
+    expect(() => validateConfig({})).toThrow(/Configuration validation failed/);
 
     try {
       validateConfig({});
@@ -182,9 +180,7 @@ describe('loadConfig — secrets are never logged or exposed', () => {
     // Wait for async to settle, then check logs
     return new Promise<void>((resolve) => {
       setTimeout(() => {
-        const loggedOutput = consoleErrorSpy.mock.calls
-          .map((args) => args.join(' '))
-          .join('\n');
+        const loggedOutput = consoleErrorSpy.mock.calls.map((args) => args.join(' ')).join('\n');
 
         // The logged output should NOT contain any raw secret values
         expect(loggedOutput).not.toContain('top-secret-session');

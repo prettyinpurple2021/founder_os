@@ -40,7 +40,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Test response completes within 3 seconds
     - _Requirements: 3.1, 3.2, 3.4_
 
-- [~] 3. Checkpoint — Ensure all tests pass
+- [x] 3. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 4. Multi-stage Dockerfile and Docker Compose
@@ -135,7 +135,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Verify alarm thresholds match requirements
     - _Requirements: 8.4, 10.3, 10.6_
 
-- [~] 8. Checkpoint — Ensure all CDK tests pass
+- [x] 8. Checkpoint — Ensure all CDK tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 9. GitHub Actions CI/CD workflows
@@ -160,8 +160,8 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - On failure: halt deployment, report migration name and error
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 10. CloudWatch error tracking integration
-  - [-] 10.1 Implement structured error logging middleware for the API
+- [x] 10. CloudWatch error tracking integration
+  - [x] 10.1 Implement structured error logging middleware for the API
     - Create `packages/api/src/middleware/errorLogger.ts`
     - Capture all unhandled exceptions and rejected promises
     - Write structured JSON error logs to stdout (picked up by CloudWatch via ECS log driver)
@@ -169,19 +169,19 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Strip sensitive data: authorization headers, session tokens, password fields from request bodies
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [-] 10.2 Implement frontend error reporter
+  - [x] 10.2 Implement frontend error reporter
     - Create `packages/web/src/lib/errorReporter.ts` that catches uncaught errors and unhandled rejections
     - Create `packages/api/src/routes/errors.ts` with a POST /api/errors endpoint that logs frontend errors to the same structured CloudWatch log stream
     - _Requirements: 6.7_
 
-  - [~] 10.3 Write unit tests for error logging sensitive data stripping
+  - [x] 10.3 Write unit tests for error logging sensitive data stripping
     - Verify authorization headers are stripped
     - Verify password fields are removed from request body context
     - Verify user ID, environment, and trace ID are included
     - _Requirements: 6.3_
 
 - [ ] 11. Frontend bundle optimization
-  - [-] 11.1 Configure Vite for production bundle optimization
+  - [x] 11.1 Configure Vite for production bundle optimization
     - Update `packages/web/vite.config.ts` to configure:
       - Code splitting via dynamic imports for route-level splitting
       - Hashed filenames for all static assets (content-based hashing)
@@ -189,31 +189,31 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
       - Source map generation (for Sentry upload, not public serving)
     - _Requirements: 8.1, 8.2, 8.6, 8.7_
 
-  - [-] 11.2 Add CORS and security headers to API for production
+  - [x] 11.2 Add CORS and security headers to API for production
     - Update Express CORS configuration to use production frontend domain from config
     - Add Strict-Transport-Security header (max-age 1 year, includeSubDomains)
     - Set session cookies with Secure, HttpOnly, SameSite=Strict in production mode
     - _Requirements: 7.3, 7.4, 7.7_
 
 - [ ] 12. Wiring and integration
-  - [~] 12.1 Wire configuration module into existing API startup
+  - [x] 12.1 Wire configuration module into existing API startup
     - Update the API entry point (`packages/api/src/index.ts` or `app.ts`) to use the new `loadConfig()` at startup
     - Replace scattered `process.env` reads with structured config object
     - Wire health check route into the Express app (without auth middleware)
     - Wire error logging middleware into the middleware chain (after all route handlers)
     - _Requirements: 3.5, 3.6, 4.1, 6.1_
 
-  - [~] 12.2 Add packages/infra to workspace and update root package.json
+  - [x] 12.2 Add packages/infra to workspace and update root package.json
     - Add `"packages/infra"` to root `package.json` workspaces array
     - Add root-level scripts: `cdk:synth`, `cdk:deploy`, `test:infra`
     - _Requirements: 11.11_
 
-  - [~] 12.3 Add request tracing middleware
+  - [x] 12.3 Add request tracing middleware
     - Add middleware that assigns a unique trace ID (UUID) to each request and includes it in all log output
     - Pass trace ID to Sentry context for correlation
     - _Requirements: 10.7_
 
-- [~] 13. Final checkpoint — Ensure all tests pass
+- [-] 13. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

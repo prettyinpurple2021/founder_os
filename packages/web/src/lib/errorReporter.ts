@@ -84,8 +84,12 @@ function handleError(event: ErrorEvent): void {
 function handleUnhandledRejection(event: PromiseRejectionEvent): void {
   const reason = event.reason;
   const message =
-    reason instanceof Error ? reason.message : typeof reason === 'string' ? reason : 'Unhandled promise rejection';
-  const stack = reason instanceof Error ? reason.stack ?? null : null;
+    reason instanceof Error
+      ? reason.message
+      : typeof reason === 'string'
+        ? reason
+        : 'Unhandled promise rejection';
+  const stack = reason instanceof Error ? (reason.stack ?? null) : null;
 
   const report: ErrorReport = {
     message,

@@ -5,7 +5,8 @@
   "type": "module",
   "workspaces": [
     "packages/api",
-    "packages/web"
+    "packages/web",
+    "packages/infra"
   ],
   "scripts": {
     "dev": "npm run dev:api & npm run dev:web",
@@ -17,6 +18,9 @@
     "test": "npm run test --workspace=packages/api && npm run test --workspace=packages/web",
     "test:api": "npm run test --workspace=packages/api",
     "test:web": "npm run test --workspace=packages/web",
+    "cdk:synth": "npm run synth --workspace=packages/infra",
+    "cdk:deploy": "npm run deploy --workspace=packages/infra",
+    "test:infra": "npm run test --workspace=packages/infra",
     "lint": "eslint \"packages/*/src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/*/src/**/*.{ts,tsx}\""

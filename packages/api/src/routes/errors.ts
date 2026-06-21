@@ -79,50 +79,46 @@ function isValidPayload(body: unknown): body is FrontendErrorPayload {
  * and writes a structured JSON log entry to stdout for CloudWatch.
  * Returns 204 No Content on success.
  */
-router.post(
-  '/',
-  errorReportLimiter,
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // Check payload size (Content-Length header)
-      const contentLength = parseInt(req.headers['content-length'] || '0', 10);
-      if (contentLength > MAX_PAYLOAD_SIZE) {
-        throw badRequest('Payload too large');
-      }
-
-      const body: unknown = req.body;
-
-      if (!isValidPayload(body)) {
-        throw badRequest('Invalid error report payload');
-      }
-
-      // Truncate stack trace if excessively long
-      const stack = body.stack ? body.stack.slice(0, 4096) : null;
-
-      // Write structured JSON log to stdout (CloudWatch picks this up)
-      const structuredLog = {
-        level: 'error',
-        source: 'frontend',
-        timestamp: body.timestamp,
-        message: body.message.slice(0, 1024),
-        stack,
-        errorSource: body.source,
-        line: body.line,
-        column: body.column,
-        userAgent: body.userAgent.slice(0, 512),
-        pageUrl: body.url.slice(0, 2048),
-        environment: process.env.NODE_ENV || 'development',
-        ip: req.ip || req.socket.remoteAddress || 'unknown',
-      };
-
-      // Write as single-line JSON for CloudWatch Logs parsing
-      process.stdout.write(JSON.stringify(structuredLog) + '\n');
-
-      res.status(204).end();
-    } catch (err) {
-      next(err);
+router.post('/', errorReportLimiter, (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Check payload size (Content-Length header)
+    const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+    if (contentLength > MAX_PAYLOAD_SIZE) {
+      throw badRequest('Payload too large');
     }
-  },
-);
+
+    const body: unknown = req.body;
+
+    if (!isValidPayload(body)) {
+      throw badRequest('Invalid error report payload');
+    }
+
+    // Truncate stack trace if excessively long
+    const stack = body.stack ? body.stack.slice(0, 4096) : null;
+
+    // Write structured JSON log to stdout (CloudWatch picks this up)
+    const structuredLog = {
+      level: 'error',
+      source: 'frontend',
+      timestamp: body.timestamp,
+      message: body.message.slice(0, 1024),
+      stack,
+      errorSource: body.source,
+      line: body.line,
+      column: body.column,
+      userAgent: body.userAgent.slice(0, 512),
+      pageUrl: body.url.slice(0, 2048),
+      environment: process.env.NODE_ENV || 'development',
+      ip: req.ip || req.socket.remoteAddress || 'unknown',
+    };
+
+    // Write as single-line JSON for CloudWatch Logs parsing
+    process.stdout.write(JSON.stringify(structuredLog) + '\n');
+
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

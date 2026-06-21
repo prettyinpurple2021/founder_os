@@ -72,11 +72,7 @@ function sanitizeHeaders(headers: Record<string, unknown>): Record<string, unkno
 /**
  * Builds a structured JSON error log entry.
  */
-function buildErrorLogEntry(
-  err: Error,
-  req: Request,
-  traceId: string,
-): StructuredErrorLog {
+function buildErrorLogEntry(err: Error, req: Request, traceId: string): StructuredErrorLog {
   const userId = (req as Request & { user?: { id?: string } }).user?.id;
   const environment = process.env.NODE_ENV || 'development';
 
@@ -103,15 +99,12 @@ function buildErrorLogEntry(
  * Log output is written to process.stdout as a single JSON line, which the
  * ECS awslogs driver forwards to CloudWatch Logs.
  */
-export function errorLogger(
-  err: Error,
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): void {
+export function errorLogger(err: Error, req: Request, _res: Response, next: NextFunction): void {
   // Generate or reuse trace ID from request
   const traceId =
-    (req.headers['x-trace-id'] as string) || (req as Request & { traceId?: string }).traceId || randomUUID();
+    (req.headers['x-trace-id'] as string) ||
+    (req as Request & { traceId?: string }).traceId ||
+    randomUUID();
 
   const logEntry = buildErrorLogEntry(err, req, traceId);
 
