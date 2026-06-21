@@ -112,8 +112,8 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Verify ECR lifecycle rules
     - _Requirements: 9.1, 9.4, 11.2, 11.6_
 
-- [ ] 7. CDK CDN and monitoring stacks
-  - [-] 7.1 Implement CDN stack (CloudFront, S3, certificates)
+- [x] 7. CDK CDN and monitoring stacks
+  - [x] 7.1 Implement CDN stack (CloudFront, S3, certificates)
     - Create `packages/infra/lib/stacks/cdn-stack.ts`
     - S3 bucket for static assets (not publicly accessible, OAI access for CloudFront)
     - CloudFront distribution with S3 origin, gzip + Brotli compression, HTTPS only
@@ -121,7 +121,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - ACM certificate for the web domain (us-east-1 for CloudFront)
     - _Requirements: 8.4, 8.5, 11.4, 7.1, 7.5_
 
-  - [-] 7.2 Implement monitoring stack (CloudWatch dashboards, alarms, SNS)
+  - [x] 7.2 Implement monitoring stack (CloudWatch dashboards, alarms, SNS)
     - Create `packages/infra/lib/stacks/monitoring-stack.ts`
     - CloudWatch log group with 90-day retention for ECS container logs (JSON structured)
     - Alarms: error rate > 5% (5 min), p95 latency > 2s (5 min), CPU > 80% (10 min), DB connections > 80% pool max (5 min)
@@ -129,7 +129,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - CloudWatch dashboard with request volume, error rates, latency percentiles, container health, DB metrics
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [~] 7.3 Write CDK assertion tests for CDN and monitoring stacks
+  - [x] 7.3 Write CDK assertion tests for CDN and monitoring stacks
     - Verify CloudFront has compression enabled, custom error responses configured
     - Verify CloudWatch log group has 90-day retention
     - Verify alarm thresholds match requirements
@@ -138,14 +138,14 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
 - [~] 8. Checkpoint — Ensure all CDK tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. GitHub Actions CI/CD workflows
-  - [-] 9.1 Create CI workflow for pull requests
+- [x] 9. GitHub Actions CI/CD workflows
+  - [x] 9.1 Create CI workflow for pull requests
     - Create `.github/workflows/ci.yml` triggered on pull request events
     - Steps: checkout, setup Node 20, cache npm dependencies, install, lint, type-check, test (API and Web in parallel)
     - Fail if any lint error, type error, or test failure
     - _Requirements: 2.2, 2.3, 2.10, 2.11_
 
-  - [~] 9.2 Create deploy workflow for main branch
+  - [x] 9.2 Create deploy workflow for main branch
     - Create `.github/workflows/deploy.yml` triggered on push to main
     - Steps: install, lint, type-check, test, build Docker image (tag with commit SHA), push to ECR, build web assets, upload to S3 with cache headers (immutable: 1 year, index.html: max 5 min), invalidate CloudFront for index.html, run migration task, update ECS service
     - Store AWS credentials as GitHub secrets; use OIDC or access keys from secrets
@@ -153,7 +153,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Target full cycle within 15 minutes
     - _Requirements: 2.1, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 8.3_
 
-  - [~] 9.3 Create reusable migration workflow
+  - [x] 9.3 Create reusable migration workflow
     - Create `.github/workflows/migration.yml` as a reusable workflow
     - Run `prisma migrate deploy` in a dedicated short-lived ECS task (private subnet, no public access)
     - Use same DB credentials from Secrets Manager as the API service
@@ -161,7 +161,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
 - [ ] 10. CloudWatch error tracking integration
-  - [~] 10.1 Implement structured error logging middleware for the API
+  - [-] 10.1 Implement structured error logging middleware for the API
     - Create `packages/api/src/middleware/errorLogger.ts`
     - Capture all unhandled exceptions and rejected promises
     - Write structured JSON error logs to stdout (picked up by CloudWatch via ECS log driver)
@@ -169,7 +169,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Strip sensitive data: authorization headers, session tokens, password fields from request bodies
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [~] 10.2 Implement frontend error reporter
+  - [-] 10.2 Implement frontend error reporter
     - Create `packages/web/src/lib/errorReporter.ts` that catches uncaught errors and unhandled rejections
     - Create `packages/api/src/routes/errors.ts` with a POST /api/errors endpoint that logs frontend errors to the same structured CloudWatch log stream
     - _Requirements: 6.7_
@@ -181,7 +181,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - _Requirements: 6.3_
 
 - [ ] 11. Frontend bundle optimization
-  - [~] 11.1 Configure Vite for production bundle optimization
+  - [-] 11.1 Configure Vite for production bundle optimization
     - Update `packages/web/vite.config.ts` to configure:
       - Code splitting via dynamic imports for route-level splitting
       - Hashed filenames for all static assets (content-based hashing)
@@ -189,7 +189,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
       - Source map generation (for Sentry upload, not public serving)
     - _Requirements: 8.1, 8.2, 8.6, 8.7_
 
-  - [~] 11.2 Add CORS and security headers to API for production
+  - [-] 11.2 Add CORS and security headers to API for production
     - Update Express CORS configuration to use production frontend domain from config
     - Add Strict-Transport-Security header (max-age 1 year, includeSubDomains)
     - Set session cookies with Secure, HttpOnly, SameSite=Strict in production mode

@@ -1,3 +1,6 @@
+// Requirements: 7.3, 7.4, 7.7
+// CORS locked to production frontend domain, HSTS enforced, secure session cookies in production.
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -14,7 +17,9 @@ import contentRoutes from './routes/content.js';
 import dashboardRoutes from './routes/dashboard.js';
 import notificationsRoutes from './routes/notifications.js';
 import healthRoutes from './routes/health.js';
+import errorsRoutes from './routes/errors.js';
 import { notFound } from './errors/AppError.js';
+import { errorLogger, registerProcessErrorHandlers } from './middleware/errorLogger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
 import { staleDataIndicator } from './middleware/staleDataIndicator.js';
@@ -23,7 +28,33 @@ import { startScheduler } from './services/scheduler.js';
 
 dotenv.config();
 
-const isProduction = process.env.NODE_ENV === 'production';
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+const isProduction = nodeEnv === 'production';
+
+/**
+ * Resolve the CORS origin based on environment mode.
+ * - Production: use the configured production frontend domain (FRONTEND_URL or CORS_ORIGIN).
+ * - Development: allow localhost origins permissively.
+ */
+function resolveCorsOrigin(): string | string[] {
+  if (isProduction) {
+    const productionOrigin = process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
+    if (!productionOrigin) {
+      console.error(
+        '[api] FATAL: FRONTEND_URL or CORS_ORIGIN must be set in production mode for CORS.',
+      );
+      process.exit(1);
+    }
+    return productionOrigin;
+  }
+  // Development mode: allow common local origins
+  return [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+  ];
+}
 
 // Warn if using default session secret in production
 if (
@@ -40,21 +71,27 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 // --- Security headers (helmet) ---
+// Requirement 7.4: Strict-Transport-Security with max-age 1 year, includeSubDomains
 app.use(
   helmet({
     contentSecurityPolicy: false, // Let the SPA manage CSP
     frameguard: { action: 'deny' }, // X-Frame-Options: DENY
-    hsts: {
-      maxAge: 31536000, // 1 year in seconds
-      includeSubDomains: true,
-    },
+    hsts: isProduction
+      ? {
+          maxAge: 31536000, // 1 year in seconds
+          includeSubDomains: true,
+        }
+      : false, // Disable HSTS in development to avoid browser caching issues
     noSniff: true, // X-Content-Type-Options: nosniff (enabled by default, explicit for clarity)
   }),
 );
 
+// --- CORS ---
+// Requirement 7.3: CORS origin set to production frontend domain only in production,
+// permissive localhost origins in development.
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: resolveCorsOrigin(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -63,6 +100,7 @@ app.use(
 app.use(express.json());
 
 // --- Session middleware ---
+// Requirement 7.7: session cookies with Secure, HttpOnly, SameSite=Strict in production
 app.use(
   session({
     name: 'solo.sid',
@@ -73,7 +111,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: isProduction ? 'strict' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }),
@@ -94,6 +132,9 @@ app.use(staleDataIndicator);
 app.use(generalLimiter);
 
 app.use('/health', healthRoutes);
+
+// --- Frontend error reporting (no auth required) ---
+app.use('/api/errors', errorsRoutes);
 
 // --- Auth routes (stricter rate limit) ---
 app.use('/auth', authLimiter);
@@ -129,11 +170,15 @@ app.use((_req, _res, next) => {
   next(notFound('The requested resource was not found'));
 });
 
+// --- Structured error logger (logs to stdout for CloudWatch) ---
+app.use(errorLogger);
+
 // --- Centralized error handler (must be LAST middleware) ---
 app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`[api] Server running on http://localhost:${PORT}`);
+  registerProcessErrorHandlers();
   startScheduler();
 });
 

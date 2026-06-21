@@ -1,0 +1,131 @@
+name: Database Migration
+
+on:
+  workflow_call:
+    inputs:
+      cluster-name:
+        description: ECS cluster name to run the migration task in
+        required: true
+        type: string
+      task-definition:
+        description: ARN or family:revision of the migration task definition
+        required: true
+        type: string
+      subnets:
+        description: Comma-separated list of private subnet IDs for the migration task
+        required: true
+        type: string
+      security-groups:
+        description: Comma-separated list of security group IDs for the migration task
+        required: true
+        type: string
+      container-name:
+        description: Name of the container in the task definition
+        required: false
+        type: string
+        default: api
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+
+jobs:
+  migrate:
+    name: Run Database Migration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run migration ECS task
+        id: run-task
+        run: |
+          echo "Starting migration task..."
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "${{ inputs.cluster-name }}" \
+            --task-definition "${{ inputs.task-definition }}" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ inputs.subnets }}],securityGroups=[${{ inputs.security-groups }}],assignPublicIp=DISABLED}" \
+            --overrides '{
+              "containerOverrides": [{
+                "name": "${{ inputs.container-name }}",
+                "command": ["npx", "prisma", "migrate", "deploy"]
+              }]
+            }' \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
+            echo "::error::Failed to start migration ECS task"
+            exit 1
+          fi
+
+          echo "task-arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "Migration task started: $TASK_ARN"
+
+      - name: Wait for migration task to complete
+        id: wait-task
+        run: |
+          TASK_ARN="${{ steps.run-task.outputs.task-arn }}"
+          CLUSTER="${{ inputs.cluster-name }}"
+
+          echo "Waiting for migration task to stop..."
+          aws ecs wait tasks-stopped \
+            --cluster "$CLUSTER" \
+            --tasks "$TASK_ARN"
+
+          # Get task exit code and status
+          TASK_DETAIL=$(aws ecs describe-tasks \
+            --cluster "$CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0]')
+
+          EXIT_CODE=$(echo "$TASK_DETAIL" | jq -r '.containers[0].exitCode // "unknown"')
+          STOP_REASON=$(echo "$TASK_DETAIL" | jq -r '.stoppedReason // "none"')
+          CONTAINER_REASON=$(echo "$TASK_DETAIL" | jq -r '.containers[0].reason // "none"')
+
+          echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          echo "stop-reason=$STOP_REASON" >> "$GITHUB_OUTPUT"
+
+          echo "Task exit code: $EXIT_CODE"
+          echo "Task stop reason: $STOP_REASON"
+          echo "Container reason: $CONTAINER_REASON"
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "::error::Migration failed with exit code $EXIT_CODE. Reason: $CONTAINER_REASON. Stop reason: $STOP_REASON"
+            exit 1
+          fi
+
+          echo "Migration completed successfully."
+
+      - name: Fetch migration task logs on failure
+        if: failure()
+        run: |
+          TASK_ARN="${{ steps.run-task.outputs.task-arn }}"
+          TASK_ID=$(echo "$TASK_ARN" | awk -F'/' '{print $NF}')
+          CLUSTER="${{ inputs.cluster-name }}"
+          CONTAINER="${{ inputs.container-name }}"
+
+          # Attempt to retrieve CloudWatch logs for the failed task
+          LOG_STREAM="${CONTAINER}/${CONTAINER}/${TASK_ID}"
+          LOG_GROUP="/ecs/${{ inputs.cluster-name }}"
+
+          echo "::group::Migration task logs"
+          aws logs get-log-events \
+            --log-group-name "$LOG_GROUP" \
+            --log-stream-name "$LOG_STREAM" \
+            --limit 100 \
+            --query 'events[].message' \
+            --output text 2>/dev/null || echo "Could not retrieve logs. Check CloudWatch log group: $LOG_GROUP, stream: $LOG_STREAM"
+          echo "::endgroup::"
+
+          echo "::error::Database migration failed. Deployment halted. Review logs above for the failing migration name and error details."
+          exit 1

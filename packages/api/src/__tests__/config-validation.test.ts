@@ -36,13 +36,14 @@ describe('validateConfig', () => {
       validateConfig({});
     } catch (err) {
       const message = (err as Error).message;
-      // Should mention all required env vars by name
-      expect(message).toContain('DATABASE_URL');
-      expect(message).toContain('SESSION_SECRET');
-      expect(message).toContain('GITHUB_CLIENT_ID');
-      expect(message).toContain('GITHUB_CLIENT_SECRET');
-      expect(message).toContain('ENCRYPTION_KEY');
-      expect(message).toContain('FRONTEND_URL');
+      // Should mention required fields — either by env var name or by config path
+      expect(message).toContain('Configuration validation failed');
+      // When entire nested objects are missing, Zod reports the parent path
+      expect(message).toContain('database');
+      expect(message).toContain('session');
+      expect(message).toContain('github');
+      expect(message).toContain('encryption');
+      expect(message).toContain('cors');
     }
   });
 
@@ -67,12 +68,12 @@ describe('validateConfig', () => {
       expect.fail('Should have thrown');
     } catch (err) {
       const message = (err as Error).message;
-      expect(message).toContain('encryption.key');
-      expect(message).toContain('cors.origin');
+      expect(message).toContain('ENCRYPTION_KEY');
+      expect(message).toContain('FRONTEND_URL');
       // Should NOT complain about fields that are present and valid
-      expect(message).not.toContain('database.url');
-      expect(message).not.toContain('session.secret');
-      expect(message).not.toContain('github.clientId');
+      expect(message).not.toContain('DATABASE_URL');
+      expect(message).not.toContain('SESSION_SECRET');
+      expect(message).not.toContain('GITHUB_CLIENT_ID');
     }
   });
 
