@@ -21,6 +21,9 @@ export default defineConfig({
     },
   },
   build: {
+    // Generate manifest.json for bundle size analysis (scripts/check-bundle.ts)
+    manifest: true,
+
     // Generate source maps for error tracking (CloudWatch/Sentry upload)
     // 'hidden' generates .map files but does not add sourceMappingURL comment
     // to the built files, so maps are not publicly served.

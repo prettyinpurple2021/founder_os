@@ -6,20 +6,20 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
 
 ## Tasks
 
-- [ ] 1. Application configuration module with secrets integration
+- [x] 1. Application configuration module with secrets integration
   - [x] 1.1 Create configuration validation schema and loader
     - Create `packages/api/src/config/validation.ts` with a Zod schema defining all required config fields (port, nodeEnv, database.url, session.secret, github.clientId, github.clientSecret, github.callbackUrl, encryption.key, cors.origin)
     - Create `packages/api/src/config/index.ts` that loads config with hierarchical strategy: Secrets Manager → environment variables → defaults
     - Fail fast at startup with descriptive error messages listing all missing variables
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [-] 1.2 Create AWS Secrets Manager client
+  - [x] 1.2 Create AWS Secrets Manager client
     - Create `packages/api/src/config/secrets.ts` that retrieves secrets from AWS Secrets Manager using the `@aws-sdk/client-secrets-manager` package
     - Use IAM role-based access (no static keys) — in local dev, fall back to env vars
     - Support separate secret paths per environment (`/solo-founder-launch-os/{stage}/`)
     - _Requirements: 4.1, 4.5, 4.6, 4.7_
 
-  - [-] 1.3 Write unit tests for configuration validation
+  - [x] 1.3 Write unit tests for configuration validation
     - Test that validation rejects incomplete config with descriptive errors
     - Test that hierarchical override strategy works correctly
     - Test that secrets are never logged or exposed
@@ -43,7 +43,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
 - [x] 3. Checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. Multi-stage Dockerfile and Docker Compose
+- [x] 4. Multi-stage Dockerfile and Docker Compose
   - [x] 4.1 Create multi-stage production Dockerfile
     - Create `docker/Dockerfile` with three stages: `deps` (install production dependencies only), `builder` (compile TypeScript, generate Prisma client), `production` (minimal Node.js 20 Alpine image with compiled JS and production node_modules)
     - Run as non-root user (`appuser`) with a dedicated user account
@@ -56,16 +56,16 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Create `docker/.dockerignore` excluding node_modules, .git, dist, test files, .env, and other dev-only files
     - _Requirements: 1.7_
 
-  - [-] 4.3 Create docker-compose.yml for local development
+  - [x] 4.3 Create docker-compose.yml for local development
     - Create `docker/docker-compose.yml` with services: api (builds from Dockerfile), web (serves Vite dev or build), and postgres (PostgreSQL database)
     - Map ports, set env vars, configure volumes for hot-reload in dev
     - _Requirements: 1.5_
 
-  - [-] 4.4 Add startup environment variable validation
+  - [x] 4.4 Add startup environment variable validation
     - Update the API entrypoint (or config loader from task 1.1) to exit with non-zero code and log which variables are missing if required env vars are absent
     - _Requirements: 1.8_
 
-- [ ] 5. CDK infrastructure package — project setup and network stack
+- [x] 5. CDK infrastructure package — project setup and network stack
   - [x] 5.1 Initialize packages/infra CDK package
     - Create `packages/infra/` with `package.json`, `tsconfig.json`, `cdk.json`
     - Add `aws-cdk-lib`, `constructs`, and `vitest` as dependencies
@@ -74,7 +74,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Create `lib/config/tags.ts` with resource tagging helper (Project, Environment, ManagedBy, CostCenter)
     - _Requirements: 11.11, 11.10_
 
-  - [-] 5.2 Implement network stack (VPC, subnets, security groups)
+  - [x] 5.2 Implement network stack (VPC, subnets, security groups)
     - Create `packages/infra/lib/stacks/network-stack.ts`
     - Define VPC with public subnets (ALB, NAT), private subnets (ECS tasks), and isolated subnets (RDS)
     - Configure security groups: ALB allows inbound 443; ECS allows inbound from ALB only; RDS allows inbound from ECS only
@@ -180,7 +180,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Verify user ID, environment, and trace ID are included
     - _Requirements: 6.3_
 
-- [ ] 11. Frontend bundle optimization
+- [x] 11. Frontend bundle optimization
   - [x] 11.1 Configure Vite for production bundle optimization
     - Update `packages/web/vite.config.ts` to configure:
       - Code splitting via dynamic imports for route-level splitting
@@ -195,7 +195,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Set session cookies with Secure, HttpOnly, SameSite=Strict in production mode
     - _Requirements: 7.3, 7.4, 7.7_
 
-- [ ] 12. Wiring and integration
+- [x] 12. Wiring and integration
   - [x] 12.1 Wire configuration module into existing API startup
     - Update the API entry point (`packages/api/src/index.ts` or `app.ts`) to use the new `loadConfig()` at startup
     - Replace scattered `process.env` reads with structured config object
@@ -213,7 +213,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Pass trace ID to Sentry context for correlation
     - _Requirements: 10.7_
 
-- [-] 13. Final checkpoint — Ensure all tests pass
+- [x] 13. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
