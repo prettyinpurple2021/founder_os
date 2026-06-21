@@ -25,7 +25,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Test that secrets are never logged or exposed
     - _Requirements: 4.3, 4.4_
 
-- [ ] 2. Enhanced health check endpoint
+- [x] 2. Enhanced health check endpoint
   - [x] 2.1 Implement enhanced GET /health endpoint
     - Create or update `packages/api/src/routes/health.ts` with a GET /health endpoint
     - Return `{ status, timestamp, version, uptime, checks: { database: { status, latencyMs } } }`
@@ -34,7 +34,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Endpoint must be accessible without authentication and respond within 3 seconds
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [-] 2.2 Write integration test for health check endpoint
+  - [x] 2.2 Write integration test for health check endpoint
     - Test GET /health returns 200 with expected response shape when DB is available
     - Test GET /health returns 503 when DB connection fails
     - Test response completes within 3 seconds
@@ -85,7 +85,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Verify security group rules are correct
     - _Requirements: 11.7_
 
-- [ ] 6. CDK database and container stacks
+- [x] 6. CDK database and container stacks
   - [x] 6.1 Implement database stack (RDS, secrets, backups)
     - Create `packages/infra/lib/stacks/database-stack.ts`
     - RDS PostgreSQL 15, db.t3.micro, Multi-AZ enabled
@@ -95,7 +95,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Place RDS in isolated subnets (private, no public access)
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.7, 11.3_
 
-  - [-] 6.2 Implement container stack (ECR, ECS Fargate, ALB, auto-scaling)
+  - [x] 6.2 Implement container stack (ECR, ECS Fargate, ALB, auto-scaling)
     - Create `packages/infra/lib/stacks/container-stack.ts`
     - ECR repository with lifecycle policy (keep 10 tagged images, expire untagged after 7 days)
     - ECS Fargate service with ALB, health check on /health (3 consecutive failures → replace task)
@@ -105,7 +105,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - Deploy with rolling update and deployment circuit breaker for automatic rollback
     - _Requirements: 11.1, 11.2, 11.5, 11.6, 11.8, 11.9, 2.5, 2.9, 7.1, 7.2_
 
-  - [-] 6.3 Write CDK assertion tests for database and container stacks
+  - [x] 6.3 Write CDK assertion tests for database and container stacks
     - Verify RDS has Multi-AZ, backup retention 30 days, storage encrypted
     - Verify ECS auto-scaling min/max capacity
     - Verify ALB health check configuration
@@ -113,7 +113,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - _Requirements: 9.1, 9.4, 11.2, 11.6_
 
 - [ ] 7. CDK CDN and monitoring stacks
-  - [~] 7.1 Implement CDN stack (CloudFront, S3, certificates)
+  - [-] 7.1 Implement CDN stack (CloudFront, S3, certificates)
     - Create `packages/infra/lib/stacks/cdn-stack.ts`
     - S3 bucket for static assets (not publicly accessible, OAI access for CloudFront)
     - CloudFront distribution with S3 origin, gzip + Brotli compression, HTTPS only
@@ -121,7 +121,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
     - ACM certificate for the web domain (us-east-1 for CloudFront)
     - _Requirements: 8.4, 8.5, 11.4, 7.1, 7.5_
 
-  - [~] 7.2 Implement monitoring stack (CloudWatch dashboards, alarms, SNS)
+  - [-] 7.2 Implement monitoring stack (CloudWatch dashboards, alarms, SNS)
     - Create `packages/infra/lib/stacks/monitoring-stack.ts`
     - CloudWatch log group with 90-day retention for ECS container logs (JSON structured)
     - Alarms: error rate > 5% (5 min), p95 latency > 2s (5 min), CPU > 80% (10 min), DB connections > 80% pool max (5 min)
@@ -139,7 +139,7 @@ This plan transforms Solo Founder Launch OS from a local-only development setup 
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. GitHub Actions CI/CD workflows
-  - [~] 9.1 Create CI workflow for pull requests
+  - [-] 9.1 Create CI workflow for pull requests
     - Create `.github/workflows/ci.yml` triggered on pull request events
     - Steps: checkout, setup Node 20, cache npm dependencies, install, lint, type-check, test (API and Web in parallel)
     - Fail if any lint error, type error, or test failure
