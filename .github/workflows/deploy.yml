@@ -41,3 +41,6 @@ jobs:
 
       - name: Build Application
         run: npm run build
+
+      - name: Publish to AWS
+        run: npm run cdk:deploy
