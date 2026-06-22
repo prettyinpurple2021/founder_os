@@ -1,0 +1,22 @@
+{
+  "family": "founder-os-task",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "069091211516.dkr.ecr.us-east-1.amazonaws.com/founder_os:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ]
+    }
+  ],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}
