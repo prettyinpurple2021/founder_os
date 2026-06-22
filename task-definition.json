@@ -1,22 +1,29 @@
-{
-  "family": "founder-os-task",
-  "networkMode": "awsvpc",
-  "containerDefinitions": [
-    {
-      "name": "api",
-      "image": "069091211516.dkr.ecr.us-east-1.amazonaws.com/founder_os:latest",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 80,
-          "hostPort": 80
-        }
-      ]
-    }
-  ],
-  "requiresCompatibilities": [
-    "FARGATE"
-  ],
-  "cpu": "256",
-  "memory": "512"
-}
+deploy-api:
+    name: Deploy API to ECS
+    runs-on: ubuntu-latest
+    needs: [build-and-push-image]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-founder-os-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update image in task definition
+        id: update-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: api
+          image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build-and-push-image.outputs.image-tag }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+          service: founder-os-service
+          cluster: founder-os-cluster
+          wait-for-service-stability: false
