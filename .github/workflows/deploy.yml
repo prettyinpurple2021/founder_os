@@ -150,24 +150,19 @@ jobs:
     uses: ./.github/workflows/migration.yml
     secrets: inherit
 
-  deploy-api:
+ deploy-api:
     name: Deploy API to ECS
     runs-on: ubuntu-latest
-    needs: [build-and-push-image, migrate]
+    needs: [build-and-push-image]
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-founder-os-role
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Get current task definition
-        id: task-def
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_SERVICE }} \
-            --query 'taskDefinition' \
-            --output json > task-definition.json
 
       - name: Update image in task definition
         id: update-task-def
@@ -181,10 +176,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.update-task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
-          wait-for-minutes: 10
-          deployment-controller: ECS
-          # ECS circuit breaker is configured in the CDK stack (container-stack.ts)
-          # On health check failure, ECS automatically rolls back to the previous task definition
+          service: founder-os-service
+          cluster-name: founder-os-cluster # Using 'cluster-name' as required by your error log
+          wait-for-service-stability: false
