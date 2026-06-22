@@ -43,4 +43,4 @@ jobs:
         run: npm run build
 
       - name: Publish to AWS
-        run: npm run cdk:deploy -- --all --require-approval never
+        run: cd packages/infra && npx cdk deploy --all --require-approval never
