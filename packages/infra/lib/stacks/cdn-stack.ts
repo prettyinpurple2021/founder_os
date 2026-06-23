@@ -64,10 +64,7 @@ export class CdnStack extends cdk.Stack {
     this.bucket.grantRead(originAccessIdentity);
 
     // --- ACM Certificate (must be in us-east-1 for CloudFront) ---
-    this.certificate = new acm.Certificate(this, 'WebCertificate', {
-      domainName: config.domain.web,
-      validation: acm.CertificateValidation.fromDns(),
-    });
+    this.certificate = acm.Certificate.fromCertificateArn(this, 'WebCertificate', 'arn:aws:acm:us-east-1:069091211516:certificate/948f6a2d-f638-4ea0-9652-621d81647154');
 
     // --- CloudFront Distribution ---
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
