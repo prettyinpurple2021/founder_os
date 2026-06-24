@@ -38,8 +38,12 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Bootstrap AWS Environment
-        run: cd packages/infra && npx cdk bootstrap
+      # CDK bootstrap is a one-time account/region setup that requires elevated
+      # CloudFormation permissions (cloudformation:DescribeStacks, CreateStack,
+      # etc.) beyond what this deployment role carries.  Run it manually once:
+      #   cd packages/infra && npx cdk bootstrap aws://ACCOUNT/REGION
+      # or via: npm run bootstrap -- --stage production
+      # DO NOT add it back here — it will fail on every push with AccessDenied.
 
       - name: Publish to AWS
         run: cd packages/infra && npx cdk deploy --all --require-approval never
