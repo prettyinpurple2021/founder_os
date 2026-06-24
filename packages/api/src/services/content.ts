@@ -612,9 +612,9 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
     });
 
     if (!response.ok) {
-      // Consume the response body without exposing it — it may contain API key hints or
-      // sensitive provider-internal details that should not propagate to callers.
-      await response.body?.cancel();
+      // Consume and discard the response body — it may contain sensitive provider internals
+      // that should not propagate to callers. Use text() to ensure the connection is released.
+      await response.text().catch(() => {});
       throw new Error(`OpenAI API error (status ${response.status})`);
     }
 

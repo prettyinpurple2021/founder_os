@@ -98,8 +98,9 @@ router.post('/', errorReportLimiter, (req: Request, res: Response, next: NextFun
 
     // Sanitize user-controlled string fields: strip newlines and control characters
     // to prevent log injection attacks when entries are parsed line-by-line.
-    const sanitize = (s: string, maxLen: number): string =>
-      s.replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ').slice(0, maxLen);
+    // Handles null/undefined inputs by coercing to empty string first.
+    const sanitize = (s: string | null | undefined, maxLen: number): string =>
+      (s ?? '').replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ').slice(0, maxLen);
 
     // Write structured JSON log to stdout (CloudWatch picks this up)
     const structuredLog = {

@@ -116,6 +116,28 @@ export function createApp(config: AppConfig): express.Application {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // --- CSRF protection (origin-based, applied after session) ---
+  // For state-mutating requests from browsers (POST/PUT/DELETE/PATCH), verify the
+  // Origin header matches the allowed frontend URL. This guards against cross-site
+  // request forgery for session-cookie-authenticated endpoints.
+  // Safe methods (GET, HEAD, OPTIONS) and non-browser clients (no Origin) are allowed.
+  const allowedOrigin = config.cors.origin;
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
+    const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE']);
+    if (safeMethods.has(req.method)) {
+      next();
+      return;
+    }
+    const origin = req.headers.origin;
+    if (origin && origin !== allowedOrigin) {
+      res.status(403).json({
+        error: { code: 'FORBIDDEN', message: 'Cross-site request blocked', retryable: false },
+      });
+      return;
+    }
+    next();
+  });
+
   // --- Session expiration check (after Passport, before routes) ---
   app.use(sessionExpiration);
 
@@ -178,14 +200,33 @@ export function createApp(config: AppConfig): express.Application {
 
 /**
  * Build a config from environment variables synchronously (for test compatibility).
- * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager.
- * Falls back to safe development-only placeholder values when env vars are not set —
- * these placeholders are intentionally non-functional so they cannot be accidentally
- * used in production without real credentials.
+ * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager
+ * and runs validateConfig() — which enforces that all required secrets are present
+ * and non-empty (SESSION_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, ENCRYPTION_KEY).
+ *
+ * This synchronous path is only used for the test-compatibility default export.
+ * Production secrets are never needed here; tests supply their own values or mocks.
  */
 function buildConfigFromEnv(): AppConfig {
   const env = process.env;
   const isDev = (env.NODE_ENV ?? 'development') !== 'production';
+
+  // In production, required secrets must be supplied — fail fast with a clear message
+  // rather than silently using placeholder values.
+  if (!isDev) {
+    const missing = [
+      !env.SESSION_SECRET && 'SESSION_SECRET',
+      !env.GITHUB_CLIENT_ID && 'GITHUB_CLIENT_ID',
+      !env.GITHUB_CLIENT_SECRET && 'GITHUB_CLIENT_SECRET',
+      !env.ENCRYPTION_KEY && 'ENCRYPTION_KEY',
+    ].filter(Boolean);
+    if (missing.length > 0) {
+      throw new Error(
+        `[config] Required environment variables are not set in production: ${missing.join(', ')}`,
+      );
+    }
+  }
+
   return {
     port: env.PORT ? parseInt(env.PORT, 10) : 3001,
     nodeEnv: (env.NODE_ENV as AppConfig['nodeEnv']) ?? 'development',
