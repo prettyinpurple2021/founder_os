@@ -10,13 +10,12 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "noEmit": false
+    "sourceMap": true
   },
   "references": [
     { "path": "./packages/api" },
     { "path": "./packages/web" }
   ],
+  "files": [],
   "exclude": ["node_modules"]
 }
