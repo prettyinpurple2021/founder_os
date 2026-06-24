@@ -295,6 +295,8 @@ export async function fetchLabels(
 /**
  * Fetches the combined status checks for a specific commit SHA.
  * Returns the combined status including all individual check statuses.
+ * The ref parameter is always a 40-char hex SHA sourced from GitHub API responses,
+ * not from user input, so no additional format validation is required here.
  */
 export async function fetchStatusChecks(
   token: string,

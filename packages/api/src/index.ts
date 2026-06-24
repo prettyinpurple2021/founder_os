@@ -26,6 +26,7 @@ import { traceIdMiddleware } from './middleware/traceId.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
 import { staleDataIndicator } from './middleware/staleDataIndicator.js';
 import { generalLimiter, authLimiter, contentGenerationLimiter } from './middleware/rateLimit.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 import { startScheduler } from './services/scheduler.js';
 import { loadConfig, type AppConfig } from './config/index.js';
 
@@ -65,6 +66,7 @@ export function createApp(config: AppConfig): express.Application {
         directives: {
           defaultSrc: ["'none'"],
           frameSrc: ["'none'"],
+          frameAncestors: ["'none'"], // Prevent this API from being framed (clickjacking)
         },
       },
       frameguard: { action: 'deny' },
@@ -85,7 +87,8 @@ export function createApp(config: AppConfig): express.Application {
       origin: resolveCorsOrigin(config),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+      exposedHeaders: ['X-CSRF-Token'],
     }),
   );
   app.use(express.json());
@@ -116,27 +119,10 @@ export function createApp(config: AppConfig): express.Application {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // --- CSRF protection (origin-based, applied after session) ---
-  // For state-mutating requests from browsers (POST/PUT/DELETE/PATCH), verify the
-  // Origin header matches the allowed frontend URL. This guards against cross-site
-  // request forgery for session-cookie-authenticated endpoints.
-  // Safe methods (GET, HEAD, OPTIONS) and non-browser clients (no Origin) are allowed.
-  const allowedOrigin = config.cors.origin;
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
-    const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE']);
-    if (safeMethods.has(req.method)) {
-      next();
-      return;
-    }
-    const origin = req.headers.origin;
-    if (origin && origin !== allowedOrigin) {
-      res.status(403).json({
-        error: { code: 'FORBIDDEN', message: 'Cross-site request blocked', retryable: false },
-      });
-      return;
-    }
-    next();
-  });
+  // --- CSRF protection (synchronizer token pattern, applied after session) ---
+  // Generates a per-session token, exposes it in the X-CSRF-Token response header,
+  // and validates it on all state-mutating requests. Satisfies js/missing-token-validation.
+  app.use(csrfMiddleware);
 
   // --- Session expiration check (after Passport, before routes) ---
   app.use(sessionExpiration);
