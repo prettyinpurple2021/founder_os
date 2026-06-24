@@ -1,0 +1,21 @@
+{
+  "version": "54.0.0",
+  "files": {
+    "0d4c97f65f7f3ecf36205e7f43e3cebf644f40cefcca8af5b32572a04e9e836d": {
+      "displayName": "staging-database Template",
+      "source": {
+        "path": "staging-database.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "069091211516-us-east-1-4d7e8e8a": {
+          "bucketName": "cdk-hnb659fds-assets-069091211516-us-east-1",
+          "objectKey": "0d4c97f65f7f3ecf36205e7f43e3cebf644f40cefcca8af5b32572a04e9e836d.json",
+          "region": "us-east-1",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::069091211516:role/cdk-hnb659fds-file-publishing-role-069091211516-us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

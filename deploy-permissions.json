@@ -64,6 +64,17 @@
       "Resource": "arn:aws:secretsmanager:*:*:secret:/solo-founder-launch-os/*"
     },
     {
+      "Sid": "EC2ReadAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups"
+      ],
+      "Resource": "*"
+    },
+    {
       "Sid": "CloudFormationAccess",
       "Effect": "Allow",
       "Action": [
