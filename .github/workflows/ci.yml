@@ -25,11 +25,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace=packages/api
+
       - name: Lint
         run: npm run lint
 
       - name: Type check
-        run: npx tsc -b --noEmit
+        run: |
+          npx tsc -p packages/api/tsconfig.json --noEmit
+          npx tsc -p packages/web/tsconfig.json --noEmit
 
   test-api:
     name: Test API
@@ -47,6 +52,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace=packages/api
 
       - name: Run API tests
         run: npm run test:api
