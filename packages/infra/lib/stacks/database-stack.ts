@@ -67,7 +67,7 @@ export class DatabaseStack extends cdk.Stack {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_15,
       }),
-      instanceType: new ec2.InstanceType(config.database.instanceClass),
+      instanceType: new ec2.InstanceType(config.database.instanceClass.replace(/^db\./, '')),
       vpc,
       subnetGroup,
       securityGroups: [rdsSecurityGroup],
