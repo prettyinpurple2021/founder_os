@@ -107,6 +107,12 @@ describe('DatabaseStack', () => {
       });
     });
 
+    it('synthesizes a valid DBInstanceClass without a double db. prefix', () => {
+      template.hasResourceProperties('AWS::RDS::DBInstance', {
+        DBInstanceClass: 'db.t3.micro',
+      });
+    });
+
     it('has preferred backup window set to 03:00-04:00 UTC', () => {
       template.hasResourceProperties('AWS::RDS::DBInstance', {
         PreferredBackupWindow: '03:00-04:00',
