@@ -36,8 +36,8 @@ const DEFAULT_OAUTH_ERROR = {
  * @param frontendUrl - The validated frontend origin URL (e.g. "https://app.example.com")
  */
 export function createAuthRouter(frontendUrl: string): Router {
+  frontendUrl = new URL(frontendUrl).origin;
   const router = Router();
-
   /**
    * GET /auth/github
    * Initiates the GitHub OAuth flow.
