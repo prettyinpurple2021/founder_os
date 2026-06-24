@@ -10,7 +10,14 @@ import { ContainerStack } from '../lib/stacks/container-stack.js';
 import { CdnStack } from '../lib/stacks/cdn-stack.js';
 import { MonitoringStack } from '../lib/stacks/monitoring-stack.js';
 
-const app = new cdk.App();
+// Use LegacyStackSynthesizer so the CDK CLI does not require the CDK bootstrap
+// stack and does not try to read the /cdk-bootstrap/.../version SSM parameter.
+// The active stacks (NetworkStack, DatabaseStack) contain only CloudFormation-
+// native resources (VPC, RDS) and no Lambda/Docker file assets, so the legacy
+// synthesizer is fully sufficient here.
+const app = new cdk.App({
+  defaultStackSynthesizer: new cdk.LegacyStackSynthesizer(),
+});
 
 const stage = app.node.tryGetContext('stage') as 'staging' | 'production' ?? 'staging';
 const config = environments[stage];
