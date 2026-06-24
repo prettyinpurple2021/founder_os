@@ -614,7 +614,10 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
     if (!response.ok) {
       // Consume and discard the response body — it may contain sensitive provider internals
       // that should not propagate to callers. Use text() to ensure the connection is released.
-      await response.text().catch(() => {});
+      await response.text().catch((err: unknown) => {
+        // Log at debug level only — the caller receives a generic status error regardless.
+        console.debug('[callLLM] Failed to drain error response body:', err);
+      });
       throw new Error(`OpenAI API error (status ${response.status})`);
     }
 

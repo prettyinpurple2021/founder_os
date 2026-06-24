@@ -184,6 +184,9 @@ export function createApp(config: AppConfig): express.Application {
   return app;
 }
 
+/** Required byte-length for the encryption key (hex-encoded → 64 hex chars). */
+const ENCRYPTION_KEY_LENGTH = 64;
+
 /**
  * Build a config from environment variables synchronously (for test compatibility).
  * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager
@@ -218,7 +221,7 @@ function buildConfigFromEnv(): AppConfig {
     nodeEnv: (env.NODE_ENV as AppConfig['nodeEnv']) ?? 'development',
     database: { url: env.DATABASE_URL ?? 'postgresql://localhost:5432/test' },
     session: {
-      secret: env.SESSION_SECRET ?? (isDev ? 'dev-only-secret-not-for-production' : ''),
+      secret: env.SESSION_SECRET ?? (isDev ? 'unsafe-dev-secret' : ''),
       maxAge: env.SESSION_MAX_AGE ? parseInt(env.SESSION_MAX_AGE, 10) : 86400000,
     },
     github: {
@@ -226,7 +229,7 @@ function buildConfigFromEnv(): AppConfig {
       clientSecret: env.GITHUB_CLIENT_SECRET ?? '',
       callbackUrl: env.GITHUB_CALLBACK_URL ?? 'http://localhost:3001/auth/github/callback',
     },
-    encryption: { key: env.ENCRYPTION_KEY ?? (isDev ? '0'.repeat(64) : '') },
+    encryption: { key: env.ENCRYPTION_KEY ?? (isDev ? '0'.repeat(ENCRYPTION_KEY_LENGTH) : '') },
     errorTracking: {
       logGroupName: env.ERROR_LOG_GROUP_NAME ?? '/solo-founder-launch-os/api',
       environment: env.NODE_ENV ?? 'development',
