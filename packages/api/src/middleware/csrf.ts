@@ -30,25 +30,43 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
  * Express middleware that enforces CSRF token validation on state-mutating requests.
  */
 export function csrfMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // Ensure a CSRF token exists in the session.
-  // req.session is populated by express-session before this middleware runs.
-  if (req.session && !req.session.csrfToken) {
-    req.session.csrfToken = randomBytes(32).toString('hex');
-  }
-
-  // Always expose the current token so the SPA can cache it.
-  if (req.session?.csrfToken) {
-    res.setHeader('X-CSRF-Token', req.session.csrfToken);
-  }
-
-  // Safe methods do not mutate state — no validation needed.
-  if (SAFE_METHODS.has(req.method)) {
+  // Public endpoints that intentionally cannot attach custom headers (e.g. sendBeacon)
+  // should bypass CSRF enforcement.
+  if (req.path.startsWith('/api/errors')) {
     next();
     return;
   }
 
-  // No session yet (unauthenticated first-touch like OAuth callback) — let it through;
-  // the OAuth state parameter provides equivalent protection for those endpoints.
+  // Safe methods do not mutate state — no validation needed.
+  if (SAFE_METHODS.has(req.method)) {
+    // Mint a token on safe requests so the SPA can cache it before making mutating calls.
+    if (req.session && !req.session.csrfToken) {
+      req.session.csrfToken = randomBytes(32).toString('hex');
+    }
+
+    if (req.session?.csrfToken) {
+      res.setHeader('X-CSRF-Token', req.session.csrfToken);
+    }
+
+    next();
+    return;
+  }
+
+  // Ensure an existing session has a CSRF token.
+  // For brand-new (unauthenticated) sessions, allow through without enforcing CSRF.
+  if (req.session && !req.session.csrfToken) {
+    if (req.session.isNew) {
+      next();
+      return;
+    }
+    req.session.csrfToken = randomBytes(32).toString('hex');
+  }
+
+  if (req.session?.csrfToken) {
+    res.setHeader('X-CSRF-Token', req.session.csrfToken);
+  }
+
+  // No session yet (unauthenticated first-touch) — let it through.
   if (!req.session?.csrfToken) {
     next();
     return;
