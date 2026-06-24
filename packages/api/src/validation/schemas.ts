@@ -9,20 +9,36 @@ import { z } from 'zod';
 const GITHUB_OWNER_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 // GitHub repo names: alphanumeric, hyphens, underscores, dots, 1–100 characters.
 const GITHUB_REPO_NAME_RE = /^[a-zA-Z0-9._-]{1,100}$/;
+// GitHub full name: owner/repo.
+const GITHUB_FULL_NAME_RE =
+  /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?\/[a-zA-Z0-9._-]{1,100}$/;
 
 // --- POST /api/repos/connect ---
-export const connectRepoSchema = z.object({
-  githubId: z.number({ message: 'githubId must be a number' }),
-  name: z
-    .string()
-    .min(1, 'name is required')
-    .regex(GITHUB_REPO_NAME_RE, 'name must be a valid GitHub repository name'),
-  fullName: z.string().min(1, 'fullName is required'),
-  owner: z
-    .string()
-    .min(1, 'owner is required')
-    .regex(GITHUB_OWNER_RE, 'owner must be a valid GitHub username or organization name'),
-});
+export const connectRepoSchema = z
+  .object({
+    githubId: z.number({ message: 'githubId must be a number' }),
+    name: z
+      .string()
+      .min(1, 'name is required')
+      .regex(GITHUB_REPO_NAME_RE, 'name must be a valid GitHub repository name'),
+    fullName: z
+      .string()
+      .min(1, 'fullName is required')
+      .regex(GITHUB_FULL_NAME_RE, 'fullName must be in owner/repo format'),
+    owner: z
+      .string()
+      .min(1, 'owner is required')
+      .regex(GITHUB_OWNER_RE, 'owner must be a valid GitHub username or organization name'),
+  })
+  .superRefine((value, ctx) => {
+    if (value.fullName !== `${value.owner}/${value.name}`) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'fullName must match owner/name',
+        path: ['fullName'],
+      });
+    }
+  });
 
 // --- POST /api/content/generate ---
 export const generateContentSchema = z.object({

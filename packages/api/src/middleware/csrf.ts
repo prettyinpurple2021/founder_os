@@ -30,9 +30,8 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
  * Express middleware that enforces CSRF token validation on state-mutating requests.
  */
 export function csrfMiddleware(req: Request, res: Response, next: NextFunction): void {
-  // Public endpoints that intentionally cannot attach custom headers (e.g. sendBeacon)
-  // should bypass CSRF enforcement.
-  if (req.path.startsWith('/api/errors')) {
+  // /api/errors accepts unauthenticated beacon-style submissions that cannot set custom headers.
+  if (req.path === '/api/errors' || req.path.startsWith('/api/errors/')) {
     next();
     return;
   }
@@ -52,25 +51,14 @@ export function csrfMiddleware(req: Request, res: Response, next: NextFunction):
     return;
   }
 
-  // Ensure an existing session has a CSRF token.
-  // For brand-new (unauthenticated) sessions, allow through without enforcing CSRF.
-  if (req.session && !req.session.csrfToken) {
-    if (req.session.isNew) {
-      next();
-      return;
-    }
-    req.session.csrfToken = randomBytes(32).toString('hex');
-  }
-
-  if (req.session?.csrfToken) {
-    res.setHeader('X-CSRF-Token', req.session.csrfToken);
-  }
-
   // No session yet (unauthenticated first-touch) — let it through.
   if (!req.session?.csrfToken) {
     next();
     return;
   }
+
+  // Expose the current token so clients can keep it cached.
+  res.setHeader('X-CSRF-Token', req.session.csrfToken);
 
   // Validate the token supplied by the client.
   const providedToken = req.headers[CSRF_HEADER];

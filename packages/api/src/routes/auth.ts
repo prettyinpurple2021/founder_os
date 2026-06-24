@@ -36,8 +36,8 @@ const DEFAULT_OAUTH_ERROR = {
  * @param frontendUrl - The validated frontend origin URL (e.g. "https://app.example.com")
  */
 export function createAuthRouter(frontendUrl: string): Router {
-  frontendUrl = new URL(frontendUrl).origin;
   const router = Router();
+  const frontendOrigin = new URL(frontendUrl).origin;
   /**
    * GET /auth/github
    * Initiates the GitHub OAuth flow.
@@ -69,7 +69,7 @@ export function createAuthRouter(frontendUrl: string): Router {
             code: errorCode,
           });
           res.redirect(
-            `${frontendUrl}/login?error=${errorCode}&message=${encodedMessage}&retryable=true`,
+            `${frontendOrigin}/login?error=${errorCode}&message=${encodedMessage}&retryable=true`,
           );
           return;
         }
@@ -85,7 +85,7 @@ export function createAuthRouter(frontendUrl: string): Router {
             code: mapped.code,
           });
           res.redirect(
-            `${frontendUrl}/login?error=${mapped.code}&message=${encodedMessage}&retryable=true`,
+            `${frontendOrigin}/login?error=${mapped.code}&message=${encodedMessage}&retryable=true`,
           );
           return;
         }
@@ -97,14 +97,14 @@ export function createAuthRouter(frontendUrl: string): Router {
               'Failed to establish session. Please try again.',
             );
             res.redirect(
-              `${frontendUrl}/login?error=SESSION_INIT_FAILED&message=${encodedMessage}&retryable=true`,
+              `${frontendOrigin}/login?error=SESSION_INIT_FAILED&message=${encodedMessage}&retryable=true`,
             );
             return;
           }
           // Fire-and-forget auth login log
           const authUser = user as { id: string; username?: string };
           logAuth(authUser.id, 'login', { provider: 'github', username: authUser.username });
-          res.redirect(`${frontendUrl}/dashboard`);
+          res.redirect(`${frontendOrigin}/dashboard`);
         });
       },
     )(req, res, next);
