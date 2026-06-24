@@ -16,5 +16,6 @@
     { "path": "./packages/api" },
     { "path": "./packages/web" }
   ],
+  "files": [],
   "exclude": ["node_modules"]
 }

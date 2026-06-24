@@ -32,7 +32,9 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npx tsc -b --noEmit
+        run: |
+          npx tsc -p packages/api/tsconfig.json --noEmit
+          npx tsc -p packages/web/tsconfig.json --noEmit
 
   test-api:
     name: Test API

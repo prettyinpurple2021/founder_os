@@ -39,7 +39,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       zone: 'solofounder.app',
     },
     database: {
-      instanceClass: 'db.t3.micro',
+      instanceClass: 't3.micro',
       allocatedStorage: 20,
       multiAz: false,
     },
@@ -66,7 +66,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       zone: 'solofounder.app',
     },
     database: {
-      instanceClass: 'db.t3.micro',
+      instanceClass: 't3.micro',
       allocatedStorage: 20,
       multiAz: true,
     },
