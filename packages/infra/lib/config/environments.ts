@@ -30,7 +30,7 @@ export interface EnvironmentConfig {
 
 export const environments: Record<'staging' | 'production', EnvironmentConfig> = {
   staging: {
-    account: '123456789012', // Replace with your AWS account ID
+    account: '069091211516', // Replace with your AWS account ID
     region: 'us-east-1',
     stage: 'staging',
     domain: {
@@ -39,7 +39,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       zone: 'solofounder.app',
     },
     database: {
-      instanceClass: 'db.t3.micro',
+      instanceClass: 't3.micro',
       allocatedStorage: 20,
       multiAz: false,
     },
@@ -52,12 +52,12 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       scaleInCpuPercent: 30,
     },
     monitoring: {
-      alarmEmail: 'alerts@solofounder.app', // Replace with your email
+      alarmEmail: 'founder@solosuccesss.com', // Replace with your email
       logRetentionDays: 30,
     },
   },
   production: {
-    account: '987654321098', // Replace with your AWS account ID
+    account: '069091211516', // Replace with your AWS account ID
     region: 'us-east-1',
     stage: 'production',
     domain: {
@@ -66,7 +66,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       zone: 'solofounder.app',
     },
     database: {
-      instanceClass: 'db.t3.micro',
+      instanceClass: 't3.micro',
       allocatedStorage: 20,
       multiAz: true,
     },
@@ -79,7 +79,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       scaleInCpuPercent: 30,
     },
     monitoring: {
-      alarmEmail: 'alerts@solofounder.app', // Replace with your email
+      alarmEmail: 'founder@solosuccesss.com', // Replace with your email
       logRetentionDays: 90,
     },
   },

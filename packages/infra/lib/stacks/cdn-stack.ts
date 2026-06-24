@@ -14,23 +14,23 @@ export interface CdnStackProps extends cdk.StackProps {
 
 /**
  * CDN stack provisioning CloudFront, S3, and ACM certificate for the
- * Solo Founder Launch OS frontend static assets.
+ * Founder OS frontend static assets.
  *
  * - S3 bucket for static assets (block all public access, OAI for CloudFront)
  * - CloudFront Origin Access Identity (OAI) for secure S3 access
  * - ACM certificate in us-east-1 for the web domain (DNS validation)
  * - CloudFront distribution with:
- *   - S3 origin via OAI
- *   - HTTPS only viewer protocol policy
- *   - Gzip + Brotli compression enabled
- *   - Custom error responses: 403/404 → /index.html (SPA routing)
- *   - Default root object: index.html
- *   - PriceClass.PRICE_CLASS_100 for cost efficiency
+ * - S3 origin via OAI
+ * - HTTPS only viewer protocol policy
+ * - Gzip + Brotli compression enabled
+ * - Custom error responses: 403/404 → /index.html (SPA routing)
+ * - Default root object: index.html
+ * - PriceClass.PRICE_CLASS_100 for cost efficiency
  */
 export class CdnStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
-  public readonly certificate: acm.Certificate;
+  public readonly certificate: acm.ICertificate;
 
   constructor(scope: Construct, id: string, props: CdnStackProps) {
     super(scope, id, props);
@@ -64,10 +64,11 @@ export class CdnStack extends cdk.Stack {
     this.bucket.grantRead(originAccessIdentity);
 
     // --- ACM Certificate (must be in us-east-1 for CloudFront) ---
-    this.certificate = new acm.Certificate(this, 'WebCertificate', {
-      domainName: config.domain.web,
-      validation: acm.CertificateValidation.fromDns(),
-    });
+    this.certificate = acm.Certificate.fromCertificateArn(
+      this, 
+      'WebCertificate', 
+      'arn:aws:acm:us-east-1:069091211516:certificate/948f6a2d-f638-4ea0-9652-621d81647154'
+    );
 
     // --- CloudFront Distribution ---
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
