@@ -32,7 +32,9 @@ import passport from '../auth/passport.js';
 const mockedPrisma = prisma as any;
 
 // Import the router to extract handlers
-import router from '../routes/auth.js';
+import createAuthRouter from '../routes/auth.js';
+
+const router = createAuthRouter('http://localhost:5173');
 
 /**
  * Validates: Requirements 10.4
@@ -205,6 +207,34 @@ describe('Authentication Event Logging', () => {
           userId: null,
         },
       });
+    });
+
+    it('normalizes injected frontend URL to origin for redirects', async () => {
+      const routerWithPath = createAuthRouter('https://app.example.com/some/path');
+      (passport.authenticate as any).mockImplementation(
+        (_strategy: string, cb: (err: Error | null, user: any, info: any) => void) => {
+          return (_req: Request, _res: Response, _next: NextFunction) => {
+            cb(new Error('Token exchange failed'), false, undefined);
+          };
+        },
+      );
+
+      const callbackLayer = (routerWithPath as any).stack.find(
+        (l: any) => l.route?.path === '/auth/github/callback' && l.route?.methods?.get,
+      );
+      const callbackHandler =
+        callbackLayer.route.stack[callbackLayer.route.stack.length - 1].handle;
+
+      const req = createMockReq();
+      const res = createMockRes();
+      const next = vi.fn();
+
+      callbackHandler(req, res, next);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(res._redirectUrl).toContain('https://app.example.com/login');
+      expect(res._redirectUrl).not.toContain('/some/path/login');
     });
   });
 

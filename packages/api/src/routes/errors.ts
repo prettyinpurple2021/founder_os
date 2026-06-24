@@ -14,6 +14,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import { badRequest } from '../errors/AppError.js';
+import { sanitize } from '../lib/sanitize.js';
 
 const router = Router();
 
@@ -100,14 +101,14 @@ router.post('/', errorReportLimiter, (req: Request, res: Response, next: NextFun
     const structuredLog = {
       level: 'error',
       source: 'frontend',
-      timestamp: body.timestamp,
-      message: body.message.slice(0, 1024),
-      stack,
-      errorSource: body.source,
+      timestamp: sanitize(body.timestamp, 64),
+      message: sanitize(body.message, 1024),
+      stack: stack ? sanitize(stack, 4096) : null,
+      errorSource: body.source ? sanitize(body.source, 512) : null,
       line: body.line,
       column: body.column,
-      userAgent: body.userAgent.slice(0, 512),
-      pageUrl: body.url.slice(0, 2048),
+      userAgent: sanitize(body.userAgent, 512),
+      pageUrl: sanitize(body.url, 2048),
       environment: process.env.NODE_ENV || 'development',
       ip: req.ip || req.socket.remoteAddress || 'unknown',
     };

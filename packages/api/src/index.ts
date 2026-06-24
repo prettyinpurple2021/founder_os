@@ -8,7 +8,7 @@ import cors from 'cors';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import passport from './auth/passport.js';
-import authRoutes from './routes/auth.js';
+import { createAuthRouter } from './routes/auth.js';
 import reposRoutes from './routes/repos.js';
 import syncRoutes from './routes/sync.js';
 import tasksRoutes from './routes/tasks.js';
@@ -26,6 +26,7 @@ import { traceIdMiddleware } from './middleware/traceId.js';
 import { sessionExpiration } from './middleware/sessionExpiration.js';
 import { staleDataIndicator } from './middleware/staleDataIndicator.js';
 import { generalLimiter, authLimiter, contentGenerationLimiter } from './middleware/rateLimit.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 import { startScheduler } from './services/scheduler.js';
 import { loadConfig, type AppConfig } from './config/index.js';
 
@@ -61,7 +62,13 @@ export function createApp(config: AppConfig): express.Application {
   // Requirement 7.4: Strict-Transport-Security with max-age 1 year, includeSubDomains
   app.use(
     helmet({
-      contentSecurityPolicy: false, // Let the SPA manage CSP
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameSrc: ["'none'"],
+          frameAncestors: ["'none'"], // Prevent this API from being framed (clickjacking)
+        },
+      },
       frameguard: { action: 'deny' },
       hsts: isProduction
         ? {
@@ -80,7 +87,8 @@ export function createApp(config: AppConfig): express.Application {
       origin: resolveCorsOrigin(config),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+      exposedHeaders: ['X-CSRF-Token'],
     }),
   );
   app.use(express.json());
@@ -111,6 +119,11 @@ export function createApp(config: AppConfig): express.Application {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // --- CSRF protection (synchronizer token pattern, applied after session) ---
+  // Generates a per-session token, exposes it in the X-CSRF-Token response header,
+  // and validates it on all state-mutating requests. Satisfies js/missing-token-validation.
+  app.use(csrfMiddleware);
+
   // --- Session expiration check (after Passport, before routes) ---
   app.use(sessionExpiration);
 
@@ -129,7 +142,7 @@ export function createApp(config: AppConfig): express.Application {
 
   // --- Auth routes (stricter rate limit) ---
   app.use('/auth', authLimiter);
-  app.use(authRoutes);
+  app.use(createAuthRouter(config.cors.origin));
 
   // --- Repos routes ---
   app.use('/api/repos', reposRoutes);
@@ -171,26 +184,52 @@ export function createApp(config: AppConfig): express.Application {
   return app;
 }
 
+/** Required byte-length for the encryption key (hex-encoded → 64 hex chars). */
+const ENCRYPTION_KEY_LENGTH = 64;
+
 /**
  * Build a config from environment variables synchronously (for test compatibility).
- * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager.
+ * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager
+ * and runs validateConfig() — which enforces that all required secrets are present
+ * and non-empty (SESSION_SECRET, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, ENCRYPTION_KEY).
+ *
+ * This synchronous path is only used for the test-compatibility default export.
+ * Production secrets are never needed here; tests supply their own values or mocks.
  */
 function buildConfigFromEnv(): AppConfig {
   const env = process.env;
+  const isDev = (env.NODE_ENV ?? 'development') !== 'production';
+
+  // In production, required secrets must be supplied — fail fast with a clear message
+  // rather than silently using placeholder values.
+  if (!isDev) {
+    const missing = [
+      !env.SESSION_SECRET && 'SESSION_SECRET',
+      !env.GITHUB_CLIENT_ID && 'GITHUB_CLIENT_ID',
+      !env.GITHUB_CLIENT_SECRET && 'GITHUB_CLIENT_SECRET',
+      !env.ENCRYPTION_KEY && 'ENCRYPTION_KEY',
+    ].filter(Boolean);
+    if (missing.length > 0) {
+      throw new Error(
+        `[config] Required environment variables are not set in production: ${missing.join(', ')}`,
+      );
+    }
+  }
+
   return {
     port: env.PORT ? parseInt(env.PORT, 10) : 3001,
     nodeEnv: (env.NODE_ENV as AppConfig['nodeEnv']) ?? 'development',
     database: { url: env.DATABASE_URL ?? 'postgresql://localhost:5432/test' },
     session: {
-      secret: env.SESSION_SECRET ?? 'dev-secret-change-me',
+      secret: env.SESSION_SECRET ?? (isDev ? 'unsafe-dev-secret' : ''),
       maxAge: env.SESSION_MAX_AGE ? parseInt(env.SESSION_MAX_AGE, 10) : 86400000,
     },
     github: {
-      clientId: env.GITHUB_CLIENT_ID ?? 'test-client-id',
-      clientSecret: env.GITHUB_CLIENT_SECRET ?? 'test-client-secret',
+      clientId: env.GITHUB_CLIENT_ID ?? '',
+      clientSecret: env.GITHUB_CLIENT_SECRET ?? '',
       callbackUrl: env.GITHUB_CALLBACK_URL ?? 'http://localhost:3001/auth/github/callback',
     },
-    encryption: { key: env.ENCRYPTION_KEY ?? 'test-encryption-key-32chars!!!' },
+    encryption: { key: env.ENCRYPTION_KEY ?? (isDev ? '0'.repeat(ENCRYPTION_KEY_LENGTH) : '') },
     errorTracking: {
       logGroupName: env.ERROR_LOG_GROUP_NAME ?? '/solo-founder-launch-os/api',
       environment: env.NODE_ENV ?? 'development',

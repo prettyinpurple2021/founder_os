@@ -23,7 +23,20 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * In-memory cache for the CSRF token.
+ * The server returns the current token in the X-CSRF-Token response header on
+ * every GET request. We cache it here and attach it to all state-mutating requests.
+ */
+let cachedCsrfToken: string | null = null;
+
 async function handleResponse<T>(response: Response): Promise<T> {
+  // Cache the CSRF token whenever the server sends one.
+  const newToken = response.headers.get('x-csrf-token');
+  if (newToken) {
+    cachedCsrfToken = newToken;
+  }
+
   if (response.status === 401) {
     window.location.href = '/login';
     throw new ApiError(401, {
@@ -56,6 +69,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+/** Returns headers to include with every mutating request. */
+function mutatingHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cachedCsrfToken) {
+    headers['X-CSRF-Token'] = cachedCsrfToken;
+  }
+  return headers;
+}
+
 export async function get<T>(path: string): Promise<T> {
   const response = await fetch(path, {
     method: 'GET',
@@ -69,7 +91,7 @@ export async function post<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutatingHeaders(),
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   return handleResponse<T>(response);
@@ -79,7 +101,7 @@ export async function put<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
     method: 'PUT',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutatingHeaders(),
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   return handleResponse<T>(response);
@@ -89,7 +111,7 @@ export async function del<T>(path: string): Promise<T> {
   const response = await fetch(path, {
     method: 'DELETE',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: mutatingHeaders(),
   });
   return handleResponse<T>(response);
 }

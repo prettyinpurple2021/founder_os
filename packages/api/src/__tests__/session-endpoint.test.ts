@@ -23,7 +23,9 @@ const mockedPrisma = prisma as any;
 
 // We import the router and test the handler directly
 // To do this, we use a lightweight approach to extract the route handler
-import router from '../routes/auth.js';
+import createAuthRouter from '../routes/auth.js';
+
+const router = createAuthRouter('http://localhost:5173');
 
 /**
  * Helper to find and invoke a registered route handler from the router.
