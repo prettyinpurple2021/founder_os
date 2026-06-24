@@ -25,7 +25,9 @@ const mockedPrisma = prisma as any;
 
 // We'll test the route handler directly by importing the router
 // and extracting the POST /auth/logout handler
-import router from '../routes/auth.js';
+import createAuthRouter from '../routes/auth.js';
+
+const router = createAuthRouter('http://localhost:5173');
 
 // Extract the logout handler from the router stack
 function getLogoutHandler() {

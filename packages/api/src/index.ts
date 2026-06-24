@@ -8,7 +8,7 @@ import cors from 'cors';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import passport from './auth/passport.js';
-import authRoutes from './routes/auth.js';
+import { createAuthRouter } from './routes/auth.js';
 import reposRoutes from './routes/repos.js';
 import syncRoutes from './routes/sync.js';
 import tasksRoutes from './routes/tasks.js';
@@ -61,7 +61,12 @@ export function createApp(config: AppConfig): express.Application {
   // Requirement 7.4: Strict-Transport-Security with max-age 1 year, includeSubDomains
   app.use(
     helmet({
-      contentSecurityPolicy: false, // Let the SPA manage CSP
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameSrc: ["'none'"],
+        },
+      },
       frameguard: { action: 'deny' },
       hsts: isProduction
         ? {
@@ -129,7 +134,7 @@ export function createApp(config: AppConfig): express.Application {
 
   // --- Auth routes (stricter rate limit) ---
   app.use('/auth', authLimiter);
-  app.use(authRoutes);
+  app.use(createAuthRouter(config.cors.origin));
 
   // --- Repos routes ---
   app.use('/api/repos', reposRoutes);
@@ -174,23 +179,27 @@ export function createApp(config: AppConfig): express.Application {
 /**
  * Build a config from environment variables synchronously (for test compatibility).
  * In production, bootstrap() uses loadConfig() which also integrates Secrets Manager.
+ * Falls back to safe development-only placeholder values when env vars are not set —
+ * these placeholders are intentionally non-functional so they cannot be accidentally
+ * used in production without real credentials.
  */
 function buildConfigFromEnv(): AppConfig {
   const env = process.env;
+  const isDev = (env.NODE_ENV ?? 'development') !== 'production';
   return {
     port: env.PORT ? parseInt(env.PORT, 10) : 3001,
     nodeEnv: (env.NODE_ENV as AppConfig['nodeEnv']) ?? 'development',
     database: { url: env.DATABASE_URL ?? 'postgresql://localhost:5432/test' },
     session: {
-      secret: env.SESSION_SECRET ?? 'dev-secret-change-me',
+      secret: env.SESSION_SECRET ?? (isDev ? 'dev-only-secret-not-for-production' : ''),
       maxAge: env.SESSION_MAX_AGE ? parseInt(env.SESSION_MAX_AGE, 10) : 86400000,
     },
     github: {
-      clientId: env.GITHUB_CLIENT_ID ?? 'test-client-id',
-      clientSecret: env.GITHUB_CLIENT_SECRET ?? 'test-client-secret',
+      clientId: env.GITHUB_CLIENT_ID ?? '',
+      clientSecret: env.GITHUB_CLIENT_SECRET ?? '',
       callbackUrl: env.GITHUB_CALLBACK_URL ?? 'http://localhost:3001/auth/github/callback',
     },
-    encryption: { key: env.ENCRYPTION_KEY ?? 'test-encryption-key-32chars!!!' },
+    encryption: { key: env.ENCRYPTION_KEY ?? (isDev ? '0'.repeat(64) : '') },
     errorTracking: {
       logGroupName: env.ERROR_LOG_GROUP_NAME ?? '/solo-founder-launch-os/api',
       environment: env.NODE_ENV ?? 'development',

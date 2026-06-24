@@ -55,19 +55,8 @@ export default function RejectedDrafts() {
         setCopyStates((prev) => ({ ...prev, [draft.id]: false }));
       }, 2000);
     } catch {
-      // Fallback for environments where clipboard API is not available
-      const textArea = document.createElement('textarea');
-      textArea.value = draft.currentContent;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '-9999px';
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopyStates((prev) => ({ ...prev, [draft.id]: true }));
-      setTimeout(() => {
-        setCopyStates((prev) => ({ ...prev, [draft.id]: false }));
-      }, 2000);
+      // Clipboard API unavailable — silently fail rather than use deprecated execCommand
+      setCopyStates((prev) => ({ ...prev, [draft.id]: false }));
     }
   }, []);
 

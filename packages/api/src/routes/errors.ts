@@ -96,18 +96,23 @@ router.post('/', errorReportLimiter, (req: Request, res: Response, next: NextFun
     // Truncate stack trace if excessively long
     const stack = body.stack ? body.stack.slice(0, 4096) : null;
 
+    // Sanitize user-controlled string fields: strip newlines and control characters
+    // to prevent log injection attacks when entries are parsed line-by-line.
+    const sanitize = (s: string, maxLen: number): string =>
+      s.replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ').slice(0, maxLen);
+
     // Write structured JSON log to stdout (CloudWatch picks this up)
     const structuredLog = {
       level: 'error',
       source: 'frontend',
-      timestamp: body.timestamp,
-      message: body.message.slice(0, 1024),
-      stack,
-      errorSource: body.source,
+      timestamp: sanitize(body.timestamp, 64),
+      message: sanitize(body.message, 1024),
+      stack: stack ? sanitize(stack, 4096) : null,
+      errorSource: body.source ? sanitize(body.source, 512) : null,
       line: body.line,
       column: body.column,
-      userAgent: body.userAgent.slice(0, 512),
-      pageUrl: body.url.slice(0, 2048),
+      userAgent: sanitize(body.userAgent, 512),
+      pageUrl: sanitize(body.url, 2048),
       environment: process.env.NODE_ENV || 'development',
       ip: req.ip || req.socket.remoteAddress || 'unknown',
     };

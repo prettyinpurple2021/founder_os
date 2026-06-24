@@ -32,7 +32,9 @@ import passport from '../auth/passport.js';
 const mockedPrisma = prisma as any;
 
 // Import the router to extract handlers
-import router from '../routes/auth.js';
+import createAuthRouter from '../routes/auth.js';
+
+const router = createAuthRouter('http://localhost:5173');
 
 /**
  * Validates: Requirements 10.4

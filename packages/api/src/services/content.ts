@@ -612,8 +612,10 @@ export async function callLLM(systemPrompt: string, userPrompt: string): Promise
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${errorBody}`);
+      // Consume the response body without exposing it — it may contain API key hints or
+      // sensitive provider-internal details that should not propagate to callers.
+      await response.body?.cancel();
+      throw new Error(`OpenAI API error (status ${response.status})`);
     }
 
     const data = await response.json();

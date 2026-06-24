@@ -5,12 +5,23 @@
  */
 import { z } from 'zod';
 
+// GitHub owner names: alphanumeric and hyphens, 1–39 characters, no leading/trailing hyphens.
+const GITHUB_OWNER_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+// GitHub repo names: alphanumeric, hyphens, underscores, dots, 1–100 characters.
+const GITHUB_REPO_NAME_RE = /^[a-zA-Z0-9._-]{1,100}$/;
+
 // --- POST /api/repos/connect ---
 export const connectRepoSchema = z.object({
   githubId: z.number({ message: 'githubId must be a number' }),
-  name: z.string().min(1, 'name is required'),
+  name: z
+    .string()
+    .min(1, 'name is required')
+    .regex(GITHUB_REPO_NAME_RE, 'name must be a valid GitHub repository name'),
   fullName: z.string().min(1, 'fullName is required'),
-  owner: z.string().min(1, 'owner is required'),
+  owner: z
+    .string()
+    .min(1, 'owner is required')
+    .regex(GITHUB_OWNER_RE, 'owner must be a valid GitHub username or organization name'),
 });
 
 // --- POST /api/content/generate ---

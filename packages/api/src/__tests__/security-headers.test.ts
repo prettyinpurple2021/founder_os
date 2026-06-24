@@ -60,8 +60,11 @@ describe('Security Headers (helmet)', () => {
     expect(res.headers['strict-transport-security']).toBeUndefined();
   });
 
-  it('should not set Content-Security-Policy (disabled for SPA)', async () => {
+  it('should set Content-Security-Policy header', async () => {
     const res = await request(app).get('/health');
-    expect(res.headers['content-security-policy']).toBeUndefined();
+    const csp = res.headers['content-security-policy'];
+    expect(csp).toBeDefined();
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-src 'none'");
   });
 });

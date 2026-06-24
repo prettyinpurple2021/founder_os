@@ -246,7 +246,7 @@ export async function fetchIssues(
   owner: string,
   repo: string,
 ): Promise<GitHubIssue[]> {
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/issues?state=open&per_page=100&sort=updated&direction=desc`;
+  const url = `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?state=open&per_page=100&sort=updated&direction=desc`;
   return githubFetch<GitHubIssue[]>(url, token);
 }
 
@@ -259,7 +259,7 @@ export async function fetchPullRequests(
   owner: string,
   repo: string,
 ): Promise<GitHubPullRequest[]> {
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/pulls?state=all&per_page=100&sort=updated&direction=desc`;
+  const url = `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls?state=all&per_page=100&sort=updated&direction=desc`;
   return githubFetch<GitHubPullRequest[]>(url, token);
 }
 
@@ -276,7 +276,7 @@ export async function fetchCommits(
   since.setDate(since.getDate() - 30);
   const sinceISO = since.toISOString();
 
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/commits?per_page=100&since=${sinceISO}`;
+  const url = `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?per_page=100&since=${sinceISO}`;
   return githubFetch<GitHubCommit[]>(url, token);
 }
 
@@ -288,7 +288,7 @@ export async function fetchLabels(
   owner: string,
   repo: string,
 ): Promise<GitHubLabel[]> {
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/labels?per_page=100`;
+  const url = `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/labels?per_page=100`;
   return githubFetch<GitHubLabel[]>(url, token);
 }
 
@@ -302,7 +302,7 @@ export async function fetchStatusChecks(
   repo: string,
   ref: string,
 ): Promise<GitHubStatusCheck> {
-  const url = `${GITHUB_API_BASE}/repos/${owner}/${repo}/commits/${ref}/status`;
+  const url = `${GITHUB_API_BASE}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits/${encodeURIComponent(ref)}/status`;
   const result = await githubFetch<Omit<GitHubStatusCheck, 'sha'>>(url, token);
   return { ...result, sha: ref };
 }
