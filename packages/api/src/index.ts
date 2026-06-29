@@ -257,7 +257,16 @@ async function bootstrap(): Promise<void> {
   const bootstrappedApp = createApp(config);
 
   bootstrappedApp.listen(config.port, () => {
-    console.log(`[api] Server running on http://localhost:${config.port}`);
+    process.stdout.write(
+      JSON.stringify({
+        level: 'info',
+        timestamp: new Date().toISOString(),
+        service: 'api',
+        message: `Server running on http://localhost:${config.port}`,
+        port: config.port,
+        env: config.nodeEnv,
+      }) + '\n',
+    );
     registerProcessErrorHandlers();
     startScheduler();
   });

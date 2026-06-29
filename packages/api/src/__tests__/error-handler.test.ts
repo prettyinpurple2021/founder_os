@@ -213,18 +213,23 @@ describe('errorHandler middleware', () => {
     expect(body.error.context).toBeUndefined();
   });
 
-  it('logs the error to console', () => {
+  it('logs the error via structured logger, not console.error', () => {
     const err = internalError('DB connection failed');
     const res = createMockRes();
 
     errorHandler(err, mockReq, res, mockNext);
 
-    expect(console.error).toHaveBeenCalledWith(
+    // errorLogger middleware handles console output; errorHandler delegates to logError
+    expect(console.error).not.toHaveBeenCalledWith(
       '[error]',
+      expect.objectContaining({ name: 'AppError' }),
+    );
+    expect(logger.logError).toHaveBeenCalledWith(
+      undefined,
+      'app_error',
       expect.objectContaining({
-        name: 'AppError',
-        message: 'DB connection failed',
         code: 'INTERNAL_ERROR',
+        message: 'DB connection failed',
         statusCode: 500,
       }),
     );
