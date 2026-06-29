@@ -10,6 +10,24 @@ import * as cron from 'node-cron';
 import prisma from '../lib/prisma.js';
 import { performSync } from './sync.js';
 
+/** Writes a structured JSON log to stdout (CloudWatch-compatible). */
+function schedulerLog(
+  level: 'info' | 'error',
+  message: string,
+  extra?: Record<string, unknown>,
+): void {
+  process.stdout.write(
+    JSON.stringify({
+      ...(extra ?? {}),
+      level,
+      timestamp: new Date().toISOString(),
+      service: 'scheduler',
+      environment: process.env.NODE_ENV || 'development',
+      message,
+    }) + '\n',
+  );
+}
+
 let scheduledTask: cron.ScheduledTask | null = null;
 
 /**
@@ -63,17 +81,17 @@ async function runScheduledSync(): Promise<void> {
 
       // Trigger sync (fire-and-forget per repository, log errors)
       performSync(repo.id).catch((err) => {
-        console.error(
-          `[scheduler] Sync failed for repository ${repo.fullName}:`,
-          err instanceof Error ? err.message : err,
-        );
+        schedulerLog('error', `Sync failed for repository ${repo.fullName}`, {
+          error: err instanceof Error ? err.message : String(err),
+          repositoryId: repo.id,
+          repositoryName: repo.fullName,
+        });
       });
     }
   } catch (err) {
-    console.error(
-      '[scheduler] Error running scheduled sync:',
-      err instanceof Error ? err.message : err,
-    );
+    schedulerLog('error', 'Error running scheduled sync', {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -87,7 +105,7 @@ async function runScheduledSync(): Promise<void> {
  */
 export function startScheduler(): void {
   if (scheduledTask) {
-    console.log('[scheduler] Scheduler already running');
+    schedulerLog('info', 'Scheduler already running');
     return;
   }
 
@@ -97,7 +115,7 @@ export function startScheduler(): void {
     runScheduledSync();
   });
 
-  console.log('[scheduler] Automatic sync scheduler started (checking every minute)');
+  schedulerLog('info', 'Automatic sync scheduler started (checking every minute)');
 }
 
 /**
@@ -107,7 +125,7 @@ export function stopScheduler(): void {
   if (scheduledTask) {
     scheduledTask.stop();
     scheduledTask = null;
-    console.log('[scheduler] Scheduler stopped');
+    schedulerLog('info', 'Scheduler stopped');
   }
 }
 
