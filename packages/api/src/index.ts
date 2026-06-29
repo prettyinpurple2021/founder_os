@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import session from 'express-session';
 import dotenv from 'dotenv';
-import passport from './auth/passport.js';
+import passport, { initializePassport } from './auth/passport.js';
 import { createAuthRouter } from './routes/auth.js';
 import reposRoutes from './routes/repos.js';
 import syncRoutes from './routes/sync.js';
@@ -32,6 +32,9 @@ import { loadConfig, type AppConfig } from './config/index.js';
 
 // Load .env for local development (Secrets Manager overrides in production)
 dotenv.config();
+
+// Initialize passport after env vars are loaded
+initializePassport();
 
 /**
  * Resolve the CORS origin based on config and environment mode.
