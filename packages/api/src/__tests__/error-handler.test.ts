@@ -220,10 +220,7 @@ describe('errorHandler middleware', () => {
     errorHandler(err, mockReq, res, mockNext);
 
     // errorLogger middleware handles console output; errorHandler delegates to logError
-    expect(console.error).not.toHaveBeenCalledWith(
-      '[error]',
-      expect.objectContaining({ name: 'AppError' }),
-    );
+    expect(console.error).not.toHaveBeenCalled();
     expect(logger.logError).toHaveBeenCalledWith(
       undefined,
       'app_error',
