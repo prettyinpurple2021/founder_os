@@ -18,11 +18,12 @@ function schedulerLog(
 ): void {
   process.stdout.write(
     JSON.stringify({
+      ...(extra ?? {}),
       level,
       timestamp: new Date().toISOString(),
       service: 'scheduler',
+      environment: process.env.NODE_ENV || 'development',
       message,
-      ...extra,
     }) + '\n',
   );
 }
