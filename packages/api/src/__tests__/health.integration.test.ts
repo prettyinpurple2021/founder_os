@@ -13,16 +13,9 @@ vi.mock('../lib/prisma.js', () => ({
 }));
 
 // Mock passport to avoid requiring GitHub OAuth env vars in tests
-vi.mock('../auth/passport.js', () => {
-  const passport = {
-    initialize: () => (_req: unknown, _res: unknown, next: () => void) => next(),
-    session: () => (_req: unknown, _res: unknown, next: () => void) => next(),
-    authenticate: () => (_req: unknown, _res: unknown, next: () => void) => next(),
-    use: () => {},
-    serializeUser: () => {},
-    deserializeUser: () => {},
-  };
-  return { default: passport, initializePassport: vi.fn() };
+vi.mock('../auth/passport.js', async () => {
+  const { createPassportMock } = await import('./helpers/passport-mock.js');
+  return createPassportMock();
 });
 
 // Mock the scheduler to prevent cron jobs from starting
