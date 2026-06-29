@@ -26,14 +26,6 @@ import { createNotification, buildResponseNotification } from '../services/notif
  * In production, stack traces are omitted from the context field.
  */
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
-  // Log the error to console
-  console.error('[error]', {
-    name: err.name,
-    message: err.message,
-    stack: err.stack,
-    ...(err instanceof AppError && { code: err.code, statusCode: err.statusCode }),
-  });
-
   // Determine status code for logging
   const statusCode = err instanceof AppError ? err.statusCode : 500;
 
