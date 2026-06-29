@@ -12,7 +12,10 @@ vi.mock('../auth/passport.js', () => {
     serializeUser: () => {},
     deserializeUser: () => {},
   };
-  return { default: passport };
+  return {
+    default: passport,
+    initializePassport: () => {},
+  };
 });
 
 // Mock the scheduler to prevent cron jobs from starting
