@@ -267,7 +267,7 @@ async function bootstrap(): Promise<void> {
         service: 'api',
         message: `Server running on http://localhost:${config.port}`,
         port: config.port,
-        env: config.nodeEnv,
+        environment: config.nodeEnv,
       }) + '\n',
     );
     registerProcessErrorHandlers();
