@@ -30,13 +30,13 @@ export interface EnvironmentConfig {
 
 export const environments: Record<'staging' | 'production', EnvironmentConfig> = {
   staging: {
-    account: '069091211516', // Replace with your AWS account ID
+    account: '069091211516',
     region: 'us-east-1',
     stage: 'staging',
     domain: {
-      api: 'api.staging.solofounder.app',
-      web: 'staging.solofounder.app',
-      zone: 'solofounder.app',
+      api: 'api.solo-founder.space',
+      web: 'app.solo-founder.space',
+      zone: 'solo-founder.space',
     },
     database: {
       instanceClass: 't3.micro',
@@ -57,13 +57,13 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
     },
   },
   production: {
-    account: '069091211516', // Replace with your AWS account ID
+    account: '069091211516',
     region: 'us-east-1',
     stage: 'production',
     domain: {
-      api: 'api.solofounder.app',
-      web: 'app.solofounder.app',
-      zone: 'solofounder.app',
+      api: 'api.solo-founder.space',
+      web: 'solo-founder.space',
+      zone: 'solo-founder.space',
     },
     database: {
       instanceClass: 't3.micro',

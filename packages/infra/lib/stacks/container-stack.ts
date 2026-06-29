@@ -37,6 +37,7 @@ export class ContainerStack extends cdk.Stack {
   public readonly service: ecs.FargateService;
   public readonly loadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly logGroup: logs.LogGroup;
+  public readonly targetGroup: elbv2.ApplicationTargetGroup;
 
   constructor(scope: Construct, id: string, props: ContainerStackProps) {
     super(scope, id, props);
@@ -224,7 +225,7 @@ export class ContainerStack extends cdk.Stack {
     });
 
     // Register service with ALB target group
-    const targetGroup = httpsListener.addTargets('ApiTargetGroup', {
+    this.targetGroup = httpsListener.addTargets('ApiTargetGroup', {
       targetGroupName: `sf-${config.stage}-api-tg`,
       port: 3001,
       protocol: elbv2.ApplicationProtocol.HTTP,
