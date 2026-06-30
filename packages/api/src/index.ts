@@ -130,11 +130,11 @@ export function createApp(config: AppConfig): express.Application {
   // --- Session expiration check (after Passport, before routes) ---
   app.use(sessionExpiration);
 
-  // --- Stale data indicator (after auth, before routes) ---
-  app.use(staleDataIndicator);
-
   // --- Rate limiting (after session, before routes) ---
   app.use(generalLimiter);
+
+  // --- Stale data indicator (after auth, before routes) ---
+  app.use(staleDataIndicator);
 
   // --- Health check (no auth required) ---
   // Requirement 3.5: accessible without authentication
