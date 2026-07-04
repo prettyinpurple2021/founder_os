@@ -3,6 +3,8 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96 bits, recommended for GCM
 const AUTH_TAG_LENGTH = 16; // 128 bits
+const BASE64_32_BYTE_KEY_PATTERN =
+  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/;
 
 /**
  * Returns the validated 32-byte encryption key from the ENCRYPTION_KEY env variable.
@@ -21,12 +23,11 @@ function getKey(): Buffer {
     return Buffer.from(encryptionKey, 'hex');
   }
 
-  const base64Key = Buffer.from(encryptionKey, 'base64');
-  if (
-    base64Key.length === 32 &&
-    base64Key.toString('base64').replace(/=+$/, '') === encryptionKey.replace(/=+$/, '')
-  ) {
-    return base64Key;
+  if (BASE64_32_BYTE_KEY_PATTERN.test(encryptionKey)) {
+    const base64Key = Buffer.from(encryptionKey, 'base64');
+    if (base64Key.length === 32 && base64Key.toString('base64') === encryptionKey) {
+      return base64Key;
+    }
   }
 
   throw new Error('ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.');
