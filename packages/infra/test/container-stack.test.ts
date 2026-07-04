@@ -85,6 +85,8 @@ describe('ContainerStack', () => {
       albSecurityGroup,
       ecsSecurityGroup,
       databaseSecretArn,
+      databaseEndpointAddress: 'test-db.cluster-abcdefghijkl.us-east-1.rds.amazonaws.com',
+      databaseEndpointPort: '5432',
       env: { account: testConfig.account, region: testConfig.region },
     });
 
@@ -154,6 +156,30 @@ describe('ContainerStack', () => {
     it('configures task definition with expected memory', () => {
       template.hasResourceProperties('AWS::ECS::TaskDefinition', {
         Memory: String(testConfig.ecs.memory),
+      });
+    });
+
+    it('injects the deployed runtime configuration into the container', () => {
+      template.hasResourceProperties('AWS::ECS::TaskDefinition', {
+        ContainerDefinitions: Match.arrayWith([
+          Match.objectLike({
+            Environment: Match.arrayWith([
+              { Name: 'FRONTEND_URL', Value: 'https://app.solofounder.app' },
+              { Name: 'DATABASE_HOST', Value: 'test-db.cluster-abcdefghijkl.us-east-1.rds.amazonaws.com' },
+              { Name: 'DATABASE_PORT', Value: '5432' },
+              { Name: 'DATABASE_NAME', Value: 'solofounder' },
+            ]),
+            Secrets: Match.arrayWith([
+              Match.objectLike({ Name: 'DATABASE_USER' }),
+              Match.objectLike({ Name: 'DATABASE_PASSWORD' }),
+              Match.objectLike({ Name: 'SESSION_SECRET' }),
+              Match.objectLike({ Name: 'GITHUB_CLIENT_ID' }),
+              Match.objectLike({ Name: 'GITHUB_CLIENT_SECRET' }),
+              Match.objectLike({ Name: 'GITHUB_CALLBACK_URL' }),
+              Match.objectLike({ Name: 'ENCRYPTION_KEY' }),
+            ]),
+          }),
+        ]),
       });
     });
   });

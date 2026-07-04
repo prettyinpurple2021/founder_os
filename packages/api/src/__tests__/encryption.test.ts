@@ -5,6 +5,7 @@ import { encrypt, decrypt, getDecryptedToken } from '../lib/encryption.js';
 const TEST_KEY = 'a'.repeat(64);
 // A different valid key for wrong-key tests
 const WRONG_KEY = 'b'.repeat(64);
+const BASE64_TEST_KEY = Buffer.alloc(32, 7).toString('base64');
 
 describe('Encryption Utilities', () => {
   beforeEach(() => {
@@ -106,13 +107,25 @@ describe('Encryption Utilities', () => {
     it('should throw if ENCRYPTION_KEY is too short', () => {
       process.env.ENCRYPTION_KEY = 'abcd1234'; // Only 8 hex chars
 
-      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be exactly 64 hex characters');
+      expect(() => encrypt('test')).toThrow(
+        'ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.',
+      );
     });
 
     it('should throw if ENCRYPTION_KEY is too long', () => {
       process.env.ENCRYPTION_KEY = 'a'.repeat(128);
 
-      expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be exactly 64 hex characters');
+      expect(() => encrypt('test')).toThrow(
+        'ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.',
+      );
+    });
+
+    it('accepts a 32-byte base64-encoded key', () => {
+      process.env.ENCRYPTION_KEY = BASE64_TEST_KEY;
+
+      const encrypted = encrypt('test');
+
+      expect(decrypt(encrypted)).toBe('test');
     });
   });
 

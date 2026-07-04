@@ -9,21 +9,26 @@ const AUTH_TAG_LENGTH = 16; // 128 bits
  * Throws if the key is missing or not exactly 64 hex characters (32 bytes).
  */
 function getKey(): Buffer {
-  const keyHex = process.env.ENCRYPTION_KEY;
+  const encryptionKey = process.env.ENCRYPTION_KEY;
 
-  if (!keyHex) {
+  if (!encryptionKey) {
     throw new Error(
-      'ENCRYPTION_KEY environment variable is not set. A 32-byte hex string (64 characters) is required.',
+      'ENCRYPTION_KEY environment variable is not set. A 32-byte hex or base64-encoded key is required.',
     );
   }
 
-  if (keyHex.length !== 64) {
-    throw new Error(
-      `ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). Got ${keyHex.length} characters.`,
-    );
+  if (/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
+    return Buffer.from(encryptionKey, 'hex');
   }
 
-  return Buffer.from(keyHex, 'hex');
+  const base64Key = Buffer.from(encryptionKey, 'base64');
+  if (base64Key.length === 32 && base64Key.toString('base64').replace(/=+$/, '') === encryptionKey.replace(/=+$/, '')) {
+    return base64Key;
+  }
+
+  throw new Error(
+    'ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.',
+  );
 }
 
 /**

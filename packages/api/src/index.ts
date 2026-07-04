@@ -29,6 +29,7 @@ import { generalLimiter, authLimiter, contentGenerationLimiter } from './middlew
 import { csrfMiddleware } from './middleware/csrf.js';
 import { startScheduler } from './services/scheduler.js';
 import { loadConfig, type AppConfig } from './config/index.js';
+import { buildDatabaseUrl } from './config/databaseUrl.js';
 
 // Load .env for local development (Secrets Manager overrides in production)
 dotenv.config();
@@ -222,7 +223,7 @@ function buildConfigFromEnv(): AppConfig {
   return {
     port: env.PORT ? parseInt(env.PORT, 10) : 3001,
     nodeEnv: (env.NODE_ENV as AppConfig['nodeEnv']) ?? 'development',
-    database: { url: env.DATABASE_URL ?? 'postgresql://localhost:5432/test' },
+    database: { url: buildDatabaseUrl(env) || 'postgresql://localhost:5432/test' },
     session: {
       secret: env.SESSION_SECRET ?? (isDev ? 'unsafe-dev-secret' : ''),
       maxAge: env.SESSION_MAX_AGE ? parseInt(env.SESSION_MAX_AGE, 10) : 86400000,
