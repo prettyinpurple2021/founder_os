@@ -22,13 +22,14 @@ function getKey(): Buffer {
   }
 
   const base64Key = Buffer.from(encryptionKey, 'base64');
-  if (base64Key.length === 32 && base64Key.toString('base64').replace(/=+$/, '') === encryptionKey.replace(/=+$/, '')) {
+  if (
+    base64Key.length === 32 &&
+    base64Key.toString('base64').replace(/=+$/, '') === encryptionKey.replace(/=+$/, '')
+  ) {
     return base64Key;
   }
 
-  throw new Error(
-    'ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.',
-  );
+  throw new Error('ENCRYPTION_KEY must be a 32-byte key encoded as 64 hex characters or base64.');
 }
 
 /**
