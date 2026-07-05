@@ -41,6 +41,8 @@ const containerStack = new ContainerStack(app, `${config.stage}-container`, {
   albSecurityGroup: networkStack.albSecurityGroup,
   ecsSecurityGroup: networkStack.ecsSecurityGroup,
   databaseSecretArn: databaseStack.dbSecret.secretArn,
+  databaseEndpointAddress: databaseStack.dbInstance.dbInstanceEndpointAddress,
+  databaseEndpointPort: databaseStack.dbInstance.dbInstanceEndpointPort,
 });
 containerStack.addDependency(networkStack);
 containerStack.addDependency(databaseStack);

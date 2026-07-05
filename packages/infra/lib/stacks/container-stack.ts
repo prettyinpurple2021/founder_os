@@ -8,6 +8,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
 import type { EnvironmentConfig } from '../config/environments.js';
 
@@ -17,6 +18,8 @@ export interface ContainerStackProps extends cdk.StackProps {
   readonly albSecurityGroup: ec2.ISecurityGroup;
   readonly ecsSecurityGroup: ec2.ISecurityGroup;
   readonly databaseSecretArn: string;
+  readonly databaseEndpointAddress: string;
+  readonly databaseEndpointPort: string;
 }
 
 /**
@@ -42,7 +45,46 @@ export class ContainerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ContainerStackProps) {
     super(scope, id, props);
 
-    const { config, vpc, albSecurityGroup, ecsSecurityGroup, databaseSecretArn } = props;
+    const {
+      config,
+      vpc,
+      albSecurityGroup,
+      ecsSecurityGroup,
+      databaseSecretArn,
+      databaseEndpointAddress,
+      databaseEndpointPort,
+    } = props;
+
+    const databaseCredentialsSecret = secretsmanager.Secret.fromSecretCompleteArn(
+      this,
+      'DatabaseCredentialsSecret',
+      databaseSecretArn,
+    );
+    const sessionSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'SessionSecret',
+      `/solo-founder-launch-os/${config.stage}/session/secret`,
+    );
+    const githubClientIdSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'GitHubClientIdSecret',
+      `/solo-founder-launch-os/${config.stage}/github/client-id`,
+    );
+    const githubClientSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'GitHubClientSecret',
+      `/solo-founder-launch-os/${config.stage}/github/client-secret`,
+    );
+    const githubCallbackUrlSecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'GitHubCallbackUrlSecret',
+      `/solo-founder-launch-os/${config.stage}/github/callback-url`,
+    );
+    const encryptionKeySecret = secretsmanager.Secret.fromSecretNameV2(
+      this,
+      'EncryptionKeySecret',
+      `/solo-founder-launch-os/${config.stage}/encryption/key`,
+    );
 
     // --- ECR Repository ---
     this.repository = new ecr.Repository(this, 'ApiRepository', {
@@ -97,13 +139,14 @@ export class ContainerStack extends cdk.Stack {
       ],
     });
 
-    // Allow execution role to read the database secret for container env injection
-    executionRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['secretsmanager:GetSecretValue'],
-        resources: [databaseSecretArn],
-      }),
-    );
+    [
+      databaseCredentialsSecret,
+      sessionSecret,
+      githubClientIdSecret,
+      githubClientSecret,
+      githubCallbackUrlSecret,
+      encryptionKeySecret,
+    ].forEach((secret) => secret.grantRead(executionRole));
 
     // --- Task Role (used by the running container) ---
     const taskRole = new iam.Role(this, 'TaskRole', {
@@ -159,7 +202,20 @@ export class ContainerStack extends cdk.Stack {
         NODE_ENV: config.stage,
         PORT: '3001',
         AWS_REGION: config.region,
+        FRONTEND_URL: `https://${config.domain.web}`,
+        DATABASE_HOST: databaseEndpointAddress,
+        DATABASE_PORT: databaseEndpointPort,
+        DATABASE_NAME: 'solofounder',
         SECRETS_PATH: `/solo-founder-launch-os/${config.stage}`,
+      },
+      secrets: {
+        DATABASE_USER: ecs.Secret.fromSecretsManager(databaseCredentialsSecret, 'username'),
+        DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(databaseCredentialsSecret, 'password'),
+        SESSION_SECRET: ecs.Secret.fromSecretsManager(sessionSecret),
+        GITHUB_CLIENT_ID: ecs.Secret.fromSecretsManager(githubClientIdSecret),
+        GITHUB_CLIENT_SECRET: ecs.Secret.fromSecretsManager(githubClientSecret),
+        GITHUB_CALLBACK_URL: ecs.Secret.fromSecretsManager(githubCallbackUrlSecret),
+        ENCRYPTION_KEY: ecs.Secret.fromSecretsManager(encryptionKeySecret),
       },
       healthCheck: {
         command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1'],

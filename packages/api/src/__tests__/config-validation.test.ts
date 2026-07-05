@@ -138,6 +138,27 @@ describe('loadConfig — hierarchical override strategy', () => {
 
     exitSpy.mockRestore();
   });
+
+  it('builds DATABASE_URL from discrete database environment variables', async () => {
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('process.exit called');
+    }) as never);
+
+    delete process.env.DATABASE_URL;
+    process.env.DATABASE_HOST = 'db.internal';
+    process.env.DATABASE_PORT = '5432';
+    process.env.DATABASE_NAME = 'solofounder';
+    process.env.DATABASE_USER = 'service-user';
+    process.env.DATABASE_PASSWORD = 'service-password';
+
+    const fetchSecrets = vi.fn().mockResolvedValue({});
+    const config = await loadConfig(fetchSecrets);
+
+    expect(config.database.url).toContain('@db.internal:5432/solofounder');
+    expect(config.database.url).toContain('service-user');
+
+    exitSpy.mockRestore();
+  });
 });
 
 describe('loadConfig — secrets are never logged or exposed', () => {

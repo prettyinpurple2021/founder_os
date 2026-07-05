@@ -4,6 +4,7 @@
 // Fails fast at startup with descriptive error messages listing all missing variables.
 
 import { validateConfig, type AppConfig } from './validation.js';
+import { buildDatabaseUrl } from './databaseUrl.js';
 
 /**
  * Mapping from environment variable names to their config paths.
@@ -16,7 +17,7 @@ function buildRawConfigFromEnv(): Record<string, unknown> {
     port: env.PORT ? parseInt(env.PORT, 10) : 3001,
     nodeEnv: env.NODE_ENV ?? 'development',
     database: {
-      url: env.DATABASE_URL ?? '',
+      url: buildDatabaseUrl(env),
     },
     session: {
       secret: env.SESSION_SECRET ?? '',
