@@ -45,10 +45,11 @@ export class ContainerStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ContainerStackProps) {
     super(scope, id, props);
 
-    // Resolve the repository root so CDK can find the Dockerfile at docker/Dockerfile
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const repoRoot = path.join(__dirname, '../../../../');
+    // Resolve the repository root so CDK can find the Dockerfile at docker/Dockerfile.
+    // This file lives at packages/infra/lib/stacks/, so four levels up is the repo root.
+    const currentFile = fileURLToPath(import.meta.url);
+    const stacksDir = path.dirname(currentFile);
+    const repoRoot = path.resolve(stacksDir, '../../../../');
 
     const {
       config,
