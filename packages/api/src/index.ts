@@ -129,7 +129,7 @@ export function createApp(config: AppConfig): express.Application {
   app.use(csrfMiddleware);
 
   // --- Session expiration check (after Passport, before routes) ---
-  app.use(sessionExpiration);
+  app.use(generalLimiter, sessionExpiration);
 
   // --- Rate limiting (after session, before routes) ---
   app.use(generalLimiter);
