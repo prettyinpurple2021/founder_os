@@ -3,13 +3,14 @@
 import * as cdk from 'aws-cdk-lib';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
+import { fileURLToPath } from 'url';
+import * as path from 'path';
 import type { EnvironmentConfig } from '../config/environments.js';
 
 export interface ContainerStackProps extends cdk.StackProps {
@@ -23,10 +24,10 @@ export interface ContainerStackProps extends cdk.StackProps {
 }
 
 /**
- * Container stack provisioning ECR, ECS Fargate, ALB, and auto-scaling for the
+ * Container stack provisioning ECS Fargate, ALB, and auto-scaling for the
  * Solo Founder Launch OS API service.
  *
- * - ECR repository with lifecycle policies (keep 10 tagged, expire untagged after 7 days)
+ * - Docker image built from repo root Dockerfile and pushed to CDK-managed ECR during deployment
  * - ECS Cluster with Fargate capacity
  * - Task definition with container, CloudWatch log group, and IAM roles
  * - ALB with HTTPS listener (ACM cert) and HTTP→HTTPS redirect
@@ -35,7 +36,6 @@ export interface ContainerStackProps extends cdk.StackProps {
  * - Deployment circuit breaker for automatic rollback
  */
 export class ContainerStack extends cdk.Stack {
-  public readonly repository: ecr.Repository;
   public readonly cluster: ecs.Cluster;
   public readonly service: ecs.FargateService;
   public readonly loadBalancer: elbv2.ApplicationLoadBalancer;
@@ -44,6 +44,11 @@ export class ContainerStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: ContainerStackProps) {
     super(scope, id, props);
+
+    // Resolve the repository root so CDK can find the Dockerfile at docker/Dockerfile
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const repoRoot = path.join(__dirname, '../../../../');
 
     const {
       config,
@@ -85,31 +90,6 @@ export class ContainerStack extends cdk.Stack {
       'EncryptionKeySecret',
       `/solo-founder-launch-os/${config.stage}/encryption/key`,
     );
-
-    // --- ECR Repository ---
-    this.repository = new ecr.Repository(this, 'ApiRepository', {
-      repositoryName: `solo-founder-${config.stage}-api`,
-      removalPolicy:
-        config.stage === 'production'
-          ? cdk.RemovalPolicy.RETAIN
-          : cdk.RemovalPolicy.DESTROY,
-      emptyOnDelete: config.stage !== 'production',
-      lifecycleRules: [
-        {
-          rulePriority: 1,
-          description: 'Keep last 10 tagged images',
-          tagStatus: ecr.TagStatus.TAGGED,
-          tagPrefixList: ['v', 'sha-'],
-          maxImageCount: 10,
-        },
-        {
-          rulePriority: 2,
-          description: 'Remove untagged images after 7 days',
-          tagStatus: ecr.TagStatus.UNTAGGED,
-          maxImageAge: cdk.Duration.days(7),
-        },
-      ],
-    });
 
     // --- CloudWatch Log Group ---
     this.logGroup = new logs.LogGroup(this, 'ApiLogGroup', {
@@ -187,7 +167,12 @@ export class ContainerStack extends cdk.Stack {
 
     taskDefinition.addContainer('ApiContainer', {
       containerName: `solo-founder-${config.stage}-api`,
-      image: ecs.ContainerImage.fromEcrRepository(this.repository, 'latest'),
+      // Build the Docker image from the repo root using docker/Dockerfile.
+      // CDK publishes the image to its ECR assets repository before deploying
+      // the ECS service, which prevents the empty-registry failure on first deploy.
+      image: ecs.ContainerImage.fromAsset(repoRoot, {
+        file: 'docker/Dockerfile',
+      }),
       logging: ecs.LogDrivers.awsLogs({
         logGroup: this.logGroup,
         streamPrefix: 'api',
@@ -311,18 +296,6 @@ export class ContainerStack extends cdk.Stack {
     });
 
     // --- Stack Outputs ---
-    new cdk.CfnOutput(this, 'RepositoryUri', {
-      value: this.repository.repositoryUri,
-      description: 'ECR repository URI',
-      exportName: `${config.stage}-EcrRepositoryUri`,
-    });
-
-    new cdk.CfnOutput(this, 'RepositoryArn', {
-      value: this.repository.repositoryArn,
-      description: 'ECR repository ARN',
-      exportName: `${config.stage}-EcrRepositoryArn`,
-    });
-
     new cdk.CfnOutput(this, 'ClusterArn', {
       value: this.cluster.clusterArn,
       description: 'ECS cluster ARN',

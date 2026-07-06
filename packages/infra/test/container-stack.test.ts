@@ -126,20 +126,6 @@ describe('ContainerStack', () => {
     });
   });
 
-  describe('ECR Lifecycle Rules', () => {
-    it('creates an ECR repository', () => {
-      template.resourceCountIs('AWS::ECR::Repository', 1);
-    });
-
-    it('configures lifecycle policy to manage image retention', () => {
-      template.hasResourceProperties('AWS::ECR::Repository', {
-        LifecyclePolicy: Match.objectLike({
-          LifecyclePolicyText: Match.anyValue(),
-        }),
-      });
-    });
-  });
-
   describe('ECS Task Definition', () => {
     it('creates a Fargate task definition', () => {
       template.hasResourceProperties('AWS::ECS::TaskDefinition', {
