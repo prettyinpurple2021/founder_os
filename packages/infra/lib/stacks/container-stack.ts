@@ -27,7 +27,7 @@ export interface ContainerStackProps extends cdk.StackProps {
  * Container stack provisioning ECS Fargate, ALB, and auto-scaling for the
  * Solo Founder Launch OS API service.
  *
- * - Docker image built from repo root Dockerfile and pushed to CDK-managed ECR during deployment
+ * - Docker image built from docker/ directory Dockerfile and pushed to CDK-managed ECR during deployment
  * - ECS Cluster with Fargate capacity
  * - Task definition with container, CloudWatch log group, and IAM roles
  * - ALB with HTTPS listener (ACM cert) and HTTP→HTTPS redirect
@@ -168,11 +168,21 @@ export class ContainerStack extends cdk.Stack {
 
     taskDefinition.addContainer('ApiContainer', {
       containerName: `solo-founder-${config.stage}-api`,
-      // Build the Docker image from the repo root using docker/Dockerfile.
+      // Build the Docker image from the docker/ directory to keep the build context small.
       // CDK publishes the image to its ECR assets repository before deploying
       // the ECS service, which prevents the empty-registry failure on first deploy.
-      image: ecs.ContainerImage.fromAsset(repoRoot, {
-        file: 'docker/Dockerfile',
+      // Using a scoped build context and explicit asset hashing/excludes keeps uploads lean
+      // and avoids non-deterministic asset rebuilds from unrelated repo changes.
+      image: ecs.ContainerImage.fromAsset(path.join(repoRoot, 'docker'), {
+        file: 'Dockerfile',
+        assetHashType: cdk.AssetHashType.SOURCE,
+        exclude: [
+          '**/node_modules/**',
+          '**/dist/**',
+          '**/.git/**',
+          '**/.turbo/**',
+          '**/.next/**',
+        ],
       }),
       logging: ecs.LogDrivers.awsLogs({
         logGroup: this.logGroup,

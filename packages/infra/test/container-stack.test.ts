@@ -127,6 +127,10 @@ describe('ContainerStack', () => {
   });
 
   describe('ECS Task Definition', () => {
+    it('does not create a named ECR repository (uses CDK-managed bootstrap ECR)', () => {
+      template.resourceCountIs('AWS::ECR::Repository', 0);
+    });
+
     it('creates a Fargate task definition', () => {
       template.hasResourceProperties('AWS::ECS::TaskDefinition', {
         RequiresCompatibilities: ['FARGATE'],
