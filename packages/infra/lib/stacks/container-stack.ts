@@ -180,6 +180,7 @@ export class ContainerStack extends cdk.Stack {
         exclude: [
           '**/node_modules/**',
           '**/dist/**',
+          '**/cdk.out/**',
           '**/.git/**',
           '**/.turbo/**',
           '**/.next/**',
