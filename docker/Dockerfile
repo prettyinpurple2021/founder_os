@@ -58,7 +58,6 @@ WORKDIR /app
 
 # Copy production node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/api/node_modules ./packages/api/node_modules
 
 # Copy compiled JavaScript from builder stage
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
