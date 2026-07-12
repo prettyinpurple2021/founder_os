@@ -218,9 +218,9 @@ export class ContainerStack extends cdk.Stack {
       healthCheck: {
         command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1'],
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
-        retries: 3,
-        startPeriod: cdk.Duration.seconds(60),
+        timeout: cdk.Duration.seconds(10),
+        retries: 5,
+        startPeriod: cdk.Duration.seconds(180),
       },
     });
 
@@ -275,7 +275,7 @@ export class ContainerStack extends cdk.Stack {
       deploymentController: { type: ecs.DeploymentControllerType.ECS },
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
-      healthCheckGracePeriod: cdk.Duration.seconds(120),
+      healthCheckGracePeriod: cdk.Duration.seconds(300),
     });
 
     // Register service with ALB target group
@@ -287,10 +287,10 @@ export class ContainerStack extends cdk.Stack {
       healthCheck: {
         path: '/health',
         interval: cdk.Duration.seconds(30),
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         healthyThresholdCount: 2,
-        unhealthyThresholdCount: 3,
-        healthyHttpCodes: '200',
+        unhealthyThresholdCount: 5,
+        healthyHttpCodes: '200-399',
       },
       deregistrationDelay: cdk.Duration.seconds(30),
     });
