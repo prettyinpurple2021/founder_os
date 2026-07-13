@@ -1,6 +1,7 @@
 // Requirements: 3.1, 3.2, 3.4
-// Integration tests for the GET /health endpoint.
-// Validates: healthy response shape, degraded response on DB failure, response time.
+// Integration tests for the GET /health and GET /health/live endpoints.
+// Validates: healthy response shape, degraded response on DB failure, response time,
+// and liveness probe behaviour (always returns 200 regardless of DB state).
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
@@ -25,6 +26,30 @@ vi.mock('../services/scheduler.js', () => ({
 
 import prisma from '../lib/prisma.js';
 import app from '../index.js';
+
+describe('GET /health/live', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns HTTP 200 with status "alive" when database is available', async () => {
+    const res = await request(app).get('/health/live');
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('alive');
+    expect(res.body.timestamp).toBeDefined();
+    expect(prisma.$queryRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it('returns HTTP 200 with status "alive" even when database is unavailable', async () => {
+    const res = await request(app).get('/health/live');
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('alive');
+    expect(res.body.timestamp).toBeDefined();
+    expect(prisma.$queryRawUnsafe).not.toHaveBeenCalled();
+  });
+});
 
 describe('GET /health', () => {
   beforeEach(() => {

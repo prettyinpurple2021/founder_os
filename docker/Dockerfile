@@ -83,9 +83,13 @@ USER appuser
 ENV PORT=3001
 EXPOSE ${PORT}
 
-# Health check: verify API responds on /health within 5 seconds
+# Health check: verify the Node process is responding (liveness probe).
+# The /health/live endpoint returns 200 as long as the server is running,
+# regardless of database connectivity — preventing spurious restarts caused
+# by transient DB unavailability. The ALB target-group check uses /health
+# for readiness (traffic routing) separately.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/health || exit 1
+  CMD curl -f http://localhost:${PORT}/health/live || exit 1
 
 # Start the API service
 WORKDIR /app/packages/api
