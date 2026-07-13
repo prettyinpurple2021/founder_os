@@ -28,23 +28,26 @@ import prisma from '../lib/prisma.js';
 import app from '../index.js';
 
 describe('GET /health/live', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns HTTP 200 with status "alive" when database is available', async () => {
-    (prisma.$queryRawUnsafe as ReturnType<typeof vi.fn>).mockResolvedValue([{ '?column?': 1 }]);
     const res = await request(app).get('/health/live');
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('alive');
     expect(res.body.timestamp).toBeDefined();
+    expect(prisma.$queryRawUnsafe).not.toHaveBeenCalled();
   });
 
   it('returns HTTP 200 with status "alive" even when database is unavailable', async () => {
-    (prisma.$queryRawUnsafe as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('Connection refused'),
-    );
     const res = await request(app).get('/health/live');
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('alive');
+    expect(res.body.timestamp).toBeDefined();
+    expect(prisma.$queryRawUnsafe).not.toHaveBeenCalled();
   });
 });
 

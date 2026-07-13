@@ -158,6 +158,10 @@ export class ContainerStack extends cdk.Stack {
     );
 
     // --- Task Definition ---
+    // Single source of truth for the container port used by portMappings,
+    // PORT env var, and ECS health check command — eliminates config drift.
+    const apiPort = 3001;
+
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'ApiTaskDefinition', {
       family: `solo-founder-${config.stage}-api`,
       cpu: config.ecs.cpu,
@@ -192,13 +196,13 @@ export class ContainerStack extends cdk.Stack {
       }),
       portMappings: [
         {
-          containerPort: 3001,
+          containerPort: apiPort,
           protocol: ecs.Protocol.TCP,
         },
       ],
       environment: {
         NODE_ENV: config.stage,
-        PORT: '3001',
+        PORT: String(apiPort),
         AWS_REGION: config.region,
         FRONTEND_URL: `https://${config.domain.web}`,
         DATABASE_HOST: databaseEndpointAddress,
@@ -220,7 +224,7 @@ export class ContainerStack extends cdk.Stack {
         // only fires when the Node process itself is unresponsive, not when the
         // database is temporarily unavailable. Database-driven readiness is handled
         // separately by the ALB target-group health check on /health.
-        command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health/live || exit 1'],
+        command: ['CMD-SHELL', `wget --no-verbose --tries=1 --spider http://localhost:${apiPort}/health/live || exit 1`],
         interval: cdk.Duration.seconds(30),
         timeout: cdk.Duration.seconds(10),
         retries: 5,
