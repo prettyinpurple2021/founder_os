@@ -279,7 +279,7 @@ export class ContainerStack extends cdk.Stack {
       securityGroups: [ecsSecurityGroup],
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       assignPublicIp: false,
-      circuitBreaker: { rollback: true },
+      circuitBreaker: { rollback: false },
       deploymentController: { type: ecs.DeploymentControllerType.ECS },
       minHealthyPercent: 100,
       maxHealthyPercent: 200,
