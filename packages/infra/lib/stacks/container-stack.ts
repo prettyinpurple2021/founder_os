@@ -216,7 +216,11 @@ export class ContainerStack extends cdk.Stack {
         ENCRYPTION_KEY: ecs.Secret.fromSecretsManager(encryptionKeySecret),
       },
       healthCheck: {
-        command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1'],
+        // Use the liveness endpoint (/health/live) so the ECS container health check
+        // only fires when the Node process itself is unresponsive, not when the
+        // database is temporarily unavailable. Database-driven readiness is handled
+        // separately by the ALB target-group health check on /health.
+        command: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:3001/health/live || exit 1'],
         interval: cdk.Duration.seconds(30),
         timeout: cdk.Duration.seconds(10),
         retries: 5,
