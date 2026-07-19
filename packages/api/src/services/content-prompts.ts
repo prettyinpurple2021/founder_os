@@ -12,11 +12,18 @@ import { Platform } from '../generated/prisma/enums.js';
 
 // --- Types ---
 
+/** Evidence item extracted from the database (PR description or commit message). */
+export interface EvidenceItem {
+  type: 'PR' | 'COMMIT';
+  content: string; // PR description or commit message (already truncated)
+}
+
 /** Summary of a completed task used as input for content generation. */
 export interface TaskSummary {
   title: string;
   completedAt: Date;
   evidence?: string; // Optional URL or description of evidence
+  evidenceItems?: EvidenceItem[]; // Structured evidence from DB (PR/COMMIT records)
 }
 
 /** Platform-specific configuration for content generation. */
@@ -138,8 +145,23 @@ export function buildPrompt(platform: Platform, tasks: TaskSummary[]): BuiltProm
   const taskDescriptions = tasks
     .map((task) => {
       const date = task.completedAt.toISOString().split('T')[0];
-      const evidencePart = task.evidence ? ` (${task.evidence})` : '';
-      return `- ${task.title} [completed ${date}]${evidencePart}`;
+      const lines: string[] = [];
+
+      // Task header line
+      if (task.evidenceItems && task.evidenceItems.length > 0) {
+        // Structured evidence: render each item on its own indented line
+        lines.push(`- ${task.title} [completed ${date}]`);
+        for (const item of task.evidenceItems) {
+          const label = item.type === 'PR' ? 'PR' : 'Commit';
+          lines.push(`  ${label}: ${item.content}`);
+        }
+      } else {
+        // Fallback: use legacy evidence field if present
+        const evidencePart = task.evidence ? ` (${task.evidence})` : '';
+        lines.push(`- ${task.title} [completed ${date}]${evidencePart}`);
+      }
+
+      return lines.join('\n');
     })
     .join('\n');
 

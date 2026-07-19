@@ -9,10 +9,11 @@
  */
 
 import prisma from '../lib/prisma.js';
-import { DraftStatus, Platform } from '../generated/prisma/enums.js';
+import { DraftStatus, EvidenceType, Platform } from '../generated/prisma/enums.js';
 import { notFound, forbidden, badRequest, internalError } from '../errors/AppError.js';
-import { buildPrompt, type TaskSummary } from './content-prompts.js';
+import { buildPrompt, type TaskSummary, type EvidenceItem } from './content-prompts.js';
 import { logContent } from './logger.js';
+import { callBedrock, isBedrockEnabled } from '../lib/bedrock.js';
 
 /** Supported content platforms. */
 export type ContentPlatform = 'TWITTER' | 'LINKEDIN' | 'BLOG';
@@ -717,18 +718,79 @@ export async function generateDraft(
     );
   }
 
-  // Build task summaries for prompt building
-  const taskSummaries: TaskSummary[] = completedTasks.map((task) => ({
-    title: task.title,
-    completedAt: task.lastInferredAt!,
-  }));
+  // Build task summaries with evidence context (Requirements: 4.1, 4.2, 4.3, 4.5, 4.6)
+  const taskSummaries: TaskSummary[] = await Promise.all(
+    completedTasks.map(async (task) => {
+      // Fetch evidence for this task (max 10, most recent first)
+      const evidenceRecords = await prisma.evidence.findMany({
+        where: {
+          taskId: task.id,
+          type: { in: [EvidenceType.PR, EvidenceType.COMMIT] },
+        },
+        orderBy: { fetchedAt: 'desc' },
+        take: 10,
+      });
+
+      // Extract and truncate evidence items, skipping malformed metadata
+      const evidenceItems: EvidenceItem[] = [];
+      for (const record of evidenceRecords) {
+        const metadata = record.metadata as Record<string, unknown> | null;
+        if (!metadata || typeof metadata !== 'object') {
+          continue;
+        }
+
+        if (record.type === EvidenceType.PR) {
+          const description = metadata.description;
+          if (typeof description === 'string') {
+            evidenceItems.push({ type: 'PR', content: description.slice(0, 500) });
+          }
+        } else if (record.type === EvidenceType.COMMIT) {
+          const message = metadata.message;
+          if (typeof message === 'string') {
+            evidenceItems.push({ type: 'COMMIT', content: message.slice(0, 200) });
+          }
+        }
+      }
+
+      return {
+        title: task.title,
+        completedAt: task.lastInferredAt!,
+        evidenceItems: evidenceItems.length > 0 ? evidenceItems : undefined,
+      };
+    }),
+  );
 
   // Build platform-specific prompts using the prompts service
   const platformEnum = Platform[platform];
   const { system, user } = buildPrompt(platformEnum, taskSummaries);
 
-  // Generate content via LLM or fallback
-  const generatedContent = await callLLM(system, user);
+  // Generate content via Bedrock or template fallback
+  let generatedContent: string;
+
+  if (!isBedrockEnabled()) {
+    // Bedrock disabled — use template fallback
+    generatedContent = generateTemplateFallback(user);
+  } else {
+    try {
+      generatedContent = await callBedrock(system, user, platformEnum);
+    } catch (error: unknown) {
+      // On credentials error, fall back to template and log warning
+      const isCredentialsError =
+        error instanceof Error &&
+        (error.name === 'CredentialsProviderError' ||
+         error.name === 'ExpiredTokenException' ||
+         error.message.includes('credentials'));
+
+      if (isCredentialsError) {
+        await logContent(userId, 'bedrock_credentials_error', {
+          errorType: error instanceof Error ? error.name : 'Unknown',
+        });
+        generatedContent = generateTemplateFallback(user);
+      } else {
+        throw error;
+      }
+    }
+  }
 
   // Create the draft and initial version
   const draft = await prisma.contentDraft.create({

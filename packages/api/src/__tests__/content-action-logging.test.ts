@@ -17,6 +17,9 @@ vi.mock('../lib/prisma.js', () => ({
     task: {
       findMany: vi.fn(),
     },
+    evidence: {
+      findMany: vi.fn(),
+    },
     contentDraft: {
       create: vi.fn(),
       findUnique: vi.fn(),
@@ -39,6 +42,11 @@ vi.mock('../services/logger.js', () => ({
   log: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../lib/bedrock.js', () => ({
+  isBedrockEnabled: vi.fn().mockReturnValue(false),
+  callBedrock: vi.fn().mockResolvedValue('Generated content from Bedrock'),
+}));
+
 import prisma from '../lib/prisma.js';
 import { logContent } from '../services/logger.js';
 import { generateDraft, editDraft } from '../services/content.js';
@@ -50,11 +58,13 @@ const mockDraftCreate = vi.mocked(prisma.contentDraft.create);
 const mockDraftFindUnique = vi.mocked(prisma.contentDraft.findUnique);
 const mockVersionCount = vi.mocked(prisma.draftVersion.count);
 const mockTransaction = vi.mocked(prisma.$transaction);
+const mockEvidenceFindMany = vi.mocked(prisma.evidence.findMany);
 
 describe('Content Action Logging (Requirement 10.3)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.LLM_API_KEY;
+    mockEvidenceFindMany.mockResolvedValue([]);
   });
 
   describe('generateDraft logging', () => {

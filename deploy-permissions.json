@@ -180,6 +180,12 @@
         "kms:TagResource"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "BedrockInvokeModel",
+      "Effect": "Allow",
+      "Action": "bedrock:InvokeModel",
+      "Resource": "arn:aws:bedrock:us-east-1::foundation-model/*"
     }
   ]
 }

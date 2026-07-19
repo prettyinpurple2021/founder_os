@@ -17,6 +17,9 @@ vi.mock('../lib/prisma.js', () => ({
     task: {
       findMany: vi.fn(),
     },
+    evidence: {
+      findMany: vi.fn(),
+    },
     contentDraft: {
       create: vi.fn(),
       findMany: vi.fn(),
@@ -40,18 +43,26 @@ vi.mock('../services/logger.js', () => ({
   log: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../lib/bedrock.js', () => ({
+  isBedrockEnabled: vi.fn().mockReturnValue(false),
+  callBedrock: vi.fn().mockResolvedValue('Generated content from Bedrock'),
+}));
+
 import prisma from '../lib/prisma.js';
 import { generateDraft, callLLM, PLATFORM_PROMPTS } from '../services/content.js';
 
 const mockRepoFindUnique = vi.mocked(prisma.repository.findUnique);
 const mockTaskFindMany = vi.mocked(prisma.task.findMany);
 const mockDraftCreate = vi.mocked(prisma.contentDraft.create);
+const mockEvidenceFindMany = vi.mocked(prisma.evidence.findMany);
 
 describe('generateDraft', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Ensure no LLM_API_KEY is set so fallback is used
     delete process.env.LLM_API_KEY;
+    // Default: no evidence records for tasks
+    mockEvidenceFindMany.mockResolvedValue([]);
   });
 
   it('should create a draft with correct platform and GENERATED status', async () => {
