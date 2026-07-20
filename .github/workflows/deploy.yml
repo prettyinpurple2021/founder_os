@@ -69,16 +69,26 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Deploy Infrastructure
-        run: cd packages/infra && npx cdk deploy --all --context stage=production --require-approval never
+      - name: Deploy Infrastructure (networking, database, CDN)
+        run: |
+          cd packages/infra
+          npx cdk deploy production-network production-database production-cdn --context stage=production --require-approval never
+
+      - name: Deploy Container Stack (tasks start at desired count)
+        run: |
+          cd packages/infra
+          # Check if this is first deploy (no existing stack)
+          STACK_EXISTS=$(aws cloudformation describe-stacks --stack-name production-container --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
+          if [ "$STACK_EXISTS" = "DOES_NOT_EXIST" ]; then
+            echo "First deploy detected — deploying with desiredCount=0 to allow migration first"
+            npx cdk deploy production-container --context stage=production --context initialDeploy=true --require-approval never
+          else
+            npx cdk deploy production-container --context stage=production --require-approval never
+          fi
 
       - name: Run Database Migration
         run: |
-          # Get the task definition, subnets, and security groups from CloudFormation outputs
-          CLUSTER_ARN=$(aws cloudformation describe-stacks \
-            --stack-name production-container \
-            --query 'Stacks[0].Outputs[?OutputKey==`ClusterArn`].OutputValue' \
-            --output text)
+          CLUSTER_NAME="solo-founder-production-cluster"
 
           TASK_DEF=$(aws ecs list-task-definitions \
             --family-prefix solo-founder-production-api \
@@ -86,7 +96,7 @@ jobs:
             --query 'taskDefinitionArns[0]' \
             --output text)
 
-          # Get private subnets from the VPC
+          # Get private subnets
           VPC_ID=$(aws ec2 describe-vpcs \
             --filters "Name=tag:Name,Values=solo-founder-production-vpc" \
             --query 'Vpcs[0].VpcId' --output text)
@@ -101,34 +111,53 @@ jobs:
 
           echo "Running migration task..."
           TASK_ARN=$(aws ecs run-task \
-            --cluster "$CLUSTER_ARN" \
+            --cluster "$CLUSTER_NAME" \
             --task-definition "$TASK_DEF" \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$ECS_SG],assignPublicIp=DISABLED}" \
-            --overrides '{
-              "containerOverrides": [{
-                "name": "solo-founder-production-api",
-                "command": ["npx", "prisma", "migrate", "deploy", "--schema", "/app/packages/api/prisma/schema.prisma"]
+            --overrides "{
+              \"containerOverrides\": [{
+                \"name\": \"solo-founder-production-api\",
+                \"command\": [\"npx\", \"prisma\", \"migrate\", \"deploy\", \"--schema\", \"/app/packages/api/prisma/schema.prisma\"]
               }]
-            }' \
+            }" \
             --query 'tasks[0].taskArn' \
             --output text)
 
           echo "Migration task started: $TASK_ARN"
+          aws ecs wait tasks-stopped --cluster "$CLUSTER_NAME" --tasks "$TASK_ARN"
 
-          # Wait for migration to complete
-          aws ecs wait tasks-stopped --cluster "$CLUSTER_ARN" --tasks "$TASK_ARN"
-
-          # Check exit code
           EXIT_CODE=$(aws ecs describe-tasks \
-            --cluster "$CLUSTER_ARN" \
+            --cluster "$CLUSTER_NAME" \
             --tasks "$TASK_ARN" \
             --query 'tasks[0].containers[0].exitCode' \
             --output text)
 
           if [ "$EXIT_CODE" != "0" ]; then
             echo "::error::Database migration failed with exit code $EXIT_CODE"
+            # Show logs
+            TASK_ID=$(echo "$TASK_ARN" | awk -F'/' '{print $NF}')
+            aws logs get-log-events \
+              --log-group-name /ecs/solo-founder-production-api \
+              --log-stream-name "api/solo-founder-production-api/$TASK_ID" \
+              --limit 50 --query 'events[].message' --output text 2>/dev/null || true
             exit 1
           fi
 
           echo "Database migration completed successfully."
+
+      - name: Scale Up ECS Service (post-migration)
+        run: |
+          aws ecs update-service \
+            --cluster solo-founder-production-cluster \
+            --service solo-founder-production-api \
+            --desired-count 1 \
+            --force-new-deployment \
+            --query 'service.serviceName' \
+            --output text
+          echo "ECS service scaled to 1 task with force new deployment"
+
+      - name: Deploy Monitoring Stack
+        run: |
+          cd packages/infra
+          npx cdk deploy production-monitoring --context stage=production --require-approval never

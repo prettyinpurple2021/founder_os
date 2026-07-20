@@ -285,11 +285,16 @@ export class ContainerStack extends cdk.Stack {
     });
 
     // --- ECS Fargate Service ---
+    // On first deploy, the 'initialDeploy' context can be set to skip starting tasks
+    // until database migrations have run. After migration, force-new-deployment will
+    // start the service with desiredCount from config.
+    const initialDeploy = this.node.tryGetContext('initialDeploy') === 'true';
+
     this.service = new ecs.FargateService(this, 'ApiService', {
       serviceName: `solo-founder-${config.stage}-api`,
       cluster: this.cluster,
       taskDefinition,
-      desiredCount: config.ecs.minCapacity,
+      desiredCount: initialDeploy ? 0 : config.ecs.minCapacity,
       securityGroups: [ecsSecurityGroup],
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       assignPublicIp: false,
