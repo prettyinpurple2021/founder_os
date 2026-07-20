@@ -98,10 +98,7 @@ export class ContainerStack extends cdk.Stack {
     this.logGroup = new logs.LogGroup(this, 'ApiLogGroup', {
       logGroupName: `/ecs/solo-founder-${config.stage}-api`,
       retention: logs.RetentionDays.THREE_MONTHS,
-      removalPolicy:
-        config.stage === 'production'
-          ? cdk.RemovalPolicy.RETAIN
-          : cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     // --- ECS Cluster ---
