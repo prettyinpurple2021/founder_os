@@ -63,7 +63,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
 
 # Copy generated Prisma client from builder stage
+# The compiled JS in dist/ imports from './generated/prisma/...' so we need
+# the generated client in BOTH src/generated (for prisma CLI) and dist/generated
+# (for runtime imports).
 COPY --from=builder /app/packages/api/src/generated ./packages/api/src/generated
+COPY --from=builder /app/packages/api/src/generated ./packages/api/dist/generated
 
 # Copy Prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/packages/api/prisma ./packages/api/prisma
