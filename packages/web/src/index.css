@@ -85,6 +85,22 @@
 }
 
 @layer components {
+  /* Layout grid shell — named areas for responsive switching */
+  .app-grid {
+    grid-template-areas:
+      "utility"
+      "workspace"
+      "nav";
+  }
+
+  @media (min-width: 1024px) {
+    .app-grid {
+      grid-template-areas:
+        "nav utility"
+        "nav workspace";
+    }
+  }
+
   /* Component-level styles defined here or in component CSS modules */
 
   .skeleton-shimmer {

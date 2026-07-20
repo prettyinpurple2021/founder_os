@@ -1,12 +1,18 @@
-// Requirements: 2.2, 8.5, 9.1
-// App shell with navigation sidebar, sync button, user info, and main content area
+// Requirements: 4.1–4.5, 4.8, 8.2, 8.3, 9.1–9.6
+// CSS Grid layout shell: desktop 2-column (80px nav + 1fr workspace), mobile single-column
+// Named grid areas: nav, utility, workspace
+// Ambient background texture with dual-neon radial bloom
+// Crossfade page transition on Outlet
 
-import { NavLink, Outlet } from 'react-router-dom';
-import SyncButton from './SyncButton.js';
+import { Outlet, useLocation } from 'react-router-dom';
+import NavigationRail from './NavigationRail.js';
+import { UtilityBar } from './UtilityBar.js';
+import MobileNav from './MobileNav.js';
 import { useAuth } from '../contexts/AuthContext.js';
+import type { NavItem } from './NavigationRail.js';
 
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
+const navItems: NavItem[] = [
+  { to: '/', label: 'Dashboard', icon: '📊', end: true },
   { to: '/checklist', label: 'Checklist', icon: '✅' },
   { to: '/content', label: 'Content', icon: '📝' },
   { to: '/marketing', label: 'Marketing', icon: '📣' },
@@ -14,53 +20,46 @@ const navItems = [
 ];
 
 export default function Layout() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-gray-900">Launch OS</h1>
-          <p className="text-sm text-gray-500 mt-1">Solo Founder</p>
+    <div className="app-grid grid min-h-screen grid-cols-1 grid-rows-[56px_1fr_64px] lg:grid-cols-[80px_1fr] lg:grid-rows-[56px_1fr]">
+      {/* NavigationRail — desktop only (hidden on mobile) */}
+      <div className="hidden lg:flex [grid-area:nav]">
+        <NavigationRail items={navItems} />
+      </div>
+
+      {/* UtilityBar — always visible */}
+      <div className="[grid-area:utility]">
+        <UtilityBar
+          syncStatus="idle"
+          userName={user?.username}
+        />
+      </div>
+
+      {/* Workspace area with ambient background texture */}
+      <main
+        className="[grid-area:workspace] overflow-y-auto"
+        style={{
+          background: `
+            radial-gradient(ellipse 60% 50% at 10% 90%, rgba(183, 255, 42, 0.02) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 60% at 90% 10%, rgba(255, 43, 166, 0.02) 0%, transparent 70%),
+            var(--fl-carbon)
+          `,
+        }}
+      >
+        <div className="max-w-content mx-auto px-4 py-6 md:px-6 lg:px-8">
+          <div key={location.pathname} className="motion-safe:animate-fade-in">
+            <Outlet />
+          </div>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                }`
-              }
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Sync button in sidebar footer */}
-        <SyncButton />
-
-        {/* User section */}
-        <div className="p-4 border-t border-gray-200">
-          {user && <p className="text-sm text-gray-700 mb-2 truncate">{user.username}</p>}
-          <button
-            onClick={() => void logout()}
-            className="w-full text-left text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-8">
-        <Outlet />
       </main>
+
+      {/* MobileNav — visible below lg */}
+      <div className="[grid-area:nav] lg:hidden">
+        <MobileNav items={navItems} />
+      </div>
     </div>
   );
 }

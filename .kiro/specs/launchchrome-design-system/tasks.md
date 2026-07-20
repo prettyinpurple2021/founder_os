@@ -127,14 +127,14 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Use semantic `<header>` element
     - _Requirements: 4.3, 7.7_
 
-  - [-] 5.3 Create MobileNav component (bottom tab bar)
+  - [x] 5.3 Create MobileNav component (bottom tab bar)
     - Create `packages/web/src/components/MobileNav.tsx`
     - Bottom-positioned navigation for viewports below 1024px
     - 64px height, carbon background, Founder Pink active indicators
     - Minimum 44x44px touch targets for all nav items
     - _Requirements: 4.5, 7.6, 9.1_
 
-  - [~] 5.4 Refactor Layout component with CSS Grid shell
+  - [-] 5.4 Refactor Layout component with CSS Grid shell
     - Rewrite `packages/web/src/components/Layout.tsx`
     - Desktop: 2-column grid (80px nav + 1fr workspace) with utility bar row
     - Mobile: single-column with utility bar top + workspace + bottom nav
@@ -144,17 +144,17 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Use `<main>` for workspace area, max-width 1440px centered
     - _Requirements: 4.1–4.5, 4.8, 8.2, 8.3, 9.1–9.6_
 
-  - [~] 5.5 Write property test for reduced motion suppression
+  - [-] 5.5 Write property test for reduced motion suppression
     - **Property 4: Reduced motion suppression**
     - Generate random motion utility class combinations, assert 0ms duration under reduced-motion
     - **Validates: Requirements 7.4, 8.5**
 
-  - [~] 5.6 Write property test for focus indicator visibility
+  - [-] 5.6 Write property test for focus indicator visibility
     - **Property 8: Focus indicator visibility**
     - Generate random interactive components (Button, Input, NavLink), simulate focus, assert ring presence ≥ 2px width
     - **Validates: Requirements 5.7, 7.5**
 
-  - [~] 5.7 Write property test for touch target minimum size
+  - [-] 5.7 Write property test for touch target minimum size
     - **Property 9: Touch target minimum size**
     - Generate random interactive elements at mobile viewport, assert computed area ≥ 44×44px
     - **Validates: Requirements 7.6**

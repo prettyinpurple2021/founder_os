@@ -104,11 +104,16 @@ const config: Config = {
           '0%': { width: '0%' },
           '100%': { width: 'var(--charge-target, 100%)' },
         },
+        'fade-in': {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'chrome-sweep': 'chrome-sweep 700ms var(--fl-ease-enter) forwards',
         'pulse-pink': 'pulse-pink 1.5s ease-in-out infinite',
         'charge': 'charge 600ms var(--fl-ease-ignition) forwards',
+        'fade-in': 'fade-in 220ms var(--fl-ease-enter) both',
       },
     },
   },
