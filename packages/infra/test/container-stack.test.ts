@@ -12,9 +12,9 @@ const testConfig: EnvironmentConfig = {
   region: 'us-east-1',
   stage: 'production',
   domain: {
-    api: 'api.solofounder.app',
-    web: 'app.solofounder.app',
-    zone: 'solofounder.app',
+    api: 'api.solo-founder.space',
+    web: 'app.solo-founder.space',
+    zone: 'solo-founder.space',
   },
   database: {
     instanceClass: 'db.t3.micro',
@@ -154,7 +154,7 @@ describe('ContainerStack', () => {
         ContainerDefinitions: Match.arrayWith([
           Match.objectLike({
             Environment: Match.arrayWith([
-              { Name: 'FRONTEND_URL', Value: 'https://app.solofounder.app' },
+              { Name: 'FRONTEND_URL', Value: 'https://app.solo-founder.space' },
               { Name: 'DATABASE_HOST', Value: 'test-db.cluster-abcdefghijkl.us-east-1.rds.amazonaws.com' },
               { Name: 'DATABASE_PORT', Value: '5432' },
               { Name: 'DATABASE_NAME', Value: 'solofounder' },
@@ -162,11 +162,6 @@ describe('ContainerStack', () => {
             Secrets: Match.arrayWith([
               Match.objectLike({ Name: 'DATABASE_USER' }),
               Match.objectLike({ Name: 'DATABASE_PASSWORD' }),
-              Match.objectLike({ Name: 'SESSION_SECRET' }),
-              Match.objectLike({ Name: 'GITHUB_CLIENT_ID' }),
-              Match.objectLike({ Name: 'GITHUB_CLIENT_SECRET' }),
-              Match.objectLike({ Name: 'GITHUB_CALLBACK_URL' }),
-              Match.objectLike({ Name: 'ENCRYPTION_KEY' }),
             ]),
           }),
         ]),

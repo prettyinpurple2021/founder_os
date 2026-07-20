@@ -68,34 +68,11 @@ export class ContainerStack extends cdk.Stack {
       'DatabaseCredentialsSecret',
       databaseSecretArn,
     );
-    // Use fromSecretPartialArn to produce full ARNs with wildcard suffix that ECS can resolve.
-    // fromSecretNameV2 produces partial ARNs without suffix which ECS cannot resolve to actual secrets.
-    const secretArnBase = `arn:aws:secretsmanager:${config.region}:${config.account}:secret:/solo-founder-launch-os/${config.stage}`;
-    const sessionSecret = secretsmanager.Secret.fromSecretPartialArn(
-      this,
-      'SessionSecret',
-      `${secretArnBase}/session/secret`,
-    );
-    const githubClientIdSecret = secretsmanager.Secret.fromSecretPartialArn(
-      this,
-      'GitHubClientIdSecret',
-      `${secretArnBase}/github/client-id`,
-    );
-    const githubClientSecret = secretsmanager.Secret.fromSecretPartialArn(
-      this,
-      'GitHubClientSecret',
-      `${secretArnBase}/github/client-secret`,
-    );
-    const githubCallbackUrlSecret = secretsmanager.Secret.fromSecretPartialArn(
-      this,
-      'GitHubCallbackUrlSecret',
-      `${secretArnBase}/github/callback-url`,
-    );
-    const encryptionKeySecret = secretsmanager.Secret.fromSecretPartialArn(
-      this,
-      'EncryptionKeySecret',
-      `${secretArnBase}/encryption/key`,
-    );
+    // Non-database secrets are loaded at runtime by the application using the ECS
+    // task role (see packages/api/src/config/secrets.ts). This avoids the CDK issue
+    // where fromSecretNameV2 generates partial ARNs that ECS cannot resolve.
+    // The task role already has secretsmanager:GetSecretValue on the secret path wildcard.
+    const secretBasePath = `/solo-founder-launch-os/${config.stage}`;
 
     // --- CloudWatch Log Group ---
     this.logGroup = new logs.LogGroup(this, 'ApiLogGroup', {
@@ -122,18 +99,11 @@ export class ContainerStack extends cdk.Stack {
       ],
     });
 
-    [
-      databaseCredentialsSecret,
-      sessionSecret,
-      githubClientIdSecret,
-      githubClientSecret,
-      githubCallbackUrlSecret,
-      encryptionKeySecret,
-    ].forEach((secret) => secret.grantRead(executionRole));
+    // Only the database credentials secret is injected via ECS container definition.
+    // All other secrets are loaded at runtime by the app via the task role.
+    databaseCredentialsSecret.grantRead(executionRole);
 
-    // CDK's fromSecretNameV2 grants access with a -?????? suffix pattern,
-    // but ECS makes GetSecretValue calls using the secret name without suffix.
-    // Add an explicit broad policy to cover both forms.
+    // Broad policy for execution role to cover the database secret ARN pattern
     executionRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
@@ -226,11 +196,6 @@ export class ContainerStack extends cdk.Stack {
       secrets: {
         DATABASE_USER: ecs.Secret.fromSecretsManager(databaseCredentialsSecret, 'username'),
         DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(databaseCredentialsSecret, 'password'),
-        SESSION_SECRET: ecs.Secret.fromSecretsManager(sessionSecret),
-        GITHUB_CLIENT_ID: ecs.Secret.fromSecretsManager(githubClientIdSecret),
-        GITHUB_CLIENT_SECRET: ecs.Secret.fromSecretsManager(githubClientSecret),
-        GITHUB_CALLBACK_URL: ecs.Secret.fromSecretsManager(githubCallbackUrlSecret),
-        ENCRYPTION_KEY: ecs.Secret.fromSecretsManager(encryptionKeySecret),
       },
       healthCheck: {
         // Use the liveness endpoint (/health/live) so the ECS container health check
