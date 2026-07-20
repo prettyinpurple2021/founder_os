@@ -62,7 +62,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
     stage: 'production',
     domain: {
       api: 'api.solo-founder.space',
-      web: 'app.solo-founder.space',
+      web: 'solo-founder.space',
       zone: 'solo-founder.space',
     },
     database: {
