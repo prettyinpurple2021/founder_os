@@ -86,28 +86,37 @@ const errorTypeArb = fc.constantFrom(
   'UnknownError',
 );
 
+/** Character sets for token generation. */
+const upperAlphaNum = fc.constantFrom(
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split(''),
+);
+const alphaNum = fc.constantFrom(
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.split(''),
+);
+const hexChar = fc.constantFrom(...'0123456789abcdef'.split(''));
+const nonWhitespace = fc.constantFrom(
+  ...'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-./+=@!#$%^&*'.split(''),
+);
+
 /** Generates AWS access key patterns. */
 const awsAccessKeyArb = fc
-  .string({ minLength: 12, maxLength: 20 })
-  .filter((s) => /^[A-Z0-9]+$/.test(s))
-  .map((suffix) => `AKIA${suffix}`);
+  .array(upperAlphaNum, { minLength: 12, maxLength: 20 })
+  .map((chars) => `AKIA${chars.join('')}`);
 
 /** Generates OpenAI-style key patterns. */
 const openAiKeyArb = fc
-  .string({ minLength: 20, maxLength: 40 })
-  .filter((s) => /^[a-zA-Z0-9]+$/.test(s))
-  .map((suffix) => `sk-${suffix}`);
+  .array(alphaNum, { minLength: 20, maxLength: 40 })
+  .map((chars) => `sk-${chars.join('')}`);
 
 /** Generates Bearer token patterns. */
 const bearerTokenArb = fc
-  .string({ minLength: 10, maxLength: 50 })
-  .filter((s) => /^\S+$/.test(s) && s.length >= 10)
-  .map((token) => `Bearer ${token}`);
+  .array(nonWhitespace, { minLength: 10, maxLength: 50 })
+  .map((chars) => `Bearer ${chars.join('')}`);
 
 /** Generates long hex strings (generic tokens). */
 const hexTokenArb = fc
-  .string({ minLength: 40, maxLength: 64 })
-  .filter((s) => /^[0-9a-f]+$/i.test(s) && s.length >= 40);
+  .array(hexChar, { minLength: 40, maxLength: 64 })
+  .map((chars) => chars.join(''));
 
 /** Generates any token-like string. */
 const tokenArb = fc.oneof(awsAccessKeyArb, openAiKeyArb, bearerTokenArb, hexTokenArb);

@@ -1,3 +1,177 @@
+/* Layer ordering — defines specificity cascade */
+@layer base, tokens, components, utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+    src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--fl-obsidian);
+    color: var(--fl-text-primary);
+  }
+}
+
+@layer tokens {
+  :root {
+    /* Foundation */
+    --fl-obsidian: #050608;
+    --fl-carbon: #0B0D10;
+    --fl-gunmetal: #15191F;
+    --fl-graphite: #232933;
+
+    /* Chrome */
+    --fl-chrome-white: #F8FAFC;
+    --fl-chrome-silver: #D7DCE3;
+    --fl-chrome-steel: #929AA6;
+    --fl-dark-chrome: #3B424C;
+
+    /* Energy */
+    --fl-founder-pink: #FF2BA6;
+    --fl-neon-magenta: #FF4FC3;
+    --fl-launch-lime: #B7FF2A;
+    --fl-electric-lime: #D5FF65;
+
+    /* Supporting */
+    --fl-hyper-cyan: #42E8FF;
+    --fl-plasma-violet: #9D63FF;
+    --fl-alert-red: #FF4D5F;
+    --fl-warning-amber: #FFB547;
+    --fl-victory-gold: #FFD36A;
+
+    /* Text */
+    --fl-text-primary: #F7F9FC;
+    --fl-text-secondary: #B7BEC9;
+    --fl-text-muted: #7C8491;
+    --fl-text-disabled: #555D68;
+
+    /* Motion */
+    --fl-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+    --fl-ease-exit: cubic-bezier(0.7, 0, 0.84, 0);
+    --fl-ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --fl-ease-ignition: cubic-bezier(0.1, 0.9, 0.2, 1);
+    --fl-duration-instant: 80ms;
+    --fl-duration-fast: 140ms;
+    --fl-duration-standard: 220ms;
+    --fl-duration-slow: 360ms;
+    --fl-duration-cinematic: 700ms;
+  }
+}
+
+@layer components {
+  /* Component-level styles defined here or in component CSS modules */
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--fl-gunmetal) 0%,
+      rgba(248, 250, 252, 0.04) 50%,
+      var(--fl-gunmetal) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-sweep 1.8s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-sweep {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer {
+      animation: none;
+      background: var(--fl-graphite);
+    }
+  }
+
+  /* DiamondEdgePanel — signature chrome-framed angular panel */
+  .diamond-edge-panel {
+    position: relative;
+    background: var(--fl-carbon);
+    border: 1px solid var(--fl-dark-chrome);
+    padding: 1.5rem;
+    clip-path: polygon(
+      12px 0, calc(100% - 12px) 0,
+      100% 12px, 100% calc(100% - 12px),
+      calc(100% - 12px) 100%, 12px 100%,
+      0 calc(100% - 12px), 0 12px
+    );
+  }
+
+  /* Chrome-sweep hover effect */
+  .chrome-sweep {
+    overflow: hidden;
+  }
+
+  .chrome-sweep::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 24%;
+    transform: translateX(-220%) rotate(18deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.12),
+      transparent
+    );
+    pointer-events: none;
+    transition: none;
+  }
+
+  .chrome-sweep:hover::after {
+    animation: chrome-sweep 700ms var(--fl-ease-enter) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chrome-sweep:hover::after {
+      animation: none;
+    }
+  }
+}
+
+@layer utilities {
+  /* Tailwind utilities injected here */
+}
+
+/* Reduced motion — system-level override */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

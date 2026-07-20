@@ -35,7 +35,7 @@ Replace the OpenAI-based `callLLM` function with Amazon Bedrock's InvokeModel AP
     - Log failures via logger with category `content`, action `bedrock_invocation_failed`, including error type, model ID, platform but excluding prompts and tokens
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-- [ ] 2. Enhance prompt builder with evidence context
+- [x] 2. Enhance prompt builder with evidence context
   - [x] 2.1 Add `EvidenceItem` interface and update `TaskSummary` in `content-prompts.ts`
     - Add `EvidenceItem` interface with `type: 'PR' | 'COMMIT'` and `content: string`
     - Add optional `evidenceItems?: EvidenceItem[]` field to `TaskSummary` interface
@@ -58,7 +58,7 @@ Replace the OpenAI-based `callLLM` function with Amazon Bedrock's InvokeModel AP
     - Generate PR descriptions of length 0–5000 and commit messages of length 0–5000; assert output never exceeds 500 chars for PR or 200 chars for commits
     - **Validates: Requirements 4.5**
 
-- [ ] 3. Update content service with evidence fetching and Bedrock integration
+- [x] 3. Update content service with evidence fetching and Bedrock integration
   - [x] 3.1 Add evidence fetching logic to `generateDraft` in `content.ts`
     - For each completed task, query Evidence records with type PR or COMMIT, ordered by `fetchedAt` desc, limit 10
     - Extract `description` from PR metadata and `message` from COMMIT metadata
@@ -88,39 +88,39 @@ Replace the OpenAI-based `callLLM` function with Amazon Bedrock's InvokeModel AP
 - [x] 4. Checkpoint — Ensure core integration compiles and passes
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement Bedrock module property tests
-  - [-] 5.1 Write property test for request body construction (Property 1)
+- [x] 5. Implement Bedrock module property tests
+  - [x] 5.1 Write property test for request body construction (Property 1)
     - **Property 1: Request body construction preserves prompts and applies platform-specific parameters**
     - Generate random platforms and prompt strings; assert messages structure contains both prompts, temperature=0.7, and correct maxTokens per platform
     - **Validates: Requirements 1.1, 1.5**
 
-  - [-] 5.2 Write property test for response extraction (Property 2)
+  - [x] 5.2 Write property test for response extraction (Property 2)
     - **Property 2: Response extraction always returns trimmed content**
     - Generate random strings with varying whitespace padding; assert extracted text equals `content.trim()`
     - **Validates: Requirements 1.3**
 
-  - [-] 5.3 Write property test for configuration resolution (Property 3)
+  - [x] 5.3 Write property test for configuration resolution (Property 3)
     - **Property 3: Configuration resolution uses environment values with correct defaults**
     - Generate random env var values including empty/undefined; assert config resolves to expected values with `amazon.nova-pro-v1:0` and `us-east-1` defaults
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
 
-  - [-] 5.4 Write property test for feature flag (Property 4)
+  - [x] 5.4 Write property test for feature flag (Property 4)
     - **Property 4: Feature flag disables Bedrock for all case variations of "false"**
     - Generate random case variations of "false"; assert `isBedrockEnabled()` returns false and template fallback is used
     - **Validates: Requirements 3.1**
 
-  - [-] 5.5 Write property test for template fallback (Property 5)
+  - [x] 5.5 Write property test for template fallback (Property 5)
     - **Property 5: Template fallback output contains required structural elements**
     - Generate random user prompt strings; assert output contains emoji, intro line, prompt content verbatim, and `#buildinpublic` hashtag
     - **Validates: Requirements 3.4**
 
-  - [-] 5.6 Write property test for log safety (Property 10)
+  - [x] 5.6 Write property test for log safety (Property 10)
     - **Property 10: Failure logs never contain prompt content or access tokens**
     - Generate random errors with random prompt content and token patterns; assert logged details exclude prompts and tokens
     - **Validates: Requirements 5.5**
 
-- [ ] 6. Write unit tests for error handling scenarios
-  - [~] 6.1 Write unit tests for Bedrock error classification and retry behavior
+- [x] 6. Write unit tests for error handling scenarios
+  - [x] 6.1 Write unit tests for Bedrock error classification and retry behavior
     - Test ThrottlingException → retry → success
     - Test ThrottlingException → 3 failures → serviceUnavailable with retryable: true
     - Test ModelNotReadyException → immediate serviceUnavailable (no retry)
@@ -131,7 +131,7 @@ Replace the OpenAI-based `callLLM` function with Amazon Bedrock's InvokeModel AP
     - Test empty response body → error raised
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.6_
 
-  - [~] 6.2 Write integration tests for content generation endpoint
+  - [x] 6.2 Write integration tests for content generation endpoint
     - Test POST /api/content/generate → 201 with Bedrock mock returning content
     - Test POST /api/content/generate with Bedrock failure → error response with retryable flag
     - Test evidence enrichment end-to-end (tasks with evidence produce richer prompts)
@@ -147,7 +147,7 @@ Replace the OpenAI-based `callLLM` function with Amazon Bedrock's InvokeModel AP
     - Add `BEDROCK_MODEL_ID`, `BEDROCK_REGION`, `BEDROCK_ENABLED` entries with comments to `packages/api/.env.example` and `docker/.env.example`
     - _Requirements: 2.1, 2.3, 3.1_
 
-- [~] 8. Final checkpoint — Ensure all tests pass
+- [x] 8. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
