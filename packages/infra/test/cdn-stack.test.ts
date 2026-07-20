@@ -160,10 +160,16 @@ describe('CdnStack', () => {
   });
 
   describe('ACM Certificate', () => {
-    it('creates a certificate for the web domain', () => {
-      template.hasResourceProperties('AWS::CertificateManager::Certificate', {
-        DomainName: 'app.solofounder.app',
-        ValidationMethod: 'DNS',
+    it('references the existing certificate for the web domain', () => {
+      // CDN stack imports an existing ACM certificate via ARN, so no
+      // AWS::CertificateManager::Certificate resource is created.
+      // Instead verify the distribution uses a certificate via ViewerCertificate.
+      template.hasResourceProperties('AWS::CloudFront::Distribution', {
+        DistributionConfig: Match.objectLike({
+          ViewerCertificate: Match.objectLike({
+            MinimumProtocolVersion: 'TLSv1.2_2021',
+          }),
+        }),
       });
     });
   });

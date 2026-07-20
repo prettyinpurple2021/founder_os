@@ -34,8 +34,8 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
     region: 'us-east-1',
     stage: 'staging',
     domain: {
-      api: 'api.solo-founder.space',
-      web: 'app.solo-founder.space',
+      api: 'api-staging.solo-founder.space',
+      web: 'app-staging.solo-founder.space',
       zone: 'solo-founder.space',
     },
     database: {
@@ -52,7 +52,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       scaleInCpuPercent: 30,
     },
     monitoring: {
-      alarmEmail: 'founder@solosuccesss.com', // Replace with your email
+      alarmEmail: 'founder@solosuccess.com',
       logRetentionDays: 30,
     },
   },
@@ -62,7 +62,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
     stage: 'production',
     domain: {
       api: 'api.solo-founder.space',
-      web: 'solo-founder.space',
+      web: 'app.solo-founder.space',
       zone: 'solo-founder.space',
     },
     database: {
@@ -79,7 +79,7 @@ export const environments: Record<'staging' | 'production', EnvironmentConfig> =
       scaleInCpuPercent: 30,
     },
     monitoring: {
-      alarmEmail: 'founder@solosuccesss.com', // Replace with your email
+      alarmEmail: 'founder@solosuccess.com',
       logRetentionDays: 90,
     },
   },

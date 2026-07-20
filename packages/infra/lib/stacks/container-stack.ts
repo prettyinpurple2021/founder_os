@@ -7,6 +7,8 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as route53 from 'aws-cdk-lib/aws-route53';
+import * as route53Targets from 'aws-cdk-lib/aws-route53-targets';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import type { Construct } from 'constructs';
 import { fileURLToPath } from 'url';
@@ -180,7 +182,6 @@ export class ContainerStack extends cdk.Stack {
       // non-deterministic asset rebuilds from unrelated repo changes.
       image: ecs.ContainerImage.fromAsset(repoRoot, {
         file: 'docker/Dockerfile',
-        assetHashType: cdk.AssetHashType.SOURCE,
         exclude: [
           '**/node_modules/**',
           '**/dist/**',
@@ -245,6 +246,19 @@ export class ContainerStack extends cdk.Stack {
     const certificate = new acm.Certificate(this, 'ApiCertificate', {
       domainName: config.domain.api,
       validation: acm.CertificateValidation.fromDns(),
+    });
+
+    // --- Route 53 DNS Record ---
+    const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
+      domainName: config.domain.zone,
+    });
+
+    new route53.ARecord(this, 'ApiAliasRecord', {
+      zone: hostedZone,
+      recordName: config.domain.api,
+      target: route53.RecordTarget.fromAlias(
+        new route53Targets.LoadBalancerTarget(this.loadBalancer),
+      ),
     });
 
     // HTTPS Listener (port 443)

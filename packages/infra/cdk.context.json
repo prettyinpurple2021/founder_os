@@ -3,5 +3,9 @@
     "us-east-1a",
     "us-east-1b",
     "us-east-1c"
-  ]
+  ],
+  "hosted-zone:account=069091211516:domainName=solo-founder.space:region=us-east-1": {
+    "Id": "/hostedzone/Z078757719VK3X359RAU",
+    "Name": "solo-founder.space."
+  }
 }

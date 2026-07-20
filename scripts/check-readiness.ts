@@ -141,13 +141,12 @@ async function checkOidc(): Promise<Omit<CheckResult, 'id' | 'name' | 'category'
 
 async function checkStacks(stage: string): Promise<Omit<CheckResult, 'id' | 'name' | 'category' | 'automated' | 'durationMs'>> {
   const cfClient = getCloudFormationClient();
-  const stackTypes = ['Network', 'Database', 'Container', 'Cdn', 'Monitoring'];
-  const capitalizedStage = stage.charAt(0).toUpperCase() + stage.slice(1);
+  const stackTypes = ['network', 'database', 'container', 'cdn', 'monitoring'];
   const failedStacks: string[] = [];
   const validStatuses = new Set(['CREATE_COMPLETE', 'UPDATE_COMPLETE']);
 
   for (const stackType of stackTypes) {
-    const stackName = `SoloFounder${stackType}${capitalizedStage}`;
+    const stackName = `${stage}-${stackType}`;
     try {
       const response = await cfClient.send(
         new DescribeStacksCommand({ StackName: stackName })
@@ -224,9 +223,8 @@ async function checkSecrets(stage: string): Promise<Omit<CheckResult, 'id' | 'na
 
 async function checkEcs(stage: string): Promise<Omit<CheckResult, 'id' | 'name' | 'category' | 'automated' | 'durationMs'>> {
   const ecsClient = getECSClient();
-  const capitalizedStage = stage.charAt(0).toUpperCase() + stage.slice(1);
-  const clusterName = `solo-founder-${stage}`;
-  const serviceName = `solo-founder-api-${stage}`;
+  const clusterName = `solo-founder-${stage}-cluster`;
+  const serviceName = `solo-founder-${stage}-api`;
 
   try {
     const response = await ecsClient.send(
@@ -444,16 +442,16 @@ async function checkCloudFront(): Promise<Omit<CheckResult, 'id' | 'name' | 'cat
     const listResponse = await cfClient.send(new ListDistributionsCommand({}));
     const distributions = listResponse.DistributionList?.Items ?? [];
 
-    // Find the distribution that serves app.solofounder.app
+    // Find the distribution that serves app.solo-founder.space
     const webDistribution = distributions.find(
-      (d) => d.Aliases?.Items?.includes('app.solofounder.app')
+      (d) => d.Aliases?.Items?.includes('app.solo-founder.space')
     );
 
     if (!webDistribution) {
       return {
         status: 'fail',
-        expected: 'CloudFront distribution serving app.solofounder.app',
-        actual: 'No distribution found with alias app.solofounder.app',
+        expected: 'CloudFront distribution serving app.solo-founder.space',
+        actual: 'No distribution found with alias app.solo-founder.space',
         remediation: 'Deploy the CDN stack and configure the CNAME alias.',
       };
     }
@@ -489,17 +487,17 @@ function buildCheckDefinitions(stage: string): CheckDefinition[] {
   return [
     {
       id: 'dns-api',
-      name: 'API DNS resolution (api.solofounder.app)',
+      name: 'API DNS resolution (api.solo-founder.space)',
       category: 'dns',
       automated: true,
-      run: () => checkDnsResolution('api.solofounder.app'),
+      run: () => checkDnsResolution('api.solo-founder.space'),
     },
     {
       id: 'dns-web',
-      name: 'Web DNS resolution (app.solofounder.app)',
+      name: 'Web DNS resolution (app.solo-founder.space)',
       category: 'dns',
       automated: true,
-      run: () => checkDnsResolution('app.solofounder.app'),
+      run: () => checkDnsResolution('app.solo-founder.space'),
     },
     {
       id: 'oidc',
@@ -545,17 +543,17 @@ function buildCheckDefinitions(stage: string): CheckDefinition[] {
     },
     {
       id: 'tls-api',
-      name: 'API TLS certificate validity (api.solofounder.app)',
+      name: 'API TLS certificate validity (api.solo-founder.space)',
       category: 'tls',
       automated: true,
-      run: () => checkTlsCertificate('api.solofounder.app'),
+      run: () => checkTlsCertificate('api.solo-founder.space'),
     },
     {
       id: 'tls-web',
-      name: 'Web TLS certificate validity (app.solofounder.app)',
+      name: 'Web TLS certificate validity (app.solo-founder.space)',
       category: 'tls',
       automated: true,
-      run: () => checkTlsCertificate('app.solofounder.app'),
+      run: () => checkTlsCertificate('app.solo-founder.space'),
     },
     {
       id: 'cloudfront',

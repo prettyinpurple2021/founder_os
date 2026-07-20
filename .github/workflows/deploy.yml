@@ -7,9 +7,40 @@ permissions:
   id-token: write
   contents: read
 jobs:
-  launch:
-    name: Authenticate and Build
+  test:
+    name: Lint, Type Check & Test
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate --workspace=packages/api
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: |
+          npx tsc -p packages/api/tsconfig.json --noEmit
+          npx tsc -p packages/infra/tsconfig.json --noEmit
+
+      - name: Run API Tests
+        run: npm run test:api
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -33,17 +64,71 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
-        run: npx prisma generate --schema=packages/api/prisma/schema.prisma
+        run: npm run prisma:generate --workspace=packages/api
 
       - name: Build Application
         run: npm run build
 
-      # CDK bootstrap is a one-time setup that needs broader CloudFormation
-      # permissions than the GitHub Actions deploy role has. Run it manually
-      # when initializing an account or region:
-      #   npx tsx scripts/bootstrap.ts --stage production
-      # or:
-      #   cd packages/infra && npx cdk bootstrap aws://ACCOUNT/REGION
+      - name: Deploy Infrastructure
+        run: cd packages/infra && npx cdk deploy --all --context stage=production --require-approval never
 
-      - name: Publish to AWS
-        run: cd packages/infra && npx cdk deploy --all --require-approval never
+      - name: Run Database Migration
+        run: |
+          # Get the task definition, subnets, and security groups from CloudFormation outputs
+          CLUSTER_ARN=$(aws cloudformation describe-stacks \
+            --stack-name production-container \
+            --query 'Stacks[0].Outputs[?OutputKey==`ClusterArn`].OutputValue' \
+            --output text)
+
+          TASK_DEF=$(aws ecs list-task-definitions \
+            --family-prefix solo-founder-production-api \
+            --sort DESC \
+            --query 'taskDefinitionArns[0]' \
+            --output text)
+
+          # Get private subnets from the VPC
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters "Name=tag:Name,Values=solo-founder-production-vpc" \
+            --query 'Vpcs[0].VpcId' --output text)
+
+          SUBNETS=$(aws ec2 describe-subnets \
+            --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*PrivateSubnet*" \
+            --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
+
+          ECS_SG=$(aws ec2 describe-security-groups \
+            --filters "Name=group-name,Values=solo-founder-production-ecs-sg" \
+            --query 'SecurityGroups[0].GroupId' --output text)
+
+          echo "Running migration task..."
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$CLUSTER_ARN" \
+            --task-definition "$TASK_DEF" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$ECS_SG],assignPublicIp=DISABLED}" \
+            --overrides '{
+              "containerOverrides": [{
+                "name": "solo-founder-production-api",
+                "command": ["npx", "prisma", "migrate", "deploy", "--schema", "/app/packages/api/prisma/schema.prisma"]
+              }]
+            }' \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          echo "Migration task started: $TASK_ARN"
+
+          # Wait for migration to complete
+          aws ecs wait tasks-stopped --cluster "$CLUSTER_ARN" --tasks "$TASK_ARN"
+
+          # Check exit code
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "$CLUSTER_ARN" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "::error::Database migration failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+          echo "Database migration completed successfully."

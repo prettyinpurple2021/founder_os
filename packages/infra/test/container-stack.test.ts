@@ -120,8 +120,8 @@ describe('ContainerStack', () => {
 
     it('configures health check with healthy threshold count', () => {
       template.hasResourceProperties('AWS::ElasticLoadBalancingV2::TargetGroup', {
-        HealthyThresholdCount: Match.anyValue(),
-        UnhealthyThresholdCount: 3,
+        HealthyThresholdCount: 2,
+        UnhealthyThresholdCount: 5,
       });
     });
   });

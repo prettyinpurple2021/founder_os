@@ -3,6 +3,10 @@ name: Database Migration
 on:
   workflow_call:
     inputs:
+      stage:
+        description: Target stage (staging or production)
+        required: true
+        type: string
       cluster-name:
         description: ECS cluster name to run the migration task in
         required: true
@@ -23,26 +27,25 @@ on:
         description: Name of the container in the task definition
         required: false
         type: string
-        default: api
+        default: solo-founder-production-api
     secrets:
-      AWS_ACCESS_KEY_ID:
+      AWS_ROLE_ARN:
         required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_REGION:
-        required: true
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   migrate:
     name: Run Database Migration
     runs-on: ubuntu-latest
     steps:
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
       - name: Run migration ECS task
         id: run-task
@@ -57,7 +60,7 @@ jobs:
             --overrides '{
               "containerOverrides": [{
                 "name": "${{ inputs.container-name }}",
-                "command": ["npx", "prisma", "migrate", "deploy"]
+                "command": ["npx", "prisma", "migrate", "deploy", "--schema", "/app/packages/api/prisma/schema.prisma"]
               }]
             }' \
             --query 'tasks[0].taskArn' \
@@ -82,25 +85,24 @@ jobs:
             --cluster "$CLUSTER" \
             --tasks "$TASK_ARN"
 
-          # Get task exit code and status
-          TASK_DETAIL=$(aws ecs describe-tasks \
+          EXIT_CODE=$(aws ecs describe-tasks \
             --cluster "$CLUSTER" \
             --tasks "$TASK_ARN" \
-            --query 'tasks[0]')
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
 
-          EXIT_CODE=$(echo "$TASK_DETAIL" | jq -r '.containers[0].exitCode // "unknown"')
-          STOP_REASON=$(echo "$TASK_DETAIL" | jq -r '.stoppedReason // "none"')
-          CONTAINER_REASON=$(echo "$TASK_DETAIL" | jq -r '.containers[0].reason // "none"')
+          STOP_REASON=$(aws ecs describe-tasks \
+            --cluster "$CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].stoppedReason' \
+            --output text)
 
           echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-          echo "stop-reason=$STOP_REASON" >> "$GITHUB_OUTPUT"
-
           echo "Task exit code: $EXIT_CODE"
           echo "Task stop reason: $STOP_REASON"
-          echo "Container reason: $CONTAINER_REASON"
 
           if [ "$EXIT_CODE" != "0" ]; then
-            echo "::error::Migration failed with exit code $EXIT_CODE. Reason: $CONTAINER_REASON. Stop reason: $STOP_REASON"
+            echo "::error::Migration failed with exit code $EXIT_CODE. Reason: $STOP_REASON"
             exit 1
           fi
 
@@ -111,12 +113,9 @@ jobs:
         run: |
           TASK_ARN="${{ steps.run-task.outputs.task-arn }}"
           TASK_ID=$(echo "$TASK_ARN" | awk -F'/' '{print $NF}')
-          CLUSTER="${{ inputs.cluster-name }}"
           CONTAINER="${{ inputs.container-name }}"
-
-          # Attempt to retrieve CloudWatch logs for the failed task
-          LOG_STREAM="${CONTAINER}/${CONTAINER}/${TASK_ID}"
-          LOG_GROUP="/ecs/${{ inputs.cluster-name }}"
+          LOG_GROUP="/ecs/solo-founder-${{ inputs.stage }}-api"
+          LOG_STREAM="api/${CONTAINER}/${TASK_ID}"
 
           echo "::group::Migration task logs"
           aws logs get-log-events \
@@ -127,5 +126,5 @@ jobs:
             --output text 2>/dev/null || echo "Could not retrieve logs. Check CloudWatch log group: $LOG_GROUP, stream: $LOG_STREAM"
           echo "::endgroup::"
 
-          echo "::error::Database migration failed. Deployment halted. Review logs above for the failing migration name and error details."
+          echo "::error::Database migration failed. Review logs above."
           exit 1
