@@ -1,4 +1,4 @@
-// Requirements: 5.1, 5.2, 5.3
+// Requirements: 5.1, 5.2, 5.3, 12.1, 12.4, 14.4, 14.5
 // Marketing readiness page: missing assets list, channel recommendations,
 // mark-as-complete action, and overall readiness percentage
 
@@ -10,11 +10,13 @@ import {
   type CompletedAsset,
   type ChannelRecommendation,
 } from '../lib/api';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
 
-const EFFORT_COLORS: Record<MissingAsset['effort'], string> = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-red-100 text-red-700',
+const EFFORT_BADGE_COLORS: Record<MissingAsset['effort'], 'lime' | 'amber' | 'red'> = {
+  low: 'lime',
+  medium: 'amber',
+  high: 'red',
 };
 
 const EFFORT_LABELS: Record<MissingAsset['effort'], string> = {
@@ -104,8 +106,8 @@ export default function Marketing() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm text-gray-500">Loading marketing readiness...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-founder-pink/30 border-t-founder-pink" />
+          <p className="text-sm text-text-muted">Loading marketing readiness...</p>
         </div>
       </div>
     );
@@ -113,16 +115,16 @@ export default function Marketing() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">Unable to load marketing data</h3>
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+      <Card variant="default" accent="red">
+        <h3 className="text-sm font-medium text-alert-red">Unable to load marketing data</h3>
+        <p className="mt-1 text-sm text-text-secondary">{error}</p>
         <button
           onClick={fetchStatus}
-          className="mt-3 text-sm font-medium text-red-700 hover:text-red-900 underline"
+          className="mt-3 text-sm font-medium text-alert-red hover:text-alert-red/80 underline"
         >
           Try again
         </button>
-      </div>
+      </Card>
     );
   }
 
@@ -136,7 +138,7 @@ export default function Marketing() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Marketing Readiness</h2>
+        <h2 className="text-2xl font-bold font-display text-chrome-white">Marketing Readiness</h2>
         <ReadinessBadge percentage={data.readinessPercentage} />
       </div>
 
@@ -160,39 +162,33 @@ export default function Marketing() {
 }
 
 function ReadinessBadge({ percentage }: { percentage: number }) {
-  const color =
-    percentage >= 80
-      ? 'bg-green-100 text-green-700'
-      : percentage >= 50
-        ? 'bg-yellow-100 text-yellow-700'
-        : 'bg-red-100 text-red-700';
+  const color: 'lime' | 'amber' | 'red' =
+    percentage >= 80 ? 'lime' : percentage >= 50 ? 'amber' : 'red';
 
-  return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${color}`}
-    >
-      {percentage}% ready
-    </span>
-  );
+  return <Badge color={color}>{percentage}% ready</Badge>;
 }
 
 function ReadinessProgress({ percentage }: { percentage: number }) {
   const barColor =
-    percentage >= 80 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
+    percentage >= 80
+      ? 'bg-launch-lime'
+      : percentage >= 50
+        ? 'bg-warning-amber'
+        : 'bg-alert-red';
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
+    <Card variant="default">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-medium text-gray-700">Overall Marketing Readiness</p>
-        <p className="text-sm font-bold text-gray-900">{percentage}%</p>
+        <p className="text-sm font-medium text-text-secondary">Overall Marketing Readiness</p>
+        <p className="text-sm font-bold text-chrome-white">{percentage}%</p>
       </div>
-      <div className="w-full h-3 bg-gray-100 rounded-full">
+      <div className="w-full h-3 bg-graphite rounded-full">
         <div
-          className={`h-3 rounded-full transition-all duration-300 ${barColor}`}
+          className={`h-3 rounded-full motion-safe:transition-all motion-safe:duration-standard ${barColor}`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
         />
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -207,43 +203,43 @@ function MissingAssetsList({
 }) {
   if (assets.length === 0) {
     return (
-      <div className="rounded-lg border border-green-200 bg-green-50 p-5">
+      <Card variant="default" accent="lime">
         <div className="flex items-center gap-2">
           <span className="text-xl">🎉</span>
-          <p className="text-sm font-medium text-green-800">All marketing assets are complete!</p>
+          <p className="text-sm font-medium text-launch-lime">All marketing assets are complete!</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Missing Assets ({assets.length})</h3>
+    <Card variant="default">
+      <h3 className="text-sm font-medium text-chrome-white mb-4">
+        Missing Assets ({assets.length})
+      </h3>
       <ul className="space-y-3">
         {assets.map((asset) => (
           <li
             key={asset.id}
-            className="flex items-start justify-between gap-4 rounded-lg border border-gray-100 p-4 hover:bg-gray-50 transition-colors"
+            className="flex items-start justify-between gap-4 rounded-lg border border-graphite p-4 bg-carbon hover:bg-gunmetal/80 motion-safe:transition-colors motion-safe:duration-fast"
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-medium text-gray-900">{asset.title}</p>
-                <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${EFFORT_COLORS[asset.effort]}`}
-                >
+                <p className="text-sm font-medium text-chrome-white">{asset.title}</p>
+                <Badge color={EFFORT_BADGE_COLORS[asset.effort]}>
                   {EFFORT_LABELS[asset.effort]}
-                </span>
+                </Badge>
               </div>
-              <p className="text-xs text-gray-500">{asset.description}</p>
+              <p className="text-xs text-text-muted">{asset.description}</p>
             </div>
             <button
               onClick={() => onMarkComplete(asset)}
               disabled={completingIds.has(asset.id)}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-founder-pink text-chrome-white hover:bg-founder-pink/80 disabled:opacity-50 disabled:cursor-not-allowed motion-safe:transition-colors motion-safe:duration-fast focus:outline-none focus:ring-2 focus:ring-hyper-cyan focus:ring-offset-2 focus:ring-offset-carbon"
             >
               {completingIds.has(asset.id) ? (
                 <>
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-chrome-white/30 border-t-chrome-white" />
                   Completing...
                 </>
               ) : (
@@ -256,7 +252,7 @@ function MissingAssetsList({
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
@@ -264,18 +260,20 @@ function CompletedAssetsList({ assets }: { assets: CompletedAsset[] }) {
   if (assets.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Completed Assets ({assets.length})</h3>
+    <Card variant="default">
+      <h3 className="text-sm font-medium text-chrome-white mb-4">
+        Completed Assets ({assets.length})
+      </h3>
       <ul className="space-y-2">
         {assets.map((asset) => (
           <li key={asset.id} className="flex items-center gap-3 py-2">
-            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-green-100 text-green-600 text-xs">
+            <span className="flex items-center justify-center h-5 w-5 rounded-full bg-launch-lime/10 text-launch-lime text-xs">
               ✓
             </span>
-            <span className="text-sm text-gray-700 capitalize">
+            <span className="text-sm text-text-secondary capitalize">
               {asset.type.replace(/_/g, ' ')}
             </span>
-            <span className="text-xs text-gray-400 ml-auto">
+            <span className="text-xs text-text-muted ml-auto">
               {new Date(asset.completedAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -284,7 +282,7 @@ function CompletedAssetsList({ assets }: { assets: CompletedAsset[] }) {
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
@@ -298,28 +296,26 @@ function ChannelRecommendationsList({
   const sorted = [...recommendations].sort((a, b) => a.priority - b.priority);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Recommended Channels</h3>
+    <Card variant="default">
+      <h3 className="text-sm font-medium text-chrome-white mb-4">Recommended Channels</h3>
       <ul className="space-y-3">
         {sorted.map((rec) => (
-          <li key={rec.channel} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+          <li key={rec.channel} className="flex items-start gap-3 p-3 rounded-lg bg-carbon">
             <span className="text-lg shrink-0">{CHANNEL_ICONS[rec.channel] ?? '📢'}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 capitalize">
+              <p className="text-sm font-medium text-chrome-white capitalize">
                 {rec.channel === 'hackernews'
                   ? 'Hacker News'
                   : rec.channel === 'producthunt'
                     ? 'Product Hunt'
                     : rec.channel.charAt(0).toUpperCase() + rec.channel.slice(1)}
               </p>
-              <p className="text-xs text-gray-500 mt-0.5">{rec.reason}</p>
+              <p className="text-xs text-text-muted mt-0.5">{rec.reason}</p>
             </div>
-            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-              #{rec.priority}
-            </span>
+            <Badge color="cyan">#{rec.priority}</Badge>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }

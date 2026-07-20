@@ -28,6 +28,7 @@
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "pg": "^8.21.0",
+    "posthog-node": "^5.45.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

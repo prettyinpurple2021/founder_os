@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { contentApi, type ContentDraft, type DraftStatus, type Platform } from '../lib/api.js';
+import { Card } from '../components/ui/Card.js';
+import { Badge } from '../components/ui/Badge.js';
 
 const STATUS_OPTIONS: Array<{ value: DraftStatus | 'ALL'; label: string }> = [
   { value: 'ALL', label: 'All' },
@@ -15,14 +17,14 @@ const STATUS_OPTIONS: Array<{ value: DraftStatus | 'ALL'; label: string }> = [
   { value: 'SCHEDULED', label: 'Scheduled' },
 ];
 
-const STATUS_COLORS: Record<DraftStatus, string> = {
-  GENERATED: 'bg-gray-100 text-gray-700',
-  EDITING: 'bg-blue-100 text-blue-700',
-  PENDING_APPROVAL: 'bg-blue-100 text-blue-700',
-  APPROVED: 'bg-green-100 text-green-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  SCHEDULED: 'bg-blue-100 text-blue-700',
-  COPIED: 'bg-green-100 text-green-700',
+const STATUS_BADGE_COLORS: Record<DraftStatus, 'lime' | 'amber' | 'cyan' | 'red' | 'chrome'> = {
+  GENERATED: 'cyan',
+  EDITING: 'amber',
+  PENDING_APPROVAL: 'amber',
+  APPROVED: 'lime',
+  REJECTED: 'red',
+  SCHEDULED: 'lime',
+  COPIED: 'lime',
 };
 
 const STATUS_LABELS: Record<DraftStatus, string> = {
@@ -35,10 +37,10 @@ const STATUS_LABELS: Record<DraftStatus, string> = {
   COPIED: 'Copied',
 };
 
-const PLATFORM_COLORS: Record<Platform, string> = {
-  TWITTER: 'bg-sky-100 text-sky-700',
-  LINKEDIN: 'bg-blue-200 text-blue-900',
-  BLOG: 'bg-emerald-100 text-emerald-700',
+const PLATFORM_BADGE_COLORS: Record<Platform, 'cyan' | 'pink' | 'lime'> = {
+  TWITTER: 'cyan',
+  LINKEDIN: 'pink',
+  BLOG: 'lime',
 };
 
 const PLATFORM_LABELS: Record<Platform, string> = {
@@ -105,8 +107,8 @@ export default function Content() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Content Drafts</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <h2 className="text-2xl font-display font-bold text-chrome-white">Content Drafts</h2>
+        <p className="mt-1 text-sm text-secondary">
           Generate and manage build-in-public content from your shipped progress.
         </p>
       </div>
@@ -153,11 +155,11 @@ function GenerateDraftForm({
   const platforms: Platform[] = ['TWITTER', 'LINKEDIN', 'BLOG'];
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">Generate New Draft</h3>
+    <Card variant="default">
+      <h3 className="text-sm font-medium text-primary mb-3">Generate New Draft</h3>
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-600 mb-1.5">Platform</label>
+          <label className="block text-xs font-medium text-secondary mb-1.5">Platform</label>
           <div className="flex gap-2" role="radiogroup" aria-label="Platform selector">
             {platforms.map((platform) => (
               <button
@@ -166,10 +168,10 @@ function GenerateDraftForm({
                 role="radio"
                 aria-checked={selectedPlatform === platform}
                 onClick={() => onPlatformChange(platform)}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm font-medium motion-safe:transition-colors motion-safe:duration-fast ${
                   selectedPlatform === platform
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-founder-pink text-chrome-white'
+                    : 'bg-graphite text-secondary hover:bg-dark-chrome hover:text-primary'
                 }`}
               >
                 {PLATFORM_LABELS[platform]}
@@ -181,16 +183,16 @@ function GenerateDraftForm({
           type="button"
           onClick={onGenerate}
           disabled={generating}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-founder-pink text-chrome-white rounded-md text-sm font-medium hover:bg-founder-pink/90 disabled:opacity-50 disabled:cursor-not-allowed motion-safe:transition-colors motion-safe:duration-fast"
         >
           {generating && (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-chrome-white border-t-transparent" />
           )}
           {generating ? 'Generating...' : 'Generate'}
         </button>
       </div>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-    </div>
+      {error && <p className="mt-3 text-sm text-alert-red">{error}</p>}
+    </Card>
   );
 }
 
@@ -210,10 +212,10 @@ function StatusFilterBar({
           role="tab"
           aria-selected={selected === option.value}
           onClick={() => onChange(option.value)}
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-md text-sm font-medium motion-safe:transition-colors motion-safe:duration-fast ${
             selected === option.value
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-founder-pink text-chrome-white'
+              : 'bg-graphite text-muted hover:bg-dark-chrome hover:text-secondary'
           }`}
         >
           {option.label}
@@ -238,8 +240,8 @@ function DraftsList({
     return (
       <div className="flex items-center justify-center h-48">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm text-gray-500">Loading drafts...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gunmetal border-t-founder-pink" />
+          <p className="text-sm text-muted">Loading drafts...</p>
         </div>
       </div>
     );
@@ -247,28 +249,28 @@ function DraftsList({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">Unable to load drafts</h3>
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+      <Card variant="default" accent="red">
+        <h3 className="text-sm font-medium text-alert-red">Unable to load drafts</h3>
+        <p className="mt-1 text-sm text-secondary">{error}</p>
         <button
           onClick={onRetry}
-          className="mt-3 text-sm text-red-600 underline hover:text-red-800"
+          className="mt-3 text-sm text-alert-red underline hover:text-alert-red/80 motion-safe:transition-colors motion-safe:duration-fast"
         >
           Try again
         </button>
-      </div>
+      </Card>
     );
   }
 
   if (drafts.length === 0) {
     return (
-      <div className="text-center py-12 rounded-lg border border-gray-200 bg-white">
+      <Card variant="default" className="text-center py-12">
         <div className="text-3xl mb-3">📝</div>
-        <h3 className="text-base font-medium text-gray-900 mb-1">No drafts yet</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-base font-medium text-primary mb-1">No drafts yet</h3>
+        <p className="text-sm text-muted">
           Generate your first build-in-public draft from shipped progress.
         </p>
-      </div>
+      </Card>
     );
   }
 
@@ -285,32 +287,28 @@ function DraftCard({ draft }: { draft: ContentDraft }) {
   return (
     <Link
       to={`/content/${draft.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-sm transition-all"
+      className="block rounded-lg border border-graphite bg-gunmetal p-4 hover:border-dark-chrome hover:shadow-chrome-edge motion-safe:transition-all motion-safe:duration-fast"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           {/* Badges row */}
           <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${PLATFORM_COLORS[draft.platform]}`}
-            >
+            <Badge color={PLATFORM_BADGE_COLORS[draft.platform]}>
               {PLATFORM_LABELS[draft.platform]}
-            </span>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[draft.status]}`}
-            >
+            </Badge>
+            <Badge color={STATUS_BADGE_COLORS[draft.status]}>
               {STATUS_LABELS[draft.status]}
-            </span>
+            </Badge>
           </div>
 
           {/* Content preview truncated to ~100 chars */}
-          <p className="text-sm text-gray-700 leading-relaxed">
+          <p className="text-sm text-secondary leading-relaxed">
             {truncateContent(draft.currentContent)}
           </p>
         </div>
 
         {/* Creation date */}
-        <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">
+        <span className="text-xs text-muted whitespace-nowrap flex-shrink-0">
           {formatDate(draft.createdAt)}
         </span>
       </div>

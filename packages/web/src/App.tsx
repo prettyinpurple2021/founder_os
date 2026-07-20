@@ -24,7 +24,14 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Suspense
-          fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}
+          fallback={
+            <div className="flex items-center justify-center min-h-screen bg-obsidian">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-founder-pink/30 border-t-founder-pink" />
+                <p className="text-sm text-text-muted">Loading...</p>
+              </div>
+            </div>
+          }
         >
           <Routes>
             {/* Public routes */}

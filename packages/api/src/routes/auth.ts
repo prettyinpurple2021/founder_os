@@ -3,6 +3,7 @@ import passport from '../auth/passport.js';
 import prisma from '../lib/prisma.js';
 
 import { logAuth } from '../services/logger.js';
+import posthog from '../lib/posthog.js';
 
 /**
  * OAuth error code mapping — translates Passport/GitHub error types
@@ -102,8 +103,20 @@ export function createAuthRouter(frontendUrl: string): Router {
             return;
           }
           // Fire-and-forget auth login log
-          const authUser = user as { id: string; username?: string };
+          const authUser = user as { id: string; username?: string; email?: string };
           logAuth(authUser.id, 'login', { provider: 'github', username: authUser.username });
+          posthog.identify({
+            distinctId: authUser.id,
+            properties: {
+              $set: { username: authUser.username, email: authUser.email },
+              $set_once: { first_login_at: new Date().toISOString() },
+            },
+          });
+          posthog.capture({
+            distinctId: authUser.id,
+            event: 'user_logged_in',
+            properties: { provider: 'github', username: authUser.username },
+          });
           res.redirect(`${frontendOrigin}/dashboard`);
         });
       },
@@ -184,6 +197,14 @@ export function createAuthRouter(frontendUrl: string): Router {
 
         // Fire-and-forget auth logout log
         logAuth(userId ?? undefined, 'logout', { reason: 'user_initiated' });
+
+        if (userId) {
+          posthog.capture({
+            distinctId: userId,
+            event: 'user_logged_out',
+            properties: { reason: 'user_initiated' },
+          });
+        }
 
         res.json({ message: 'Logged out successfully' });
       });

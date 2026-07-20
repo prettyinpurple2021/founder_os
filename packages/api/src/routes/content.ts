@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppError, unauthorized, internalError } from '../errors/AppError.js';
+import posthog from '../lib/posthog.js';
 import {
   generateDraft,
   editDraft,
@@ -55,6 +56,12 @@ router.post(
       const { platform, timeRangeDays } = req.body;
 
       const draft = await generateDraft(user.id, platform as ContentPlatform, timeRangeDays);
+
+      posthog.capture({
+        distinctId: user.id,
+        event: 'content_draft_generated',
+        properties: { platform, time_range_days: timeRangeDays, draft_id: draft.id },
+      });
 
       res.status(201).json(draft);
     } catch (err) {
@@ -137,6 +144,12 @@ router.post('/drafts/:id/submit', async (req: Request, res: Response, next: Next
 
     const result = await submitForReview(user.id, draftId);
 
+    posthog.capture({
+      distinctId: user.id,
+      event: 'content_draft_submitted_for_review',
+      properties: { draft_id: draftId, platform: result.draft?.platform },
+    });
+
     res.json(result);
   } catch (err) {
     next(err instanceof AppError ? err : internalError('Failed to submit draft for review'));
@@ -161,6 +174,12 @@ router.post('/drafts/:id/approve', async (req: Request, res: Response, next: Nex
     const draftId = req.params.id;
 
     const result = await approveDraft(user.id, draftId);
+
+    posthog.capture({
+      distinctId: user.id,
+      event: 'content_draft_approved',
+      properties: { draft_id: draftId, platform: result.draft?.platform },
+    });
 
     res.json(result);
   } catch (err) {
@@ -193,6 +212,12 @@ router.post(
       const { reason } = req.body;
 
       const result = await rejectDraft(user.id, draftId, reason);
+
+      posthog.capture({
+        distinctId: user.id,
+        event: 'content_draft_rejected',
+        properties: { draft_id: draftId, platform: result.draft?.platform, has_reason: !!reason },
+      });
 
       res.json(result);
     } catch (err) {
@@ -229,6 +254,17 @@ router.post(
       const { scheduledAt } = req.body;
 
       const result = await scheduleDraft(user.id, draftId, scheduledAt);
+
+      posthog.capture({
+        distinctId: user.id,
+        event: 'content_draft_scheduled',
+        properties: {
+          draft_id: draftId,
+          platform: result.draft?.platform,
+          status: result.draft?.status,
+          scheduled_at: scheduledAt ?? null,
+        },
+      });
 
       res.json(result);
     } catch (err) {

@@ -103,7 +103,7 @@ describe('Authentication Event Logging', () => {
       (passport.authenticate as any).mockImplementation(
         (_strategy: string, cb: (err: Error | null, user: any, info: any) => void) => {
           return (req: Request, _res: Response, _next: NextFunction) => {
-            // Simulate successful auth — passport calls the callback with a user
+            //  successful auth — passport calls the callback with a user
             // We need to mock req.logIn as well
             (req as any).logIn = vi.fn((_user: any, loginCb: (err?: Error) => void) => loginCb());
             cb(null, mockUser, undefined);

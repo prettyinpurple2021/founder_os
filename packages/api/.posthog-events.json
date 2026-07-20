@@ -1,0 +1,67 @@
+[
+  {
+    "event_name": "user_logged_in",
+    "event_description": "User successfully authenticated via GitHub OAuth.",
+    "file": "src/routes/auth.ts"
+  },
+  {
+    "event_name": "user_logged_out",
+    "event_description": "User explicitly logged out and their session was destroyed.",
+    "file": "src/routes/auth.ts"
+  },
+  {
+    "event_name": "repository_connected",
+    "event_description": "User connected a GitHub repository to their account.",
+    "file": "src/routes/repos.ts"
+  },
+  {
+    "event_name": "repository_disconnected",
+    "event_description": "User disconnected their currently connected GitHub repository.",
+    "file": "src/routes/repos.ts"
+  },
+  {
+    "event_name": "sync_triggered",
+    "event_description": "User manually triggered a repository sync.",
+    "file": "src/routes/sync.ts"
+  },
+  {
+    "event_name": "sync_completed",
+    "event_description": "A repository sync completed, recording whether it succeeded or failed.",
+    "file": "src/routes/sync.ts"
+  },
+  {
+    "event_name": "content_draft_generated",
+    "event_description": "A build-in-public content draft was generated for a platform.",
+    "file": "src/routes/content.ts"
+  },
+  {
+    "event_name": "content_draft_submitted_for_review",
+    "event_description": "User submitted a content draft for review.",
+    "file": "src/routes/content.ts"
+  },
+  {
+    "event_name": "content_draft_approved",
+    "event_description": "User approved a content draft, moving it to approved status.",
+    "file": "src/routes/content.ts"
+  },
+  {
+    "event_name": "content_draft_rejected",
+    "event_description": "User rejected a content draft with an optional reason.",
+    "file": "src/routes/content.ts"
+  },
+  {
+    "event_name": "content_draft_scheduled",
+    "event_description": "User scheduled or copied an approved content draft for publishing.",
+    "file": "src/routes/content.ts"
+  },
+  {
+    "event_name": "marketing_asset_completed",
+    "event_description": "User marked a marketing asset as completed.",
+    "file": "src/routes/marketing.ts"
+  },
+  {
+    "event_name": "checklist_item_updated",
+    "event_description": "User manually overrode the status of a launch readiness checklist item.",
+    "file": "src/routes/checklist.ts"
+  }
+]

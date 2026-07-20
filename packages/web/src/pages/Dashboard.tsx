@@ -1,9 +1,16 @@
-// Requirements: 8.1, 8.2, 8.3, 8.4
+// Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 14.2, 14.4, 14.5
 // Dashboard page - action-oriented main view showing project status, blockers,
 // next action, recent progress, and last sync indicator
+// Styled with LaunchChrome™ design system
 
 import { useEffect, useState } from 'react';
 import { get } from '../lib/api';
+import { Card } from '../components/ui/Card';
+import { DiamondEdgePanel } from '../components/ui/DiamondEdgePanel';
+import { ProgressRail } from '../components/ui/ProgressRail';
+import { Badge } from '../components/ui/Badge';
+import { Skeleton } from '../components/ui/Skeleton';
+import { useCountUp } from '../hooks/useCountUp';
 
 type TaskState =
   | 'NOT_STARTED'
@@ -65,12 +72,12 @@ const STATE_LABELS: Record<TaskState, string> = {
 };
 
 const STATE_COLORS: Record<TaskState, string> = {
-  NOT_STARTED: 'bg-gray-100 text-gray-700',
-  IN_PROGRESS: 'bg-blue-100 text-blue-700',
-  BLOCKED: 'bg-red-100 text-red-700',
-  NEEDS_REVIEW: 'bg-yellow-100 text-yellow-700',
-  COMPLETED: 'bg-green-100 text-green-700',
-  UNCERTAIN: 'bg-purple-100 text-purple-700',
+  NOT_STARTED: 'bg-chrome-steel/10 text-chrome-silver',
+  IN_PROGRESS: 'bg-hyper-cyan/10 text-hyper-cyan',
+  BLOCKED: 'bg-alert-red/10 text-alert-red',
+  NEEDS_REVIEW: 'bg-warning-amber/10 text-warning-amber',
+  COMPLETED: 'bg-launch-lime/10 text-launch-lime',
+  UNCERTAIN: 'bg-plasma-violet/10 text-plasma-violet',
 };
 
 function formatRelativeDate(dateString: string): string {
@@ -129,21 +136,24 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm text-gray-500">Loading dashboard...</p>
+      <div className="space-y-6">
+        <Skeleton variant="text" lines={1} />
+        <Skeleton variant="card" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton variant="card" className="lg:col-span-2" />
+          <Skeleton variant="card" />
         </div>
+        <Skeleton variant="card" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">Unable to load dashboard</h3>
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      </div>
+      <Card accent="red">
+        <h3 className="text-small font-medium text-alert-red">Unable to load dashboard</h3>
+        <p className="mt-1 text-small text-text-secondary">{error}</p>
+      </Card>
     );
   }
 
@@ -151,13 +161,13 @@ export default function Dashboard() {
     return (
       <div className="text-center py-16">
         <div className="text-4xl mb-4">🚀</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Launch OS</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="font-display text-h2 text-chrome-white mb-2">Welcome to Launch OS</h2>
+        <p className="text-text-secondary mb-6">
           Connect your GitHub repository to start tracking your launch readiness.
         </p>
         <a
           href="/settings"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-founder-pink text-chrome-white rounded-md font-medium shadow-glow-pink hover:bg-neon-magenta transition-colors"
         >
           Connect a Repository
         </a>
@@ -169,7 +179,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header with sync indicator */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
+        <h2 className="font-display text-h2 text-chrome-white">Dashboard</h2>
         <SyncIndicator lastSync={data.lastSync} />
       </div>
 
@@ -194,19 +204,19 @@ export default function Dashboard() {
 
 function SyncIndicator({ lastSync }: { lastSync: LastSync | null }) {
   if (!lastSync) {
-    return <span className="text-xs text-gray-400">No sync data available</span>;
+    return <span className="text-caption text-text-muted">No sync data available</span>;
   }
 
   const isSuccess = lastSync.status === 'SUCCESS';
 
   return (
-    <div className="flex items-center gap-2 text-xs text-gray-500">
+    <div className="flex items-center gap-2 text-caption text-text-muted">
       <span
-        className={`inline-block h-2 w-2 rounded-full ${isSuccess ? 'bg-green-400' : 'bg-red-400'}`}
+        className={`inline-block h-2 w-2 rounded-full ${isSuccess ? 'bg-launch-lime' : 'bg-alert-red'}`}
       />
       <span>
         Last synced {formatRelativeDate(lastSync.timestamp)}
-        {!isSuccess && <span className="ml-1 text-red-500 font-medium">(failed)</span>}
+        {!isSuccess && <span className="ml-1 text-alert-red font-medium">(failed)</span>}
       </span>
     </div>
   );
@@ -214,23 +224,14 @@ function SyncIndicator({ lastSync }: { lastSync: LastSync | null }) {
 
 function NextActionCard({ action }: { action: NextAction }) {
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-      <div className="flex items-start gap-3">
-        <span className="text-xl">⚡</span>
-        <div className="flex-1">
-          <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
-            Next Action
-          </p>
-          <p className="text-base font-medium text-gray-900">{action.description}</p>
-          <div className="mt-2 flex items-center gap-3">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-              {action.category}
-            </span>
-            <span className="text-xs text-gray-500">Priority {action.priority}</span>
-          </div>
-        </div>
+    <DiamondEdgePanel>
+      <p className="text-caption font-medium text-founder-pink uppercase tracking-wide mb-1">Next Action</p>
+      <p className="text-body font-medium text-text-primary">{action.description}</p>
+      <div className="mt-2 flex items-center gap-3">
+        <Badge color="cyan">{action.category}</Badge>
+        <span className="text-caption text-text-muted">Priority {action.priority}</span>
       </div>
-    </div>
+    </DiamondEdgePanel>
   );
 }
 
@@ -250,91 +251,88 @@ function ProjectStatusCard({
     'UNCERTAIN',
   ];
 
+  const animatedPercentage = useCountUp({ end: readiness.percentage });
+
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
+    <Card variant="default">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-gray-900">Project Status</h3>
+        <h3 className="text-small font-medium text-text-primary">Project Status</h3>
         <div className="text-right">
-          <span className="text-2xl font-bold text-gray-900">{readiness.percentage}%</span>
-          <p className="text-xs text-gray-500">launch ready</p>
+          <span className="font-display text-h2 text-chrome-white tabular-nums">{animatedPercentage}%</span>
+          <p className="text-caption text-text-muted">launch ready</p>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 bg-gray-100 rounded-full mb-4">
-        <div
-          className="h-2 bg-green-500 rounded-full transition-all"
-          style={{ width: `${Math.min(readiness.percentage, 100)}%` }}
-        />
-      </div>
+      <ProgressRail value={readiness.percentage} showPercentage />
 
       {/* State counts */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
         {states.map((state) => (
-          <div key={state} className={`rounded px-3 py-2 text-center ${STATE_COLORS[state]}`}>
+          <div key={state} className={`rounded-md px-3 py-2 text-center ${STATE_COLORS[state]}`}>
             <div className="text-lg font-semibold">{status.byState[state] ?? 0}</div>
-            <div className="text-xs">{STATE_LABELS[state]}</div>
+            <div className="text-caption">{STATE_LABELS[state]}</div>
           </div>
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-gray-500">{status.total} total tasks tracked</p>
-    </div>
+      <p className="mt-3 text-caption text-text-muted">{status.total} total tasks tracked</p>
+    </Card>
   );
 }
 
 function BlockersList({ blockers }: { blockers: Blocker[] }) {
   if (blockers.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-5 h-full">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Blockers</h3>
+      <Card variant="default" className="h-full">
+        <h3 className="text-small font-medium text-text-primary mb-3">Blockers</h3>
         <div className="text-center py-6">
           <span className="text-2xl">✨</span>
-          <p className="text-sm text-gray-500 mt-2">No active blockers</p>
+          <p className="text-small text-text-muted mt-2">No active blockers</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-lg border border-red-100 bg-white p-5 h-full">
-      <h3 className="text-sm font-medium text-red-700 mb-3">🚧 Blockers ({blockers.length})</h3>
+    <Card accent="red" className="h-full">
+      <h3 className="text-small font-medium text-alert-red mb-3">🚧 Blockers ({blockers.length})</h3>
       <ul className="space-y-3">
         {blockers.map((blocker) => (
-          <li key={blocker.taskId} className="border-l-2 border-red-300 pl-3">
-            <p className="text-sm font-medium text-gray-900">{blocker.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{blocker.reason}</p>
+          <li key={blocker.taskId} className="border-l-2 border-alert-red pl-3">
+            <p className="text-small font-medium text-text-primary">{blocker.title}</p>
+            <p className="text-caption text-text-muted mt-0.5">{blocker.reason}</p>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
 function RecentProgressList({ items }: { items: RecentProgressItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-5">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Progress</h3>
-        <p className="text-sm text-gray-500">No tasks completed in the last 7 days.</p>
-      </div>
+      <Card variant="default">
+        <h3 className="text-small font-medium text-text-primary mb-3">Recent Progress</h3>
+        <p className="text-small text-text-muted">No tasks completed in the last 7 days.</p>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="text-sm font-medium text-gray-900 mb-3">Recent Progress (last 7 days)</h3>
-      <ul className="divide-y divide-gray-100">
+    <Card variant="default">
+      <h3 className="text-small font-medium text-text-primary mb-3">Recent Progress (last 7 days)</h3>
+      <ul className="divide-y divide-graphite">
         {items.map((item) => (
           <li key={item.taskId} className="flex items-center justify-between py-2">
             <div className="flex items-center gap-2">
-              <span className="text-green-500">✓</span>
-              <span className="text-sm text-gray-800">{item.title}</span>
+              <span className="text-launch-lime">✓</span>
+              <span className="text-small text-text-primary">{item.title}</span>
             </div>
-            <span className="text-xs text-gray-400">{formatDate(item.completedAt)}</span>
+            <span className="text-caption text-text-muted">{formatDate(item.completedAt)}</span>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }

@@ -1,5 +1,6 @@
-// Requirements: 1.1, 9.1
+// Requirements: 11.1, 11.2, 11.3, 11.4, 14.3
 // Login page with GitHub OAuth button. Redirects to dashboard if already authenticated.
+// LaunchChrome™ styling: Obsidian Black background, Space Grotesk display title, Founder Pink CTA.
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.js';
@@ -9,8 +10,8 @@ export default function Login() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-r-transparent" />
+      <div className="min-h-screen bg-obsidian flex items-center justify-center">
+        <div className="inline-block h-8 w-8 animate-pulse-pink rounded-full border-4 border-founder-pink border-r-transparent" />
       </div>
     );
   }
@@ -20,13 +21,13 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-obsidian flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Solo Founder Launch OS</h1>
-        <p className="text-gray-600 mb-8">Sign in to track your launch readiness.</p>
+        <h1 className="font-display text-h1 text-chrome-white mb-4">Solo Founder Launch OS</h1>
+        <p className="text-text-secondary mb-8">Sign in to track your launch readiness.</p>
         <a
           href="/auth/github"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-md font-medium hover:bg-gray-800 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 min-h-[44px] bg-founder-pink text-chrome-white rounded-md font-medium shadow-glow-pink hover:bg-neon-magenta motion-safe:transition-[background-color,box-shadow] motion-safe:duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hyper-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path

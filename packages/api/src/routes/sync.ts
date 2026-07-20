@@ -17,6 +17,7 @@ import { AppError, unauthorized, internalError } from '../errors/AppError.js';
 import prisma from '../lib/prisma.js';
 import { validate } from '../middleware/validate.js';
 import { syncHistoryQuerySchema } from '../validation/schemas.js';
+import posthog from '../lib/posthog.js';
 
 const router = Router();
 
@@ -46,7 +47,20 @@ router.use(requireAuth);
 router.post('/trigger', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = req.user!;
+    posthog.capture({ distinctId: user.id, event: 'sync_triggered' });
     const sync = await triggerSyncForUser(user.id);
+
+    posthog.capture({
+      distinctId: user.id,
+      event: 'sync_completed',
+      properties: {
+        status: sync.status,
+        items_fetched: sync.itemsFetched,
+        duration_ms: sync.duration,
+        retry_count: sync.retryCount,
+        error_message: sync.status !== 'SUCCESS' ? sync.errorMessage : undefined,
+      },
+    });
 
     if (sync.status === 'SUCCESS') {
       res.status(200).json({

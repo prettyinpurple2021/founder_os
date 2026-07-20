@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError.js';
 import { logError } from '../services/logger.js';
 import { createNotification, buildResponseNotification } from '../services/notification.js';
+import posthog from '../lib/posthog.js';
 
 /**
  * Centralized error-handling middleware.
@@ -139,6 +140,7 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
   }
 
   // --- Unknown/unhandled error — generic 500 ---
+  posthog.captureException(err, userId, { path: req.path, method: req.method });
   const context = process.env.NODE_ENV === 'production' ? undefined : { stack: err.stack };
 
   // Include a user notification for unknown server errors (Requirement 11.3)

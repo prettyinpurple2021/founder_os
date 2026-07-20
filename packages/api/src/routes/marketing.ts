@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppError, unauthorized, badRequest, internalError } from '../errors/AppError.js';
+import posthog from '../lib/posthog.js';
 import {
   getMarketingStatus,
   markAssetComplete,
@@ -78,6 +79,12 @@ router.post('/assets/:id/complete', async (req: Request, res: Response, next: Ne
     }
 
     const asset = await markAssetComplete(user.id, assetType);
+
+    posthog.capture({
+      distinctId: user.id,
+      event: 'marketing_asset_completed',
+      properties: { asset_type: assetType },
+    });
 
     res.json({ asset });
   } catch (err) {

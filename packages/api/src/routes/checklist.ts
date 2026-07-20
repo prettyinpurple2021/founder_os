@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
+import posthog from '../lib/posthog.js';
 import { getChecklist } from '../services/checklist.js';
 import { validate } from '../middleware/validate.js';
 import { updateChecklistItemSchema } from '../validation/schemas.js';
@@ -64,6 +65,12 @@ router.put(
       // Since the checklist is generated dynamically from task states and not persisted,
       // manual overrides acknowledge the item ID and return the updated status.
       // A future enhancement could persist overrides in the database.
+      posthog.capture({
+        distinctId: req.user!.id,
+        event: 'checklist_item_updated',
+        properties: { item_id: id, new_status: status },
+      });
+
       res.json({ id, status });
     } catch (err) {
       next(err instanceof AppError ? err : internalError('Failed to update checklist item'));

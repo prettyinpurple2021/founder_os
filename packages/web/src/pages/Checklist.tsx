@@ -1,9 +1,11 @@
-// Requirements: 4.1, 4.3
+// Requirements: 4.1, 4.3, 12.1, 12.2, 14.4, 14.5
 // Launch Readiness Checklist page — categorized view with blockers at top,
 // progress indicators per category, and overall readiness percentage
 
 import { useEffect, useState } from 'react';
 import { get } from '../lib/api';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
 
 interface ChecklistItem {
   id: string;
@@ -97,8 +99,8 @@ export default function Checklist() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm text-gray-500">Loading checklist...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-founder-pink/20 border-t-founder-pink" />
+          <p className="text-sm text-text-muted">Loading checklist...</p>
         </div>
       </div>
     );
@@ -106,10 +108,10 @@ export default function Checklist() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h3 className="text-sm font-medium text-red-800">Unable to load checklist</h3>
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      </div>
+      <Card accent="red">
+        <h3 className="text-sm font-medium text-alert-red">Unable to load checklist</h3>
+        <p className="mt-1 text-sm text-text-secondary">{error}</p>
+      </Card>
     );
   }
 
@@ -117,8 +119,8 @@ export default function Checklist() {
     return (
       <div className="text-center py-16">
         <div className="text-4xl mb-4">📋</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Checklist Available</h2>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-display font-bold text-chrome-white mb-2">No Checklist Available</h2>
+        <p className="text-text-secondary">
           Connect your repository and sync to generate your launch readiness checklist.
         </p>
       </div>
@@ -129,23 +131,23 @@ export default function Checklist() {
     <div className="space-y-6">
       {/* Header with readiness percentage */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Launch Checklist</h2>
+        <h2 className="text-2xl font-display font-bold text-chrome-white">Launch Checklist</h2>
         <ReadinessIndicator percentage={data.readinessPercentage} />
       </div>
 
       {/* Overall progress bar */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <Card>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">Overall Launch Readiness</span>
-          <span className="text-sm font-semibold text-gray-900">{data.readinessPercentage}%</span>
+          <span className="text-sm font-medium text-text-secondary">Overall Launch Readiness</span>
+          <span className="text-sm font-semibold text-chrome-white">{data.readinessPercentage}%</span>
         </div>
-        <div className="w-full h-3 bg-gray-100 rounded-full">
+        <div className="w-full h-3 bg-graphite rounded-full">
           <div
             className={`h-3 rounded-full transition-all ${getProgressColor(data.readinessPercentage)}`}
             style={{ width: `${Math.min(data.readinessPercentage, 100)}%` }}
           />
         </div>
-      </div>
+      </Card>
 
       {/* Next action */}
       {data.nextAction && <NextActionBanner action={data.nextAction} />}
@@ -171,18 +173,18 @@ function ReadinessIndicator({ percentage }: { percentage: number }) {
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
-            stroke="#e5e7eb"
+            stroke="#232933"
             strokeWidth="3"
           />
           <path
             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             fill="none"
-            stroke={percentage >= 80 ? '#22c55e' : percentage >= 50 ? '#eab308' : '#ef4444'}
+            stroke={percentage >= 80 ? '#B7FF2A' : percentage >= 50 ? '#FFB547' : '#FF4D5F'}
             strokeWidth="3"
             strokeDasharray={`${percentage}, 100`}
           />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900">
+        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-chrome-white">
           {percentage}%
         </span>
       </div>
@@ -192,27 +194,27 @@ function ReadinessIndicator({ percentage }: { percentage: number }) {
 
 function NextActionBanner({ action }: { action: { description: string; category: string } }) {
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+    <Card accent="cyan">
       <div className="flex items-start gap-3">
         <span className="text-lg">⚡</span>
         <div className="flex-1">
-          <p className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
+          <p className="text-xs font-medium text-hyper-cyan uppercase tracking-wide mb-1">
             Next Best Action
           </p>
-          <p className="text-sm font-medium text-gray-900">{action.description}</p>
-          <span className="inline-flex items-center mt-1.5 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-            {getCategoryLabel(action.category)}
+          <p className="text-sm font-medium text-chrome-white">{action.description}</p>
+          <span className="mt-1.5 inline-block">
+            <Badge color="cyan">{getCategoryLabel(action.category)}</Badge>
           </span>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
 function BlockersSection({ blockers }: { blockers: ChecklistBlocker[] }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-5">
-      <h3 className="text-sm font-semibold text-red-800 mb-3 flex items-center gap-2">
+    <Card accent="red">
+      <h3 className="text-sm font-semibold text-alert-red mb-3 flex items-center gap-2">
         <span>🚧</span>
         Blockers ({blockers.length})
       </h3>
@@ -220,20 +222,20 @@ function BlockersSection({ blockers }: { blockers: ChecklistBlocker[] }) {
         {blockers.map((blocker) => (
           <li
             key={blocker.id}
-            className="flex items-start gap-3 bg-white rounded-md p-3 border border-red-100"
+            className="flex items-start gap-3 bg-carbon rounded-md p-3 border border-graphite"
           >
-            <span className="mt-0.5 text-red-500 flex-shrink-0">✕</span>
+            <span className="mt-0.5 text-alert-red flex-shrink-0">✕</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900">{blocker.title}</p>
-              <p className="text-xs text-gray-600 mt-0.5">{blocker.blockerReason}</p>
-              <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">
-                {getCategoryLabel(blocker.category)}
+              <p className="text-sm font-medium text-chrome-white">{blocker.title}</p>
+              <p className="text-xs text-text-muted mt-0.5">{blocker.blockerReason}</p>
+              <span className="inline-block mt-1">
+                <Badge color="red">{getCategoryLabel(blocker.category)}</Badge>
               </span>
             </div>
           </li>
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
@@ -242,20 +244,20 @@ function CategoryCard({ category }: { category: ChecklistCategory }) {
     category.totalCount > 0 ? Math.round((category.completedCount / category.totalCount) * 100) : 0;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
+    <Card>
       {/* Category header with progress */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{getCategoryIcon(category.name)}</span>
-          <h3 className="text-sm font-semibold text-gray-900">{getCategoryLabel(category.name)}</h3>
+          <h3 className="text-sm font-semibold text-chrome-white">{getCategoryLabel(category.name)}</h3>
         </div>
-        <span className="text-xs font-medium text-gray-500">
+        <span className="text-xs font-medium text-text-muted">
           {category.completedCount}/{category.totalCount} complete
         </span>
       </div>
 
       {/* Category progress bar */}
-      <div className="w-full h-2 bg-gray-100 rounded-full mb-4">
+      <div className="w-full h-2 bg-graphite rounded-full mb-4">
         <div
           className={`h-2 rounded-full transition-all ${getProgressColor(progressPercent)}`}
           style={{ width: `${progressPercent}%` }}
@@ -268,7 +270,7 @@ function CategoryCard({ category }: { category: ChecklistCategory }) {
           <ChecklistItemRow key={item.id} item={item} />
         ))}
       </ul>
-    </div>
+    </Card>
   );
 }
 
@@ -280,16 +282,16 @@ function ChecklistItemRow({ item }: { item: ChecklistItem }) {
         <p
           className={`text-sm ${
             item.status === 'complete'
-              ? 'text-gray-500 line-through'
+              ? 'text-text-muted line-through'
               : item.status === 'blocked'
-                ? 'text-red-700 font-medium'
-                : 'text-gray-800'
+                ? 'text-alert-red font-medium'
+                : 'text-text-secondary'
           }`}
         >
           {item.title}
         </p>
         {item.isBlocker && item.blockerReason && (
-          <p className="text-xs text-red-500 mt-0.5">{item.blockerReason}</p>
+          <p className="text-xs text-alert-red/80 mt-0.5">{item.blockerReason}</p>
         )}
       </div>
     </li>
@@ -300,7 +302,7 @@ function StatusIcon({ status }: { status: 'complete' | 'incomplete' | 'blocked' 
   switch (status) {
     case 'complete':
       return (
-        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-green-100 text-green-600">
+        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-launch-lime/10 text-launch-lime">
           <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -312,7 +314,7 @@ function StatusIcon({ status }: { status: 'complete' | 'incomplete' | 'blocked' 
       );
     case 'blocked':
       return (
-        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-100 text-red-600">
+        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full bg-alert-red/10 text-alert-red">
           <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -325,7 +327,7 @@ function StatusIcon({ status }: { status: 'complete' | 'incomplete' | 'blocked' 
     case 'incomplete':
     default:
       return (
-        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full border-2 border-gray-300">
+        <span className="flex-shrink-0 mt-0.5 inline-flex items-center justify-center h-5 w-5 rounded-full border-2 border-dark-chrome">
           {/* Empty circle */}
         </span>
       );
@@ -333,8 +335,8 @@ function StatusIcon({ status }: { status: 'complete' | 'incomplete' | 'blocked' 
 }
 
 function getProgressColor(percentage: number): string {
-  if (percentage >= 80) return 'bg-green-500';
-  if (percentage >= 50) return 'bg-yellow-500';
-  if (percentage >= 25) return 'bg-orange-500';
-  return 'bg-red-500';
+  if (percentage >= 80) return 'bg-launch-lime';
+  if (percentage >= 50) return 'bg-warning-amber';
+  if (percentage >= 25) return 'bg-warning-amber/70';
+  return 'bg-alert-red';
 }

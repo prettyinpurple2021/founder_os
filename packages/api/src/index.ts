@@ -30,6 +30,8 @@ import { csrfMiddleware } from './middleware/csrf.js';
 import { startScheduler } from './services/scheduler.js';
 import { loadConfig, type AppConfig } from './config/index.js';
 import { buildDatabaseUrl } from './config/databaseUrl.js';
+import posthog from './lib/posthog.js';
+import { setupExpressRequestContext, setupExpressErrorHandler } from 'posthog-node';
 
 // Load .env for local development (Secrets Manager overrides in production)
 dotenv.config();
@@ -91,11 +93,14 @@ export function createApp(config: AppConfig): express.Application {
       origin: resolveCorsOrigin(config),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Posthog-Distinct-Id', 'X-Posthog-Session-Id'],
       exposedHeaders: ['X-CSRF-Token'],
     }),
   );
   app.use(express.json());
+
+  // --- PostHog request context (reads X-POSTHOG-DISTINCT-ID and X-POSTHOG-SESSION-ID headers) ---
+  setupExpressRequestContext(posthog, app);
 
   // --- Request tracing (assign trace ID early for all downstream middleware/routes) ---
   // Requirement 10.7: correlate API request logs with trace IDs for end-to-end tracing
@@ -177,6 +182,9 @@ export function createApp(config: AppConfig): express.Application {
   app.use((_req, _res, next) => {
     next(notFound('The requested resource was not found'));
   });
+
+  // --- PostHog error handler (captures Express errors for error tracking) ---
+  setupExpressErrorHandler(posthog, app);
 
   // --- Structured error logger (logs to stdout for CloudWatch) ---
   // Requirement 6.1: captures all unhandled exceptions as structured JSON
@@ -273,6 +281,15 @@ async function bootstrap(): Promise<void> {
     );
     registerProcessErrorHandlers();
     startScheduler();
+
+    process.on('SIGINT', async () => {
+      await posthog.shutdown();
+      process.exit(0);
+    });
+    process.on('SIGTERM', async () => {
+      await posthog.shutdown();
+      process.exit(0);
+    });
   });
 }
 

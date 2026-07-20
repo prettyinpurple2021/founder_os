@@ -6,7 +6,7 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
 
 ## Tasks
 
-- [ ] 1. Design Token Infrastructure and CSS Foundation
+- [x] 1. Design Token Infrastructure and CSS Foundation
   - [x] 1.1 Create Tailwind configuration with LaunchChrome™ design tokens
     - Replace `packages/web/tailwind.config.ts` with the full token set: foundation colors, chrome colors, energy colors, supporting colors, text colors, typography scale, font families, spacing scale, breakpoints, transition durations, timing functions, box shadows, keyframes, and animations
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10_
@@ -39,10 +39,10 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Generate all valid (foreground-token, background-token) pairs, compute WCAG 2.2 contrast ratio, assert ≥ 4.5:1 for normal text and ≥ 3:1 for large text/borders
     - **Validates: Requirements 3.7, 7.1, 7.2, 7.3**
 
-- [~] 2. Checkpoint — Token foundation verification
+- [x] 2. Checkpoint — Token foundation verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Component Primitives
+- [x] 3. Component Primitives
   - [x] 3.1 Create Button component with all variants and states
     - Create `packages/web/src/components/ui/Button.tsx`
     - Implement `primary`, `secondary`, `tertiary`, `danger` variants with `sm`, `md`, `lg` sizes
@@ -107,10 +107,10 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Generate random Card variant + props, assert background resolves to gunmetal/graphite tokens
     - **Validates: Requirements 2.3, 5.3**
 
-- [~] 4. Checkpoint — Component primitives verification
+- [x] 4. Checkpoint — Component primitives verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Layout Architecture
+- [x] 5. Layout Architecture
   - [x] 5.1 Create NavigationRail component
     - Create `packages/web/src/components/NavigationRail.tsx`
     - Carbon Black background, 80px wide on desktop
@@ -134,7 +134,7 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Minimum 44x44px touch targets for all nav items
     - _Requirements: 4.5, 7.6, 9.1_
 
-  - [-] 5.4 Refactor Layout component with CSS Grid shell
+  - [x] 5.4 Refactor Layout component with CSS Grid shell
     - Rewrite `packages/web/src/components/Layout.tsx`
     - Desktop: 2-column grid (80px nav + 1fr workspace) with utility bar row
     - Mobile: single-column with utility bar top + workspace + bottom nav
@@ -144,26 +144,26 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Use `<main>` for workspace area, max-width 1440px centered
     - _Requirements: 4.1–4.5, 4.8, 8.2, 8.3, 9.1–9.6_
 
-  - [-] 5.5 Write property test for reduced motion suppression
+  - [x] 5.5 Write property test for reduced motion suppression
     - **Property 4: Reduced motion suppression**
     - Generate random motion utility class combinations, assert 0ms duration under reduced-motion
     - **Validates: Requirements 7.4, 8.5**
 
-  - [-] 5.6 Write property test for focus indicator visibility
+  - [x] 5.6 Write property test for focus indicator visibility
     - **Property 8: Focus indicator visibility**
     - Generate random interactive components (Button, Input, NavLink), simulate focus, assert ring presence ≥ 2px width
     - **Validates: Requirements 5.7, 7.5**
 
-  - [-] 5.7 Write property test for touch target minimum size
+  - [x] 5.7 Write property test for touch target minimum size
     - **Property 9: Touch target minimum size**
     - Generate random interactive elements at mobile viewport, assert computed area ≥ 44×44px
     - **Validates: Requirements 7.6**
 
-- [~] 6. Checkpoint — Layout and accessibility verification
+- [x] 6. Checkpoint — Layout and accessibility verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Page Migration — Login
-  - [~] 7.1 Migrate Login page to LaunchChrome™ styling
+- [x] 7. Page Migration — Login
+  - [x] 7.1 Migrate Login page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Login.tsx` styling (preserve all logic and auth flow)
     - Obsidian Black full-bleed background
     - Application name in Space Grotesk display font, chrome-white
@@ -171,8 +171,8 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Centered layout (vertical + horizontal)
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 14.3_
 
-- [ ] 8. Page Migration — Dashboard
-  - [~] 8.1 Migrate Dashboard page to LaunchChrome™ styling
+- [x] 8. Page Migration — Dashboard
+  - [x] 8.1 Migrate Dashboard page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Dashboard.tsx` styling (preserve all data fetching, state, and logic)
     - Carbon Black page background, Chrome White headings in Space Grotesk
     - Next-action card → `DiamondEdgePanel` with Founder Pink accent
@@ -184,15 +184,15 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Loading state → `Skeleton` components instead of plain spinner
     - _Requirements: 10.1–10.7, 14.2, 14.4, 14.5_
 
-  - [~] 8.2 Create useCountUp hook for metric animations
+  - [x] 8.2 Create useCountUp hook for metric animations
     - Create `packages/web/src/hooks/useCountUp.ts`
     - Animate numbers from 0 to target with requestAnimationFrame and ease-out deceleration
     - Duration: 400ms, respect prefers-reduced-motion (return end value immediately)
     - Apply to launch readiness %, blocker count, total tasks on Dashboard
     - _Requirements: 8.6_
 
-- [ ] 9. Page Migration — Secondary Pages
-  - [~] 9.1 Migrate Checklist page to LaunchChrome™ styling
+- [x] 9. Page Migration — Secondary Pages
+  - [x] 9.1 Migrate Checklist page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Checklist.tsx` styling (preserve all logic)
     - Carbon Black background, Chrome White headings
     - Category sections → `Card` with Gunmetal surface
@@ -201,53 +201,53 @@ Migrate the FounderLaunch_OS frontend (`packages/web`) from generic light-mode T
     - Status badges → `Badge` with semantic Energy colors
     - _Requirements: 12.1, 12.2, 14.4, 14.5_
 
-  - [~] 9.2 Migrate Content page to LaunchChrome™ styling
+  - [x] 9.2 Migrate Content page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Content.tsx` styling (preserve all logic)
     - Carbon Black background, Gunmetal draft cards
     - Status badges → `Badge` with semantic Energy colors (lime=approved, amber=pending, cyan=generated)
     - _Requirements: 12.1, 12.3, 14.4, 14.5_
 
-  - [~] 9.3 Migrate Marketing page to LaunchChrome™ styling
+  - [x] 9.3 Migrate Marketing page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Marketing.tsx` styling (preserve all logic)
     - Carbon Black background, Gunmetal asset cards
     - Status indicators → semantic `Badge` colors
     - _Requirements: 12.1, 12.4, 14.4, 14.5_
 
-  - [~] 9.4 Migrate Settings page to LaunchChrome™ styling
+  - [x] 9.4 Migrate Settings page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/Settings.tsx` styling (preserve all logic)
     - Carbon Black background, form inputs → `Input` component
     - Section cards → `Card variant="elevated"`
     - Visible focus states on all form controls
     - _Requirements: 12.1, 12.5, 14.4, 14.5_
 
-  - [~] 9.5 Migrate DraftDetail page to LaunchChrome™ styling
+  - [x] 9.5 Migrate DraftDetail page to LaunchChrome™ styling
     - Rewrite `packages/web/src/pages/DraftDetail.tsx` styling (preserve all logic)
     - Carbon Black background, Gunmetal content areas
     - Action buttons → `Button` variants (primary for approve, danger for reject)
     - _Requirements: 12.1, 14.4, 14.5_
 
-  - [~] 9.6 Update App.tsx Suspense fallback to use Skeleton loading
+  - [x] 9.6 Update App.tsx Suspense fallback to use Skeleton loading
     - Replace the plain "Loading..." div with a LaunchChrome™ skeleton loading state
     - Use Founder Pink spinner/pulse on Carbon Black background
     - _Requirements: 12.6_
 
-- [~] 10. Checkpoint — Full migration verification
+- [x] 10. Checkpoint — Full migration verification
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Integration and Final Wiring
-  - [~] 11.1 Verify route preservation and code-splitting behavior
+- [x] 11. Integration and Final Wiring
+  - [x] 11.1 Verify route preservation and code-splitting behavior
     - Confirm all existing routes still resolve correctly
     - Confirm lazy-loaded pages still produce separate chunks (check build output)
     - Verify no files in `packages/api/` have been modified
     - _Requirements: 14.1, 14.2, 14.6_
 
-  - [~] 11.2 Write integration tests for visual migration correctness
+  - [x] 11.2 Write integration tests for visual migration correctness
     - Test that all pages render with dark backgrounds (no white surfaces)
     - Test that semantic HTML elements are used (nav, main, aside, header)
     - Test that route navigation works correctly post-migration
     - _Requirements: 2.5, 7.7, 14.1–14.5_
 
-- [~] 12. Final checkpoint — Ensure all tests pass
+- [x] 12. Final checkpoint — Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

@@ -4,6 +4,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { contentApi, type ContentDraft, type DraftVersion, type DraftStatus } from '../lib/api.js';
+import { Button } from '../components/ui/Button.js';
+import { Badge } from '../components/ui/Badge.js';
+import { Card } from '../components/ui/Card.js';
 
 const STATUS_LABELS: Record<DraftStatus, string> = {
   GENERATED: 'Generated',
@@ -15,14 +18,14 @@ const STATUS_LABELS: Record<DraftStatus, string> = {
   COPIED: 'Copied',
 };
 
-const STATUS_COLORS: Record<DraftStatus, string> = {
-  GENERATED: 'bg-gray-100 text-gray-700',
-  EDITING: 'bg-blue-100 text-blue-700',
-  PENDING_APPROVAL: 'bg-yellow-100 text-yellow-700',
-  APPROVED: 'bg-green-100 text-green-700',
-  REJECTED: 'bg-red-100 text-red-700',
-  SCHEDULED: 'bg-purple-100 text-purple-700',
-  COPIED: 'bg-indigo-100 text-indigo-700',
+const STATUS_BADGE_COLORS: Record<DraftStatus, 'lime' | 'amber' | 'cyan' | 'red' | 'chrome'> = {
+  GENERATED: 'cyan',
+  EDITING: 'amber',
+  PENDING_APPROVAL: 'amber',
+  APPROVED: 'lime',
+  REJECTED: 'red',
+  SCHEDULED: 'lime',
+  COPIED: 'lime',
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -207,8 +210,8 @@ export default function DraftDetail() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm text-gray-500">Loading draft...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gunmetal border-t-founder-pink" />
+          <p className="text-sm text-text-muted">Loading draft...</p>
         </div>
       </div>
     );
@@ -219,14 +222,14 @@ export default function DraftDetail() {
       <div className="space-y-4">
         <Link
           to="/content"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary motion-safe:transition-colors motion-safe:duration-fast"
         >
           ← Back to Drafts
         </Link>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-          <h3 className="text-sm font-medium text-red-800">Unable to load draft</h3>
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        </div>
+        <Card variant="default" accent="red">
+          <h3 className="text-sm font-medium text-alert-red">Unable to load draft</h3>
+          <p className="mt-1 text-sm text-text-secondary">{error}</p>
+        </Card>
       </div>
     );
   }
@@ -243,7 +246,7 @@ export default function DraftDetail() {
       {/* Back link */}
       <Link
         to="/content"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary motion-safe:transition-colors motion-safe:duration-fast"
       >
         ← Back to Drafts
       </Link>
@@ -253,10 +256,10 @@ export default function DraftDetail() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">{PLATFORM_ICONS[draft.platform]}</span>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-display font-bold text-chrome-white">
               {PLATFORM_LABELS[draft.platform]} Draft
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-text-muted">
               Created {formatDateTime(draft.createdAt)}
               {draft.updatedAt !== draft.createdAt && (
                 <> · Updated {formatDateTime(draft.updatedAt)}</>
@@ -264,22 +267,20 @@ export default function DraftDetail() {
             </p>
           </div>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[draft.status]}`}
-        >
+        <Badge color={STATUS_BADGE_COLORS[draft.status]}>
           {STATUS_LABELS[draft.status]}
-        </span>
+        </Badge>
       </div>
 
       {/* Success/Error messages */}
       {successMessage && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-3">
-          <p className="text-sm text-green-700">{successMessage}</p>
+        <div className="rounded-md border border-launch-lime/30 bg-launch-lime/10 p-3">
+          <p className="text-sm text-launch-lime">{successMessage}</p>
         </div>
       )}
       {error && draft && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="rounded-md border border-alert-red/30 bg-alert-red/10 p-3">
+          <p className="text-sm text-alert-red">{error}</p>
         </div>
       )}
 
@@ -288,37 +289,37 @@ export default function DraftDetail() {
         {/* Editor / Content area */}
         <div className="flex-1 space-y-4">
           {/* Edit interface */}
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <Card variant="default">
             {selectedVersion ? (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">
+                  <h3 className="text-sm font-medium text-text-secondary">
                     Version {selectedVersion.version} Preview
                   </h3>
                   <button
                     onClick={() => setSelectedVersion(null)}
-                    className="text-sm text-blue-600 hover:text-blue-700"
+                    className="text-sm text-hyper-cyan hover:text-hyper-cyan/80 motion-safe:transition-colors motion-safe:duration-fast"
                   >
                     Back to current
                   </button>
                 </div>
-                <div className="bg-gray-50 rounded-md p-4 text-sm text-gray-800 whitespace-pre-wrap">
+                <div className="bg-carbon rounded-md p-4 text-sm text-text-secondary whitespace-pre-wrap border border-graphite">
                   {selectedVersion.content}
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-text-muted">
                   Edited {formatDateTime(selectedVersion.editedAt)}
                 </p>
               </div>
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-700">
+                  <h3 className="text-sm font-medium text-text-secondary">
                     {readOnly ? 'Content' : 'Edit Content'}
                   </h3>
                   {isTwitter && (
                     <span
                       className={`text-xs font-medium ${
-                        charLimitExceeded ? 'text-red-600' : 'text-gray-500'
+                        charLimitExceeded ? 'text-alert-red' : 'text-text-muted'
                       }`}
                     >
                       {charCount}/280
@@ -330,30 +331,32 @@ export default function DraftDetail() {
                   onChange={(e) => setEditContent(e.target.value)}
                   disabled={readOnly}
                   rows={isTwitter ? 4 : 10}
-                  className={`w-full rounded-md border p-3 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  className={`w-full rounded-md border p-3 text-sm leading-relaxed resize-y bg-carbon text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-hyper-cyan focus:ring-offset-2 focus:ring-offset-carbon motion-safe:transition-[border-color,box-shadow] motion-safe:duration-fast ${
                     readOnly
-                      ? 'bg-gray-50 border-gray-200 text-gray-700 cursor-not-allowed'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } ${charLimitExceeded ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
+                      ? 'border-graphite text-text-secondary cursor-not-allowed opacity-60'
+                      : 'border-graphite'
+                  } ${charLimitExceeded ? 'border-alert-red focus:ring-alert-red' : ''}`}
                 />
                 {charLimitExceeded && (
-                  <p className="mt-1 text-xs text-red-600">
+                  <p className="mt-1 text-xs text-alert-red">
                     Content exceeds Twitter's 280 character limit
                   </p>
                 )}
                 {!readOnly && (
                   <div className="mt-3 flex items-center gap-3">
-                    <button
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={handleSave}
                       disabled={saving || editContent === draft.currentContent || charLimitExceeded}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      loading={saving}
                     >
                       {saving ? 'Saving...' : 'Save'}
-                    </button>
+                    </Button>
                     {editContent !== draft.currentContent && (
                       <button
                         onClick={() => setEditContent(draft.currentContent)}
-                        className="text-sm text-gray-500 hover:text-gray-700"
+                        className="text-sm text-text-muted hover:text-text-secondary motion-safe:transition-colors motion-safe:duration-fast"
                       >
                         Discard changes
                       </button>
@@ -362,11 +365,11 @@ export default function DraftDetail() {
                 )}
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Actions */}
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Actions</h3>
+          <Card variant="default">
+            <h3 className="text-sm font-medium text-text-secondary mb-3">Actions</h3>
             <DraftActions
               draft={draft}
               actionLoading={actionLoading}
@@ -384,15 +387,15 @@ export default function DraftDetail() {
               onRejectReasonChange={setRejectReason}
               onScheduleDateChange={setScheduleDate}
             />
-          </div>
+          </Card>
         </div>
 
         {/* Version history sidebar */}
         <aside className="w-72 shrink-0">
-          <div className="rounded-lg border border-gray-200 bg-white p-5 sticky top-4">
-            <h3 className="text-sm font-medium text-gray-900 mb-3">Version History</h3>
+          <div className="rounded-lg border border-graphite bg-gunmetal p-5 sticky top-4">
+            <h3 className="text-sm font-medium text-chrome-white mb-3">Version History</h3>
             {versions.length === 0 ? (
-              <p className="text-sm text-gray-500">No version history yet</p>
+              <p className="text-sm text-text-muted">No version history yet</p>
             ) : (
               <ul className="space-y-2">
                 {versions
@@ -401,19 +404,19 @@ export default function DraftDetail() {
                     <li key={v.id}>
                       <button
                         onClick={() => setSelectedVersion(v)}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm motion-safe:transition-colors motion-safe:duration-fast ${
                           selectedVersion?.id === v.id
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'hover:bg-gray-50 border border-transparent'
+                            ? 'bg-hyper-cyan/10 border border-hyper-cyan/30'
+                            : 'hover:bg-graphite border border-transparent'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-800">v{v.version}</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="font-medium text-chrome-white">v{v.version}</span>
+                          <span className="text-xs text-text-muted">
                             {formatDateTime(v.editedAt)}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1 truncate">
+                        <p className="text-xs text-text-muted mt-1 truncate">
                           {v.content.slice(0, 60)}
                           {v.content.length > 60 ? '…' : ''}
                         </p>
@@ -428,6 +431,7 @@ export default function DraftDetail() {
     </div>
   );
 }
+
 
 interface DraftActionsProps {
   draft: ContentDraft;
@@ -470,41 +474,46 @@ function DraftActions({
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={onApprove}
             disabled={actionLoading !== null}
-            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            loading={actionLoading === 'approve'}
           >
             {actionLoading === 'approve' ? 'Approving...' : '✓ Approve'}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
             onClick={onToggleReject}
             disabled={actionLoading !== null}
-            className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             ✗ Reject
-          </button>
+          </Button>
         </div>
         {showRejectInput && (
-          <div className="space-y-2 p-3 bg-red-50 rounded-md border border-red-200">
+          <div className="space-y-2 p-3 bg-alert-red/5 rounded-md border border-alert-red/20">
             <input
               type="text"
               value={rejectReason}
               onChange={(e) => onRejectReasonChange(e.target.value)}
               placeholder="Reason for rejection (optional)"
-              className="w-full px-3 py-2 text-sm rounded-md border border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-3 py-2 text-sm rounded-md bg-carbon border border-graphite text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-hyper-cyan focus:ring-offset-2 focus:ring-offset-carbon motion-safe:transition-[border-color,box-shadow] motion-safe:duration-fast"
             />
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={onReject}
                 disabled={actionLoading !== null}
-                className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                loading={actionLoading === 'reject'}
               >
                 {actionLoading === 'reject' ? 'Rejecting...' : 'Confirm Reject'}
-              </button>
+              </Button>
               <button
                 onClick={onToggleReject}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                className="px-3 py-1.5 text-sm text-text-muted hover:text-text-secondary motion-safe:transition-colors motion-safe:duration-fast"
               >
                 Cancel
               </button>
@@ -519,41 +528,46 @@ function DraftActions({
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onToggleSchedule}
             disabled={actionLoading !== null}
-            className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             📅 Schedule
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onCopyContent}
             disabled={actionLoading !== null}
-            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            loading={actionLoading === 'copy'}
           >
             {actionLoading === 'copy' ? 'Copying...' : '📋 Copy Content'}
-          </button>
+          </Button>
         </div>
         {showScheduleInput && (
-          <div className="space-y-2 p-3 bg-purple-50 rounded-md border border-purple-200">
-            <label className="block text-xs text-gray-600">Schedule date & time (optional)</label>
+          <div className="space-y-2 p-3 bg-hyper-cyan/5 rounded-md border border-hyper-cyan/20">
+            <label className="block text-xs text-text-muted">Schedule date & time (optional)</label>
             <input
               type="datetime-local"
               value={scheduleDate}
               onChange={(e) => onScheduleDateChange(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-md border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 text-sm rounded-md bg-carbon border border-graphite text-text-primary focus:outline-none focus:ring-2 focus:ring-hyper-cyan focus:ring-offset-2 focus:ring-offset-carbon motion-safe:transition-[border-color,box-shadow] motion-safe:duration-fast"
             />
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={onSchedule}
                 disabled={actionLoading !== null}
-                className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                loading={actionLoading === 'schedule'}
               >
                 {actionLoading === 'schedule' ? 'Scheduling...' : 'Confirm Schedule'}
-              </button>
+              </Button>
               <button
                 onClick={onToggleSchedule}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800"
+                className="px-3 py-1.5 text-sm text-text-muted hover:text-text-secondary motion-safe:transition-colors motion-safe:duration-fast"
               >
                 Cancel
               </button>
@@ -567,15 +581,12 @@ function DraftActions({
   if (status === 'REJECTED') {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-text-secondary">
           This draft was rejected. Content is preserved for reference.
         </p>
-        <button
-          onClick={onReEdit}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-        >
+        <Button variant="secondary" size="sm" onClick={onReEdit}>
           ✏️ Re-edit Draft
-        </button>
+        </Button>
       </div>
     );
   }
@@ -583,14 +594,14 @@ function DraftActions({
   // SCHEDULED or COPIED
   return (
     <div className="space-y-2">
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-text-secondary">
         {status === 'SCHEDULED'
           ? `This draft is scheduled${draft.scheduledAt ? ` for ${formatDateTime(draft.scheduledAt)}` : ''}.`
           : 'This content has been copied for manual posting.'}
       </p>
       {status === 'SCHEDULED' && draft.scheduledAt && (
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-md">
-          <span className="text-sm text-purple-700">📅 {formatDateTime(draft.scheduledAt)}</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-hyper-cyan/10 border border-hyper-cyan/20 rounded-md">
+          <span className="text-sm text-hyper-cyan">📅 {formatDateTime(draft.scheduledAt)}</span>
         </div>
       )}
     </div>

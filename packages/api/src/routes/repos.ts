@@ -4,6 +4,7 @@ import { getDecryptedToken } from '../lib/encryption.js';
 import { AppError, unauthorized, notFound, internalError } from '../errors/AppError.js';
 import { validate } from '../middleware/validate.js';
 import { connectRepoSchema } from '../validation/schemas.js';
+import posthog from '../lib/posthog.js';
 
 const router = Router();
 
@@ -144,6 +145,17 @@ router.post(
         },
       });
 
+      posthog.capture({
+        distinctId: user.id,
+        event: 'repository_connected',
+        properties: {
+          repo_name: repository.name,
+          repo_full_name: repository.fullName,
+          repo_owner: repository.owner,
+          github_id: repository.githubId,
+        },
+      });
+
       res.status(201).json({
         repository: {
           id: repository.id,
@@ -208,6 +220,16 @@ router.delete('/disconnect', async (req: Request, res: Response, next: NextFunct
     // In practice we just remove the repository entry so no new syncs are triggered.
     await prisma.repository.delete({
       where: { id: repository.id },
+    });
+
+    posthog.capture({
+      distinctId: user.id,
+      event: 'repository_disconnected',
+      properties: {
+        repo_name: repository.name,
+        repo_full_name: repository.fullName,
+        repo_owner: repository.owner,
+      },
     });
 
     res.json({
