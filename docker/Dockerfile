@@ -68,8 +68,8 @@ COPY --from=builder /app/packages/api/dist ./packages/api/dist
 COPY --from=builder /app/packages/api/src/generated ./packages/api/src/generated
 
 # Prisma generates imports without .js extensions which breaks Node.js ESM resolution.
-# Copy the package.json (type: commonjs) into dist/generated/prisma to make Node treat those files as CJS.
-COPY --from=builder /app/packages/api/src/generated/prisma/package.json ./packages/api/dist/generated/prisma/package.json
+# Add package.json (type: commonjs) into dist/generated/prisma to make Node treat those files as CJS.
+RUN echo '{"type":"commonjs"}' > ./packages/api/dist/generated/prisma/package.json
 
 # Copy Prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/packages/api/prisma ./packages/api/prisma
