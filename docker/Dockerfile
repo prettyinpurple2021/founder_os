@@ -38,6 +38,7 @@ RUN npm run prisma:generate --workspace=packages/api
 
 # Copy TypeScript source and config
 COPY packages/api/tsconfig.json ./packages/api/
+COPY packages/api/loader.js ./packages/api/
 COPY tsconfig.json ./
 COPY packages/api/src ./packages/api/src/
 
@@ -63,13 +64,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
 
 # Copy generated Prisma client from builder stage
-# The runtime needs the raw .ts generated files in src/generated for Prisma CLI operations
-# (like migrate), but the compiled app in dist/ uses the tsc-compiled versions already in dist/generated/.
 COPY --from=builder /app/packages/api/src/generated ./packages/api/src/generated
-
-# Prisma generates imports without .js extensions which breaks Node.js ESM resolution.
-# Add package.json (type: commonjs) into dist/generated/prisma to make Node treat those files as CJS.
-RUN echo '{"type":"commonjs"}' > ./packages/api/dist/generated/prisma/package.json
 
 # Copy Prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/packages/api/prisma ./packages/api/prisma
@@ -78,6 +73,9 @@ COPY --from=builder /app/packages/api/prisma.config.ts ./packages/api/
 # Copy package.json files (needed for version info and module resolution)
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/packages/api/package.json ./packages/api/
+
+# Copy ESM loader (resolves extensionless Prisma imports)
+COPY --from=builder /app/packages/api/loader.js ./packages/api/
 
 # Set ownership to non-root user
 RUN chown -R appuser:appgroup /app
@@ -97,6 +95,7 @@ EXPOSE ${PORT}
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:${PORT}/health/live || exit 1
 
-# Start the API service
+# Start the API service with --experimental-specifier-resolution=node
+# This is needed because Prisma generates imports without .js extensions
 WORKDIR /app/packages/api
-CMD ["node", "dist/index.js"]
+CMD ["node", "--loader", "./loader.js", "dist/index.js"]
