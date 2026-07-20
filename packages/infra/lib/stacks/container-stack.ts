@@ -68,30 +68,33 @@ export class ContainerStack extends cdk.Stack {
       'DatabaseCredentialsSecret',
       databaseSecretArn,
     );
-    const sessionSecret = secretsmanager.Secret.fromSecretNameV2(
+    // Use fromSecretPartialArn to produce full ARNs with wildcard suffix that ECS can resolve.
+    // fromSecretNameV2 produces partial ARNs without suffix which ECS cannot resolve to actual secrets.
+    const secretArnBase = `arn:aws:secretsmanager:${config.region}:${config.account}:secret:/solo-founder-launch-os/${config.stage}`;
+    const sessionSecret = secretsmanager.Secret.fromSecretPartialArn(
       this,
       'SessionSecret',
-      `/solo-founder-launch-os/${config.stage}/session/secret`,
+      `${secretArnBase}/session/secret`,
     );
-    const githubClientIdSecret = secretsmanager.Secret.fromSecretNameV2(
+    const githubClientIdSecret = secretsmanager.Secret.fromSecretPartialArn(
       this,
       'GitHubClientIdSecret',
-      `/solo-founder-launch-os/${config.stage}/github/client-id`,
+      `${secretArnBase}/github/client-id`,
     );
-    const githubClientSecret = secretsmanager.Secret.fromSecretNameV2(
+    const githubClientSecret = secretsmanager.Secret.fromSecretPartialArn(
       this,
       'GitHubClientSecret',
-      `/solo-founder-launch-os/${config.stage}/github/client-secret`,
+      `${secretArnBase}/github/client-secret`,
     );
-    const githubCallbackUrlSecret = secretsmanager.Secret.fromSecretNameV2(
+    const githubCallbackUrlSecret = secretsmanager.Secret.fromSecretPartialArn(
       this,
       'GitHubCallbackUrlSecret',
-      `/solo-founder-launch-os/${config.stage}/github/callback-url`,
+      `${secretArnBase}/github/callback-url`,
     );
-    const encryptionKeySecret = secretsmanager.Secret.fromSecretNameV2(
+    const encryptionKeySecret = secretsmanager.Secret.fromSecretPartialArn(
       this,
       'EncryptionKeySecret',
-      `/solo-founder-launch-os/${config.stage}/encryption/key`,
+      `${secretArnBase}/encryption/key`,
     );
 
     // --- CloudWatch Log Group ---
@@ -127,6 +130,18 @@ export class ContainerStack extends cdk.Stack {
       githubCallbackUrlSecret,
       encryptionKeySecret,
     ].forEach((secret) => secret.grantRead(executionRole));
+
+    // CDK's fromSecretNameV2 grants access with a -?????? suffix pattern,
+    // but ECS makes GetSecretValue calls using the secret name without suffix.
+    // Add an explicit broad policy to cover both forms.
+    executionRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['secretsmanager:GetSecretValue', 'secretsmanager:DescribeSecret'],
+        resources: [
+          `arn:aws:secretsmanager:${config.region}:${config.account}:secret:/solo-founder-launch-os/${config.stage}/*`,
+        ],
+      }),
+    );
 
     // --- Task Role (used by the running container) ---
     const taskRole = new iam.Role(this, 'TaskRole', {
