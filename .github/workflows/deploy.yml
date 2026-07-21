@@ -77,14 +77,9 @@ jobs:
       - name: Deploy Container Stack (tasks start at desired count)
         run: |
           cd packages/infra
-          # Check if this is first deploy (no existing stack)
-          STACK_EXISTS=$(aws cloudformation describe-stacks --stack-name production-container --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
-          if [ "$STACK_EXISTS" = "DOES_NOT_EXIST" ]; then
-            echo "First deploy detected — deploying with desiredCount=0 to allow migration first"
-            npx cdk deploy production-container --context stage=production --context initialDeploy=true --require-approval never
-          else
-            npx cdk deploy production-container --context stage=production --require-approval never
-          fi
+          # Deploy with desiredCount=0 to prevent circuit breaker during migrations.
+          # The "Scale Up" step below will start tasks after migrations succeed.
+          npx cdk deploy production-container --context stage=production --context initialDeploy=true --require-approval never
 
       - name: Run Database Migration
         run: |
