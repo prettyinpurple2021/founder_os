@@ -69,7 +69,8 @@ COPY --from=builder /app/packages/api/src/generated ./packages/api/src/generated
 
 # Copy Prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/packages/api/prisma ./packages/api/prisma
-COPY --from=builder /app/packages/api/prisma.config.ts ./packages/api/
+# Note: prisma.config.ts is intentionally NOT copied to production.
+# It requires 'prisma/config' (dev dependency). Prisma CLI uses DATABASE_URL env var instead.
 
 # Copy package.json files (needed for version info and module resolution)
 COPY --from=builder /app/package.json ./
