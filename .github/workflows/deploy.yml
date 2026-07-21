@@ -104,6 +104,17 @@ jobs:
             --filters "Name=group-name,Values=solo-founder-production-ecs-sg" \
             --query 'SecurityGroups[0].GroupId' --output text)
 
+          # Get database credentials from Secrets Manager to build DATABASE_URL
+          DB_SECRET=$(aws secretsmanager get-secret-value \
+            --secret-id /solo-founder-launch-os/production/database/credentials \
+            --query 'SecretString' --output text)
+          DB_USER=$(echo "$DB_SECRET" | jq -r '.username')
+          DB_PASS=$(echo "$DB_SECRET" | jq -r '.password')
+          DB_HOST=$(aws rds describe-db-instances \
+            --db-instance-identifier solo-founder-production-db \
+            --query 'DBInstances[0].Endpoint.Address' --output text)
+          DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/solofounder"
+
           echo "Running migration task..."
           TASK_ARN=$(aws ecs run-task \
             --cluster "$CLUSTER_NAME" \
@@ -113,7 +124,8 @@ jobs:
             --overrides "{
               \"containerOverrides\": [{
                 \"name\": \"solo-founder-production-api\",
-                \"command\": [\"npx\", \"prisma\", \"migrate\", \"deploy\", \"--schema\", \"/app/packages/api/prisma/schema.prisma\"]
+                \"command\": [\"sh\", \"-c\", \"DATABASE_URL='${DATABASE_URL}' npx --yes prisma migrate deploy --schema /app/packages/api/prisma/schema.prisma\"],
+                \"environment\": [{\"name\": \"DATABASE_URL\", \"value\": \"${DATABASE_URL}\"}]
               }]
             }" \
             --query 'tasks[0].taskArn' \
@@ -130,7 +142,6 @@ jobs:
 
           if [ "$EXIT_CODE" != "0" ]; then
             echo "::error::Database migration failed with exit code $EXIT_CODE"
-            # Show logs
             TASK_ID=$(echo "$TASK_ARN" | awk -F'/' '{print $NF}')
             aws logs get-log-events \
               --log-group-name /ecs/solo-founder-production-api \
