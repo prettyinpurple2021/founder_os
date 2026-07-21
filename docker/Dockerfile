@@ -40,6 +40,7 @@ RUN npm run prisma:generate --workspace=packages/api
 COPY packages/api/tsconfig.json ./packages/api/
 COPY packages/api/loader.js ./packages/api/
 COPY packages/api/resolve-hook.js ./packages/api/
+COPY packages/api/prisma.config.prod.js ./packages/api/
 COPY tsconfig.json ./
 COPY packages/api/src ./packages/api/src/
 
@@ -69,8 +70,8 @@ COPY --from=builder /app/packages/api/src/generated ./packages/api/src/generated
 
 # Copy Prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/packages/api/prisma ./packages/api/prisma
-# Note: prisma.config.ts is intentionally NOT copied to production.
-# It requires 'prisma/config' (dev dependency). Prisma CLI uses DATABASE_URL env var instead.
+# Use production prisma config (doesn't require 'prisma/config' dev dependency)
+COPY --from=builder /app/packages/api/prisma.config.prod.js ./packages/api/prisma.config.ts
 
 # Copy package.json files (needed for version info and module resolution)
 COPY --from=builder /app/package.json ./
