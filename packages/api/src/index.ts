@@ -253,9 +253,13 @@ function buildConfigFromEnv(): AppConfig {
 /**
  * App instance created from environment variables for backward-compatible imports.
  * Tests and supertest use this default export directly.
+ * In production, bootstrap() is used instead (with Secrets Manager integration).
  */
-const app = createApp(buildConfigFromEnv());
-export default app;
+let app: ReturnType<typeof createApp>;
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
+  app = createApp(buildConfigFromEnv());
+}
+export default app!;
 
 /**
  * Bootstrap the application: load validated config (with Secrets Manager in production),
