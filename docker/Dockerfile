@@ -3,7 +3,7 @@
 
 # ─── Stage 1: Dependencies ──────────────────────────────────────────────────
 # Install production dependencies only, maximizing layer cache reuse.
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN npm ci --omit=dev --workspace=packages/api
 
 # ─── Stage 2: Builder ────────────────────────────────────────────────────────
 # Compile TypeScript and generate Prisma client.
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -39,6 +39,7 @@ RUN npm run prisma:generate --workspace=packages/api
 # Copy TypeScript source and config
 COPY packages/api/tsconfig.json ./packages/api/
 COPY packages/api/loader.js ./packages/api/
+COPY packages/api/resolve-hook.js ./packages/api/
 COPY tsconfig.json ./
 COPY packages/api/src ./packages/api/src/
 
@@ -47,7 +48,7 @@ RUN npm run build --workspace=packages/api
 
 # ─── Stage 3: Production ─────────────────────────────────────────────────────
 # Minimal runtime image with compiled JS and production node_modules only.
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl
@@ -76,6 +77,7 @@ COPY --from=builder /app/packages/api/package.json ./packages/api/
 
 # Copy ESM loader (resolves extensionless Prisma imports)
 COPY --from=builder /app/packages/api/loader.js ./packages/api/
+COPY --from=builder /app/packages/api/resolve-hook.js ./packages/api/
 
 # Set ownership to non-root user
 RUN chown -R appuser:appgroup /app
@@ -95,7 +97,6 @@ EXPOSE ${PORT}
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:${PORT}/health/live || exit 1
 
-# Start the API service with --experimental-specifier-resolution=node
-# This is needed because Prisma generates imports without .js extensions
+# Start the API service with custom ESM loader for Prisma compatibility
 WORKDIR /app/packages/api
-CMD ["node", "--loader", "./loader.js", "dist/index.js"]
+CMD ["node", "--import", "./loader.js", "dist/index.js"]
