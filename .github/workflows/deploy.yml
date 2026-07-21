@@ -116,6 +116,7 @@ jobs:
           DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:5432/solofounder"
 
           echo "Running migration task..."
+          # First resolve any previously failed migration, then run deploy
           TASK_ARN=$(aws ecs run-task \
             --cluster "$CLUSTER_NAME" \
             --task-definition "$TASK_DEF" \
@@ -124,7 +125,7 @@ jobs:
             --overrides "{
               \"containerOverrides\": [{
                 \"name\": \"solo-founder-production-api\",
-                \"command\": [\"sh\", \"-c\", \"DATABASE_URL='${DATABASE_URL}' npx --yes prisma migrate deploy --schema /app/packages/api/prisma/schema.prisma\"],
+                \"command\": [\"sh\", \"-c\", \"npx --yes prisma migrate resolve --rolled-back 0001_init --schema /app/packages/api/prisma/schema.prisma 2>/dev/null; npx --yes prisma migrate deploy --schema /app/packages/api/prisma/schema.prisma\"],
                 \"environment\": [{\"name\": \"DATABASE_URL\", \"value\": \"${DATABASE_URL}\"}]
               }]
             }" \
