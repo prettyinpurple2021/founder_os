@@ -125,7 +125,7 @@ jobs:
             --overrides "{
               \"containerOverrides\": [{
                 \"name\": \"solo-founder-production-api\",
-                \"command\": [\"sh\", \"-c\", \"npx --yes prisma migrate resolve --rolled-back 0001_init --schema /app/packages/api/prisma/schema.prisma 2>/dev/null; npx --yes prisma migrate deploy --schema /app/packages/api/prisma/schema.prisma\"],
+                \"command\": [\"sh\", \"-c\", \"npx --yes prisma migrate resolve --rolled-back 0001_init --schema /app/packages/api/prisma/schema.prisma 2>/dev/null || true && npx --yes prisma migrate deploy --schema /app/packages/api/prisma/schema.prisma\"],
                 \"environment\": [{\"name\": \"DATABASE_URL\", \"value\": \"${DATABASE_URL}\"}]
               }]
             }" \
