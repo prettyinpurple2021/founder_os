@@ -4,13 +4,18 @@ import prisma from '../lib/prisma.js';
 import { encrypt } from '../lib/encryption.js';
 
 /**
- * Initializes the GitHub OAuth strategy. Must be called after dotenv.config()
- * has loaded environment variables.
+ * Initializes the GitHub OAuth strategy. Must be called after config is loaded
+ * (either from env vars or Secrets Manager).
  */
-export function initializePassport(): void {
-  const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID!;
-  const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET!;
-  const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL!;
+export function initializePassport(config?: { clientId: string; clientSecret: string; callbackUrl: string }): void {
+  const GITHUB_CLIENT_ID = config?.clientId ?? process.env.GITHUB_CLIENT_ID!;
+  const GITHUB_CLIENT_SECRET = config?.clientSecret ?? process.env.GITHUB_CLIENT_SECRET!;
+  const GITHUB_CALLBACK_URL = config?.callbackUrl ?? process.env.GITHUB_CALLBACK_URL!;
+
+  if (!GITHUB_CLIENT_ID) {
+    console.error('[passport] GITHUB_CLIENT_ID not set — skipping OAuth strategy initialization');
+    return;
+  }
 
   passport.use(
     new GitHubStrategy(

@@ -36,8 +36,7 @@ import { setupExpressRequestContext, setupExpressErrorHandler } from 'posthog-no
 // Load .env for local development (Secrets Manager overrides in production)
 dotenv.config();
 
-// Initialize passport after env vars are loaded
-initializePassport();
+// Passport is initialized inside bootstrap() after secrets are loaded from Secrets Manager
 
 /**
  * Resolve the CORS origin based on config and environment mode.
@@ -265,6 +264,13 @@ export default app;
  */
 async function bootstrap(): Promise<void> {
   const config = await loadConfig();
+
+  // Initialize Passport GitHub strategy after secrets are loaded
+  initializePassport({
+    clientId: config.github.clientId,
+    clientSecret: config.github.clientSecret,
+    callbackUrl: config.github.callbackUrl,
+  });
 
   const bootstrappedApp = createApp(config);
 
