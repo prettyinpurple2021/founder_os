@@ -29,6 +29,7 @@ import { generalLimiter, authLimiter, contentGenerationLimiter } from './middlew
 import { csrfMiddleware } from './middleware/csrf.js';
 import { startScheduler } from './services/scheduler.js';
 import { loadConfig, type AppConfig } from './config/index.js';
+import { fetchSecrets } from './config/secrets.js';
 import { buildDatabaseUrl } from './config/databaseUrl.js';
 import posthog from './lib/posthog.js';
 import { setupExpressRequestContext, setupExpressErrorHandler } from 'posthog-node';
@@ -263,7 +264,7 @@ export default app;
  * if any are missing (Requirements 4.1, 4.3).
  */
 async function bootstrap(): Promise<void> {
-  const config = await loadConfig();
+  const config = await loadConfig(fetchSecrets);
 
   // Initialize Passport GitHub strategy after secrets are loaded
   initializePassport({
